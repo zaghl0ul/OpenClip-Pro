@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
@@ -32,6 +32,24 @@ const Sidebar = ({ isOpen, setOpen }) => {
     tools: true,
     stats: false
   })
+  
+  // Auto-shrink sidebar on smaller screens
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        setOpen(false);
+      }
+    };
+    
+    // Set initial state
+    handleResize();
+    
+    // Add listener
+    window.addEventListener('resize', handleResize);
+    
+    // Cleanup
+    return () => window.removeEventListener('resize', handleResize);
+  }, [setOpen]);
   
   const recentProjects = getRecentProjects ? getRecentProjects(5) : []
   const stats = getProjectStats ? getProjectStats() : {}
@@ -158,7 +176,7 @@ const Sidebar = ({ isOpen, setOpen }) => {
     } catch (error) {
       throw error
     }
-  }, { operation: 'quick_export' })
+  }, { operation: 'trim_clips' })
   
   const quickTools = [
     {
@@ -222,17 +240,28 @@ const Sidebar = ({ isOpen, setOpen }) => {
       }
     })
   }
+
+  // Enhanced glass effect styling
+  const glassStyle = {
+    background: 'rgba(13, 17, 23, 0.75)',
+    backdropFilter: 'blur(16px)',
+    WebkitBackdropFilter: 'blur(16px)',
+    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.05)',
+    border: '1px solid rgba(255, 255, 255, 0.05)',
+    width: isOpen ? '16rem' : '5rem',
+    transition: 'width 0.3s ease'
+  };
   
   return (
     <>
       {/* Overlay for mobile */}
       <AnimatePresence>
-        {isOpen && (
+        {isOpen && window.innerWidth < 1024 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+            className="fixed inset-0 bg-black bg-opacity-50 z-40 backdrop-blur-sm"
             onClick={() => setOpen(false)}
           />
         )}
@@ -240,21 +269,29 @@ const Sidebar = ({ isOpen, setOpen }) => {
       
       {/* Sidebar */}
       <motion.aside
-        className={`fixed top-0 left-0 h-full z-50 flex flex-col glass border-r ${
-          isOpen ? 'w-64' : 'w-20'
-        } transition-all duration-300`}
+        className={`h-full z-50 flex flex-col`}
+        style={glassStyle}
         variants={mobileSidebarVariants}
-        initial="closed"
-        animate={isOpen ? 'open' : 'closed'}
+        initial={false}
+        animate={window.innerWidth < 1024 ? (isOpen ? 'open' : 'closed') : {}}
       >
+        {/* Reflective top edge */}
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+        
+        {/* Reflective right edge */}
+        <div className="absolute top-0 bottom-0 right-0 w-px bg-gradient-to-b from-white/20 via-white/10 to-transparent"></div>
+        
         <div className="flex-1 overflow-y-auto scrollbar-thin">
           <div className="p-4">
             <Link
               to="/"
               className={`flex items-center gap-2 mb-6 ${!isOpen && 'justify-center'}`}
             >
-              <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
-                <span className="text-primary font-bold text-lg">OC</span>
+              <div className="w-10 h-10 bg-primary/20 backdrop-blur-xl rounded-lg flex items-center justify-center relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-transparent"></div>
+                <div className="absolute top-0 left-0 right-0 h-px bg-white/20"></div>
+                <div className="absolute top-0 bottom-0 left-0 w-px bg-white/20"></div>
+                <span className="text-primary font-bold text-lg relative z-10">OC</span>
               </div>
               {isOpen && (
                 <div className="flex flex-col">
@@ -279,19 +316,34 @@ const Sidebar = ({ isOpen, setOpen }) => {
                   >
                     <Link
                       to={item.path}
-                      className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                         isActive
-                          ? 'bg-primary text-background'
-                          : 'text-subtle hover:text-secondary hover:bg-surface'
-                      }`}
+                          ? 'bg-primary/20 text-white shadow-lg shadow-primary/10'
+                          : 'text-subtle hover:text-white hover:bg-white/5'
+                      } relative overflow-hidden`}
                       onClick={() => {
                         if (window.innerWidth < 1024) {
                           setOpen(false);
                         }
                       }}
                     >
-                      <Icon className="w-5 h-5" />
+                      {/* Subtle gradient for active items */}
+                      {isActive && (
+                        <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent pointer-events-none"></div>
+                      )}
+                      
+                      {/* Top reflective edge for active items */}
+                      {isActive && (
+                        <div className="absolute top-0 left-0 right-0 h-px bg-primary/30"></div>
+                      )}
+                      
+                      <Icon className={`w-5 h-5 ${isActive ? 'text-primary' : ''}`} />
                       {isOpen && <span>{item.label}</span>}
+                      
+                      {/* Active indicator */}
+                      {isActive && isOpen && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-primary"></div>
+                      )}
                     </Link>
                   </motion.div>
                 );
@@ -303,10 +355,10 @@ const Sidebar = ({ isOpen, setOpen }) => {
                 <div className="mt-8 mb-2">
                   <button
                     onClick={() => toggleSection('tools')}
-                    className="flex items-center justify-between w-full px-3 py-2 text-sm font-medium text-subtle hover:text-secondary"
+                    className="flex items-center justify-between w-full px-3 py-2 text-sm font-medium text-subtle hover:text-secondary group"
                   >
                     <div className="flex items-center gap-2">
-                      <Zap className="w-4 h-4" />
+                      <Zap className="w-4 h-4 group-hover:text-primary transition-colors" />
                       <span>Quick Tools</span>
                     </div>
                     {expandedSections.tools ? (
@@ -329,9 +381,10 @@ const Sidebar = ({ isOpen, setOpen }) => {
                             <button
                               key={tool.id}
                               onClick={tool.action}
-                              className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-subtle hover:text-secondary hover:bg-surface transition-colors"
+                              className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-subtle hover:text-white hover:bg-white/5 transition-all relative overflow-hidden group"
                             >
-                              <tool.icon className="w-4 h-4" />
+                              <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                              <tool.icon className="w-4 h-4 group-hover:text-primary transition-colors" />
                               <span>{tool.label}</span>
                             </button>
                           ))}
@@ -344,10 +397,10 @@ const Sidebar = ({ isOpen, setOpen }) => {
                 <div className="mb-2">
                   <button
                     onClick={() => toggleSection('recent')}
-                    className="flex items-center justify-between w-full px-3 py-2 text-sm font-medium text-subtle hover:text-secondary"
+                    className="flex items-center justify-between w-full px-3 py-2 text-sm font-medium text-subtle hover:text-secondary group"
                   >
                     <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4" />
+                      <Clock className="w-4 h-4 group-hover:text-primary transition-colors" />
                       <span>Recent Projects</span>
                     </div>
                     {expandedSections.recent ? (
@@ -371,13 +424,14 @@ const Sidebar = ({ isOpen, setOpen }) => {
                               <Link
                                 key={project.id}
                                 to={`/projects/${project.id}`}
-                                className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm text-subtle hover:text-secondary hover:bg-surface transition-colors"
+                                className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm text-subtle hover:text-white hover:bg-white/5 transition-all relative overflow-hidden group"
                                 onClick={() => {
                                   if (window.innerWidth < 1024) {
                                     setOpen(false);
                                   }
                                 }}
                               >
+                                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                 <div className="w-2 h-2 rounded-full bg-primary"></div>
                                 <span className="truncate">{project.name}</span>
                               </Link>
@@ -396,10 +450,10 @@ const Sidebar = ({ isOpen, setOpen }) => {
                 <div>
                   <button
                     onClick={() => toggleSection('stats')}
-                    className="flex items-center justify-between w-full px-3 py-2 text-sm font-medium text-subtle hover:text-secondary"
+                    className="flex items-center justify-between w-full px-3 py-2 text-sm font-medium text-subtle hover:text-secondary group"
                   >
                     <div className="flex items-center gap-2">
-                      <Star className="w-4 h-4" />
+                      <Star className="w-4 h-4 group-hover:text-primary transition-colors" />
                       <span>Quick Stats</span>
                     </div>
                     {expandedSections.stats ? (
@@ -420,19 +474,31 @@ const Sidebar = ({ isOpen, setOpen }) => {
                         <div className="pl-4 pr-2 py-2 space-y-3">
                           {stats && Object.keys(stats).length > 0 ? (
                             <>
-                              <div className="px-3 py-2 rounded-lg bg-surface">
-                                <div className="text-xs text-subtle">Total Projects</div>
-                                <div className="text-lg font-semibold text-white">{stats.totalProjects || 0}</div>
+                              <div className="px-3 py-2 rounded-lg bg-white/5 backdrop-blur-lg relative overflow-hidden">
+                                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent"></div>
+                                <div className="absolute top-0 left-0 right-0 h-px bg-white/10"></div>
+                                <div className="relative">
+                                  <div className="text-xs text-subtle">Total Projects</div>
+                                  <div className="text-lg font-semibold text-white">{stats.totalProjects || 0}</div>
+                                </div>
                               </div>
                               
-                              <div className="px-3 py-2 rounded-lg bg-surface">
-                                <div className="text-xs text-subtle">Total Clips</div>
-                                <div className="text-lg font-semibold text-white">{stats.totalClips || 0}</div>
+                              <div className="px-3 py-2 rounded-lg bg-white/5 backdrop-blur-lg relative overflow-hidden">
+                                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent"></div>
+                                <div className="absolute top-0 left-0 right-0 h-px bg-white/10"></div>
+                                <div className="relative">
+                                  <div className="text-xs text-subtle">Total Clips</div>
+                                  <div className="text-lg font-semibold text-white">{stats.totalClips || 0}</div>
+                                </div>
                               </div>
                               
-                              <div className="px-3 py-2 rounded-lg bg-surface">
-                                <div className="text-xs text-subtle">Processing</div>
-                                <div className="text-lg font-semibold text-white">{stats.processing || 0}</div>
+                              <div className="px-3 py-2 rounded-lg bg-white/5 backdrop-blur-lg relative overflow-hidden">
+                                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent"></div>
+                                <div className="absolute top-0 left-0 right-0 h-px bg-white/10"></div>
+                                <div className="relative">
+                                  <div className="text-xs text-subtle">Processing</div>
+                                  <div className="text-lg font-semibold text-white">{stats.processing || 0}</div>
+                                </div>
                               </div>
                             </>
                           ) : (
@@ -452,10 +518,15 @@ const Sidebar = ({ isOpen, setOpen }) => {
         
         {/* Bottom section */}
         {isOpen && (
-          <div className="p-4 border-t border-border">
+          <div className="p-4 border-t border-white/5 relative">
+            {/* Reflective top edge */}
+            <div className="absolute top-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+            
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                <Users className="w-5 h-5 text-primary" />
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent"></div>
+                <div className="absolute top-0 left-0 right-0 h-px bg-white/20"></div>
+                <Users className="w-5 h-5 text-primary relative z-10" />
               </div>
               <div>
                 <div className="text-sm font-medium text-white">Creator</div>

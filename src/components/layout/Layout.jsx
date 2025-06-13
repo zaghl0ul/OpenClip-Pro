@@ -31,15 +31,35 @@ const Layout = ({ children }) => {
     return () => window.removeEventListener('resize', handleResize);
   }, [location]);
 
+  // Create a subtle background pattern
+  const bgPattern = {
+    backgroundImage: `
+      radial-gradient(circle at 25px 25px, rgba(255, 255, 255, 0.01) 2px, transparent 0),
+      radial-gradient(circle at 75px 75px, rgba(255, 255, 255, 0.01) 2px, transparent 0)
+    `,
+    backgroundSize: '100px 100px',
+  };
+
   return (
-    <div className="flex h-screen bg-background">
-      <Sidebar isOpen={isSidebarOpen} setOpen={setSidebarOpen} />
+    <div className="flex h-screen bg-background overflow-hidden" style={bgPattern}>
+      {/* Subtle gradient overlay */}
+      <div className="fixed inset-0 bg-gradient-to-br from-transparent via-background to-black/20 pointer-events-none z-0"></div>
       
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-20'}`}>
+      {/* Sidebar container */}
+      <div className="fixed top-0 left-0 h-full z-50">
+        <Sidebar isOpen={isSidebarOpen} setOpen={setSidebarOpen} />
+      </div>
+      
+      {/* Main content with fixed left margin */}
+      <div className={`flex-1 flex flex-col transition-all duration-300 relative ${
+        isSidebarOpen ? 'lg:ml-64 ml-0' : 'ml-20'
+      }`}>
         <Header onMenuClick={toggleSidebar} />
         
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 mt-16">
-          {children}
+          <div className="max-w-7xl mx-auto">
+            {children}
+          </div>
         </main>
       </div>
     </div>

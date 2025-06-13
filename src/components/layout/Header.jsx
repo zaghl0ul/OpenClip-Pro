@@ -46,9 +46,21 @@ const Header = ({ onMenuClick }) => {
     { path: '/projects', label: 'Projects', icon: Folder },
     { path: '/settings', label: 'Settings', icon: Settings }
   ]
+
+  // Enhanced glass effect styling
+  const glassStyle = {
+    background: 'rgba(13, 17, 23, 0.75)',
+    backdropFilter: 'blur(16px)',
+    WebkitBackdropFilter: 'blur(16px)',
+    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.05)',
+    borderBottom: '1px solid rgba(255, 255, 255, 0.05)'
+  };
   
   return (
-    <header className="glass fixed top-0 left-0 right-0 z-50 border-b">
+    <header className="fixed top-0 left-0 right-0 z-50" style={glassStyle}>
+      {/* Reflective top edge */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+      
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Left side */}
@@ -56,7 +68,7 @@ const Header = ({ onMenuClick }) => {
             {/* Menu button for sidebar */}
             <button
               onClick={onMenuClick}
-              className="lg:hidden p-2 rounded-lg text-subtle hover:text-secondary hover:bg-surface transition-colors"
+              className="lg:hidden p-2 rounded-lg text-subtle hover:text-white hover:bg-white/10 transition-all"
             >
                 <Menu className="w-5 h-5" />
             </button>
@@ -66,8 +78,11 @@ const Header = ({ onMenuClick }) => {
               to="/"
               className="flex items-center gap-2 text-xl font-bold text-white hover:text-primary transition-colors"
             >
-              <div className="w-8 h-8 bg-primary/20 rounded-lg flex items-center justify-center">
-                <span className="text-primary font-bold text-sm">OC</span>
+              <div className="w-8 h-8 bg-primary/20 rounded-lg flex items-center justify-center relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-transparent"></div>
+                <div className="absolute top-0 left-0 right-0 h-px bg-white/20"></div>
+                <div className="absolute top-0 bottom-0 left-0 w-px bg-white/20"></div>
+                <span className="text-primary font-bold text-sm relative z-10">OC</span>
               </div>
               <span className="hidden sm:block">OpenClip</span>
             </Link>
@@ -82,13 +97,23 @@ const Header = ({ onMenuClick }) => {
                   <Link
                     key={item.path}
                     to={item.path}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                       isActive
-                        ? 'bg-primary text-background'
-                        : 'text-subtle hover:text-secondary hover:bg-surface'
-                    }`}
+                        ? 'bg-primary/20 text-white'
+                        : 'text-subtle hover:text-white hover:bg-white/5'
+                    } relative overflow-hidden`}
                   >
-                    <Icon className="w-4 h-4" />
+                    {/* Subtle gradient for active items */}
+                    {isActive && (
+                      <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent pointer-events-none"></div>
+                    )}
+                    
+                    {/* Top reflective edge for active items */}
+                    {isActive && (
+                      <div className="absolute top-0 left-0 right-0 h-px bg-primary/30"></div>
+                    )}
+                    
+                    <Icon className={`w-4 h-4 ${isActive ? 'text-primary' : ''}`} />
                     {item.label}
                   </Link>
                 )
@@ -107,7 +132,7 @@ const Header = ({ onMenuClick }) => {
                 onFocus={() => searchQuery && setShowSearchResults(true)}
                 onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
                 placeholder="Search projects..."
-                className="input w-full pl-10"
+                className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-subtle focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all"
               />
             </div>
             
@@ -116,14 +141,21 @@ const Header = ({ onMenuClick }) => {
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="absolute top-full left-0 right-0 mt-2 glass border rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto"
+                className="absolute top-full left-0 right-0 mt-2 bg-white/5 backdrop-blur-xl border border-white/10 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto"
+                style={{
+                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2)'
+                }}
               >
+                <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent opacity-50 pointer-events-none"></div>
+                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+                
                 {searchResults.map(project => (
                   <button
                     key={project.id}
                     onClick={() => handleSearchResultClick(project.id)}
-                    className="w-full px-4 py-3 text-left hover:bg-surface transition-colors border-b border-border last:border-b-0"
+                    className="w-full px-4 py-3 text-left hover:bg-white/5 transition-all border-b border-white/5 last:border-b-0 relative group"
                   >
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     <div className="font-medium text-white">{project.name}</div>
                     <div className="text-sm text-subtle mt-1">
                       {project.clips?.length || 0} clips • {new Date(project.createdAt || project.created_at).toLocaleDateString()}
@@ -139,16 +171,18 @@ const Header = ({ onMenuClick }) => {
             {/* Quick Create Button */}
             <button
               onClick={() => navigate('/projects?create=true')}
-              className="btn btn-primary btn-sm hidden sm:flex"
+              className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-primary/20 hover:bg-primary/30 border border-primary/30 rounded-lg text-sm font-medium text-white transition-all relative overflow-hidden group"
             >
-              <Plus className="w-4 h-4 mr-2" />
-              New Project
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent opacity-50"></div>
+              <div className="absolute top-0 left-0 right-0 h-px bg-white/30"></div>
+              <Plus className="w-4 h-4 text-primary" />
+              <span className="relative">New Project</span>
             </button>
             
             {/* Mobile menu toggle */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 rounded-lg text-subtle hover:text-secondary hover:bg-surface transition-colors"
+              className="lg:hidden p-2 rounded-lg text-subtle hover:text-white hover:bg-white/10 transition-all"
             >
               {mobileMenuOpen ? (
                 <X className="w-5 h-5" />
@@ -161,7 +195,7 @@ const Header = ({ onMenuClick }) => {
             <div className="hidden lg:flex items-center gap-2">
               {/* Notifications */}
               <button
-                className="p-2 rounded-lg text-subtle hover:text-secondary hover:bg-surface transition-colors relative"
+                className="p-2 rounded-lg text-subtle hover:text-white hover:bg-white/10 transition-all relative"
               >
                 <Bell className="w-5 h-5" />
                 {/* Notification badge */}
@@ -171,7 +205,7 @@ const Header = ({ onMenuClick }) => {
               {/* Settings */}
               <Link
                 to="/settings"
-                className="p-2 rounded-lg text-subtle hover:text-secondary hover:bg-surface transition-colors"
+                className="p-2 rounded-lg text-subtle hover:text-white hover:bg-white/10 transition-all"
               >
                 <Settings className="w-5 h-5" />
               </Link>
@@ -179,12 +213,14 @@ const Header = ({ onMenuClick }) => {
               {/* User Menu */}
               <div className="relative">
                 <button
-                  className="flex items-center gap-2 p-2 rounded-lg text-subtle hover:text-secondary hover:bg-surface transition-colors"
+                  className="flex items-center gap-2 p-2 rounded-lg text-subtle hover:text-white hover:bg-white/10 transition-all"
                 >
-                  <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">
-                    <User className="w-4 h-4 text-primary" />
+                  <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent"></div>
+                    <div className="absolute top-0 left-0 right-0 h-px bg-white/20"></div>
+                    <User className="w-4 h-4 text-primary relative z-10" />
                   </div>
-                  <span className="hidden sm:block text-sm font-medium text-secondary">
+                  <span className="hidden sm:block text-sm font-medium text-white">
                     Creator
                   </span>
                 </button>
@@ -200,7 +236,12 @@ const Header = ({ onMenuClick }) => {
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
-          className="lg:hidden border-t border-border glass"
+          className="lg:hidden border-t border-white/10"
+          style={{
+            background: 'rgba(13, 17, 23, 0.85)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)'
+          }}
         >
           <nav className="px-4 py-4 space-y-2">
             {navItems.map(item => {
@@ -214,13 +255,23 @@ const Header = ({ onMenuClick }) => {
                   onClick={() => {
                     setMobileMenuOpen(false)
                   }}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                     isActive
-                      ? 'bg-primary text-background'
-                      : 'text-subtle hover:text-secondary hover:bg-surface'
-                  }`}
+                      ? 'bg-primary/20 text-white'
+                      : 'text-subtle hover:text-white hover:bg-white/5'
+                  } relative overflow-hidden`}
                 >
-                  <Icon className="w-4 h-4" />
+                  {/* Subtle gradient for active items */}
+                  {isActive && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent pointer-events-none"></div>
+                  )}
+                  
+                  {/* Top reflective edge for active items */}
+                  {isActive && (
+                    <div className="absolute top-0 left-0 right-0 h-px bg-primary/30"></div>
+                  )}
+                  
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-primary' : ''}`} />
                   {item.label}
                 </Link>
               )
@@ -232,8 +283,9 @@ const Header = ({ onMenuClick }) => {
                 navigate('/projects?create=true')
                 setMobileMenuOpen(false)
               }}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-subtle hover:text-secondary hover:bg-surface transition-colors"
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-subtle hover:text-white hover:bg-white/5 transition-all relative overflow-hidden"
             >
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 hover:opacity-100 transition-opacity"></div>
               <Plus className="w-4 h-4" />
               New Project
             </button>
