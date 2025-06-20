@@ -18,11 +18,15 @@ import {
   Calendar
 } from 'lucide-react'
 import useProjectStore from '../stores/projectStore'
+import authService from '../services/authService'
 
 const Dashboard = () => {
   const navigate = useNavigate()
-  const { projects, getProjectStats } = useProjectStore()
+  const { projects, getProjectStats, loadProjects } = useProjectStore()
   const [timeGreeting, setTimeGreeting] = useState('')
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  
   const stats = getProjectStats ? getProjectStats() : {
     totalProjects: 0,
     totalClips: 0,
@@ -36,6 +40,48 @@ const Dashboard = () => {
     else if (hour < 18) setTimeGreeting('Good afternoon')
     else setTimeGreeting('Good evening')
   }, [])
+
+  // Auto-login for development
+  useEffect(() => {
+    const autoLogin = async () => {
+      try {
+        if (!authService.isAuthenticated()) {
+          console.log('No auth token found, attempting auto-login...')
+          const result = await authService.login({
+            email: 'admin@openclippro.com',
+            password: 'admin123!'
+          })
+          
+          if (result.success) {
+            console.log('Auto-login successful')
+            setIsAuthenticated(true)
+          } else {
+            console.error('Auto-login failed:', result.error)
+            setIsAuthenticated(false)
+          }
+        } else {
+          console.log('Already authenticated')
+          setIsAuthenticated(true)
+        }
+      } catch (error) {
+        console.error('Auto-login error:', error)
+        setIsAuthenticated(false)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    
+    autoLogin()
+  }, [])
+
+  // Load projects when authenticated
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      loadProjects().catch(error => {
+        console.error('Failed to load projects:', error)
+      })
+    }
+  }, [isAuthenticated, isLoading, loadProjects])
   
   const handleCreateProject = () => {
     navigate('/projects?create=true')
@@ -45,13 +91,31 @@ const Dashboard = () => {
     navigate(`/projects/${projectId}`)
   }
 
+  // Show loading screen while authenticating
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+            className="w-16 h-16 mx-auto mb-4"
+          >
+            <Sparkles className="w-full h-full text-primary" />
+          </motion.div>
+          <p className="text-white/60">Initializing OpenClip Pro...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-8">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="glass-panel p-6 relative overflow-hidden"
+        className="glass-frosted p-6 relative overflow-hidden"
       >
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none"></div>
         <h1 className="text-3xl font-bold text-white">{timeGreeting}, Creator!</h1>
@@ -83,7 +147,7 @@ const Dashboard = () => {
         transition={{ duration: 0.5, delay: 0.1 }}
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
       >
-        <div className="glass-card p-4">
+        <div className="glass-frosted p-4">
           <div className="flex items-center gap-3">
             <div className="bg-primary/10 p-2 rounded-lg">
               <Video className="w-5 h-5 text-primary" />
@@ -95,7 +159,7 @@ const Dashboard = () => {
           </div>
         </div>
         
-        <div className="glass-card p-4">
+        <div className="glass-frosted p-4">
           <div className="flex items-center gap-3">
             <div className="bg-primary/10 p-2 rounded-lg">
               <Play className="w-5 h-5 text-primary" />
@@ -107,7 +171,7 @@ const Dashboard = () => {
           </div>
         </div>
         
-        <div className="glass-card p-4">
+        <div className="glass-frosted p-4">
           <div className="flex items-center gap-3">
             <div className="bg-primary/10 p-2 rounded-lg">
               <Target className="w-5 h-5 text-primary" />
@@ -119,7 +183,7 @@ const Dashboard = () => {
           </div>
         </div>
         
-        <div className="glass-card p-4">
+        <div className="glass-frosted p-4">
           <div className="flex items-center gap-3">
             <div className="bg-primary/10 p-2 rounded-lg">
               <Clock className="w-5 h-5 text-primary" />
@@ -209,7 +273,7 @@ const Dashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
-          className="glass-card lg:col-span-2"
+          className="glass-frosted lg:col-span-2"
         >
           <div className="p-4 border-b border-border flex items-center justify-between">
             <h2 className="text-lg font-semibold text-white">Recent Projects</h2>
@@ -224,7 +288,7 @@ const Dashboard = () => {
           </div>
           
           <div className="p-4">
-            {!projects || projects.length === 0 ? (
+            {!projects || !Array.isArray(projects) || projects.length === 0 ? (
               <div className="text-center py-8">
                 <div className="bg-primary/5 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Video className="w-8 h-8 text-primary/60" />

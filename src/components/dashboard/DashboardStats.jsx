@@ -47,14 +47,14 @@ const DashboardStats = ({ stats }) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 * index }}
-          className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700"
+          className="glass-frosted p-6"
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-500 dark:text-gray-400 text-sm font-medium mb-1">
+              <p className="text-gray-400 text-sm font-medium mb-1">
                 {card.title}
               </p>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+              <h3 className="text-2xl font-bold text-white">
                 {card.value}
               </h3>
             </div>

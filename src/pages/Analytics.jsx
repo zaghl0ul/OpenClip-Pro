@@ -89,7 +89,7 @@ const Analytics = () => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6"
+      className="glass-frosted p-6"
     >
       <div className="flex items-center justify-between mb-4">
         <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
@@ -104,10 +104,10 @@ const Analytics = () => {
       </div>
       
       <div>
-        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+        <h3 className="text-2xl font-bold text-white mb-1">
           {format === 'duration' ? formatDuration(value) : formatNumber(value)}
         </h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400">{title}</p>
+        <p className="text-sm text-gray-400">{title}</p>
       </div>
     </motion.div>
   );

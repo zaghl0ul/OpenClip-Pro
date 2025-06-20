@@ -1,6 +1,7 @@
 {
   "name": "openclip-pro",
   "version": "1.0.0",
+  "type": "module",
   "description": "AI-powered video clipping application with adaptive UI",
   "main": "index.js",
   "scripts": {

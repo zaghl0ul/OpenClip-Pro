@@ -19,7 +19,8 @@ import {
   Star,
   Brain,
   Target,
-  Sparkles
+  Sparkles,
+  Folder
 } from 'lucide-react';
 import useProjectStore from '../stores/projectStore';
 import { useErrorHandler } from '../hooks/useErrorHandler';
@@ -174,12 +175,12 @@ const Clips = () => {
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
-      className="comprehensive-glass rounded-2xl overflow-hidden hover:scale-[1.02] transition-transform cursor-pointer"
+      className="glass-frosted rounded-2xl overflow-hidden hover:scale-[1.02] transition-transform cursor-pointer"
       whileHover={{ y: -4 }}
     >
       <div className="relative z-10">
-        {/* Enhanced Clip Thumbnail with Glass */}
-        <div className="aspect-video comprehensive-glass glass-button relative group overflow-hidden">
+        {/* Clip Thumbnail with Glass Enhancement */}
+        <div className="aspect-video glass-frosted glass-button relative group overflow-hidden">
           {clip.thumbnail ? (
             <img
               src={clip.thumbnail}
@@ -192,28 +193,32 @@ const Clips = () => {
             </div>
           )}
           
-          {/* Enhanced Play Button Overlay */}
-          <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-            <motion.button 
-              className="p-4 comprehensive-glass glass-button rounded-full text-white hover:bg-white/20 transition-colors"
+          {/* Play Button Overlay */}
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
+              className="p-4 glass-frosted glass-button rounded-full text-white hover:bg-white/20 transition-colors"
             >
-              <Play className="w-8 h-8" />
+              <Play className="w-6 h-6" />
             </motion.button>
           </div>
           
-          {/* Enhanced Duration Badge */}
-          {clip.duration && (
-            <div className="absolute bottom-3 right-3 px-2 py-1 comprehensive-glass glass-button text-white text-xs rounded-lg">
-              {formatDuration(clip.duration)}
-            </div>
-          )}
+          {/* Duration Badge */}
+          <div className="absolute bottom-3 right-3 px-2 py-1 glass-frosted glass-button text-white text-xs rounded-lg">
+            {formatDuration(clip.duration)}
+          </div>
+          
+          {/* Project Badge */}
+          <div className="absolute top-3 left-3 px-3 py-1 glass-frosted glass-button text-white text-xs rounded-lg flex items-center gap-1">
+            <Folder className="w-3 h-3" />
+            <span>{clip.projectName}</span>
+          </div>
           
           {/* Enhanced Score Badge */}
           {clip.score && (
             <motion.div 
-              className="absolute top-3 left-3 px-3 py-1 comprehensive-glass glass-button text-white text-xs rounded-lg flex items-center gap-1"
+              className="absolute top-3 right-3 px-3 py-1 glass-frosted glass-button text-white text-xs rounded-lg flex items-center gap-1"
               animate={{
                 boxShadow: clip.score >= 80 
                   ? ['0 0 0 rgba(34, 197, 94, 0.5)', '0 0 15px rgba(34, 197, 94, 0.8)', '0 0 0 rgba(34, 197, 94, 0.5)']
@@ -231,7 +236,7 @@ const Clips = () => {
             <div className="relative">
               <motion.button
                 onClick={() => setSelectedClip(selectedClip === clip.id ? null : clip.id)}
-                className="p-2 comprehensive-glass glass-button text-white rounded-lg hover:bg-white/20 transition-colors"
+                className="p-2 glass-frosted glass-button text-white rounded-lg hover:bg-white/20 transition-colors"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -244,7 +249,7 @@ const Clips = () => {
                     initial={{ opacity: 0, scale: 0.95, y: -10 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                    className="absolute top-full right-0 mt-2 w-48 comprehensive-glass rounded-lg p-2 z-20"
+                    className="absolute top-full right-0 mt-2 w-48 glass-frosted rounded-lg p-2 z-20"
                   >
                     <motion.button 
                       className="w-full flex items-center gap-2 px-3 py-2 text-sm text-white rounded-lg hover:bg-white/20 transition-colors"
@@ -305,7 +310,7 @@ const Clips = () => {
               <Clock className="w-3 h-3" />
               <span>{formatDate(clip.createdAt)}</span>
             </div>
-            <div className="comprehensive-glass glass-button px-2 py-1 rounded">
+            <div className="glass-frosted glass-button px-2 py-1 rounded">
               <Eye className="w-3 h-3 inline mr-1" />
               <span>0 views</span>
             </div>
@@ -315,7 +320,7 @@ const Clips = () => {
           <div className="flex gap-2">
             <motion.button 
               onClick={() => handleDownloadClip(clip)}
-              className="flex-1 comprehensive-glass glass-button py-2 rounded-lg text-white hover:bg-white/20 transition-colors flex items-center justify-center gap-2"
+              className="flex-1 glass-frosted glass-button py-2 rounded-lg text-white hover:bg-white/20 transition-colors flex items-center justify-center gap-2"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -324,7 +329,7 @@ const Clips = () => {
             </motion.button>
             <motion.button 
               onClick={() => handleShareClip(clip)}
-              className="comprehensive-glass glass-button p-2 rounded-lg text-white hover:bg-white/20 transition-colors"
+              className="glass-frosted glass-button p-2 rounded-lg text-white hover:bg-white/20 transition-colors"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -342,13 +347,13 @@ const Clips = () => {
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
-      className="comprehensive-glass rounded-xl p-6 hover:bg-white/10 transition-all"
+      className="glass-frosted rounded-xl p-6 hover:bg-white/10 transition-all"
       whileHover={{ scale: 1.01 }}
     >
       <div className="relative z-10">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-6 flex-1">
-            <div className="w-24 h-16 comprehensive-glass glass-button rounded-lg flex items-center justify-center relative overflow-hidden">
+            <div className="w-24 h-16 glass-frosted glass-button rounded-lg flex items-center justify-center relative overflow-hidden">
               {clip.thumbnail ? (
                 <img
                   src={clip.thumbnail}
@@ -371,7 +376,7 @@ const Clips = () => {
                   {clip.name || 'Untitled Clip'}
                 </h3>
                 {clip.score && (
-                  <div className="flex items-center gap-1 px-3 py-1 comprehensive-glass glass-button text-white text-xs rounded-lg">
+                  <div className="flex items-center gap-1 px-3 py-1 glass-frosted glass-button text-white text-xs rounded-lg">
                     <Star className="w-3 h-3" />
                     {clip.score}
                   </div>
@@ -393,27 +398,27 @@ const Clips = () => {
           
           <div className="flex items-center gap-2">
             <motion.button 
-              className="p-3 comprehensive-glass glass-button text-blue-300 hover:bg-blue-500/20 rounded-lg transition-colors"
+              className="p-3 glass-frosted glass-button text-blue-300 hover:bg-blue-500/20 rounded-lg transition-colors"
               whileHover={{ scale: 1.05 }}
             >
               <Play className="w-4 h-4" />
             </motion.button>
             <motion.button 
-              className="p-3 comprehensive-glass glass-button text-white hover:bg-white/20 rounded-lg transition-colors"
+              className="p-3 glass-frosted glass-button text-white hover:bg-white/20 rounded-lg transition-colors"
               whileHover={{ scale: 1.05 }}
             >
               <Edit className="w-4 h-4" />
             </motion.button>
             <motion.button 
               onClick={() => handleDownloadClip(clip)}
-              className="p-3 comprehensive-glass glass-button text-white hover:bg-white/20 rounded-lg transition-colors"
+              className="p-3 glass-frosted glass-button text-white hover:bg-white/20 rounded-lg transition-colors"
               whileHover={{ scale: 1.05 }}
             >
               <Download className="w-4 h-4" />
             </motion.button>
             <motion.button
               onClick={() => handleDeleteClip(clip.id, clip.projectId)}
-              className="p-3 comprehensive-glass glass-button text-red-300 hover:bg-red-500/20 rounded-lg transition-colors"
+              className="p-3 glass-frosted glass-button text-red-300 hover:bg-red-500/20 rounded-lg transition-colors"
               whileHover={{ scale: 1.05 }}
             >
               <Trash2 className="w-4 h-4" />
@@ -445,7 +450,7 @@ const Clips = () => {
     <div className="space-y-8">
       {/* Enhanced Header with Glass */}
       <motion.div 
-        className="comprehensive-glass rounded-2xl p-8"
+        className="glass-frosted rounded-2xl p-8"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -479,7 +484,7 @@ const Clips = () => {
                   placeholder="Search clips..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 comprehensive-glass glass-button rounded-xl text-white placeholder-white/40 border-0 focus:outline-none focus:ring-2 focus:ring-indigo-400/50 transition-all bg-transparent"
+                  className="w-full pl-12 pr-4 py-3 glass-frosted glass-button rounded-xl text-white placeholder-white/40 border-0 focus:outline-none focus:ring-2 focus:ring-indigo-400/50 transition-all bg-transparent"
                 />
               </div>
             </div>
@@ -489,7 +494,7 @@ const Clips = () => {
               <select
                 value={filterBy}
                 onChange={(e) => setFilterBy(e.target.value)}
-                className="px-4 py-3 comprehensive-glass glass-button rounded-xl text-white focus:ring-2 focus:ring-indigo-400/50 focus:outline-none bg-transparent"
+                className="px-4 py-3 glass-frosted glass-button rounded-xl text-white focus:ring-2 focus:ring-indigo-400/50 focus:outline-none bg-transparent"
               >
                 <option value="all">All Clips</option>
                 <option value="high-score">High Score (80+)</option>
@@ -499,7 +504,7 @@ const Clips = () => {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-3 comprehensive-glass glass-button rounded-xl text-white focus:ring-2 focus:ring-indigo-400/50 focus:outline-none bg-transparent"
+                className="px-4 py-3 glass-frosted glass-button rounded-xl text-white focus:ring-2 focus:ring-indigo-400/50 focus:outline-none bg-transparent"
               >
                 <option value="created">Date Created</option>
                 <option value="name">Name</option>
@@ -510,14 +515,14 @@ const Clips = () => {
               
               <motion.button
                 onClick={() => setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')}
-                className="p-3 comprehensive-glass glass-button rounded-xl hover:bg-white/20 transition-colors"
+                className="p-3 glass-frosted glass-button rounded-xl hover:bg-white/20 transition-colors"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
                 {sortOrder === 'desc' ? <SortDesc className="w-5 h-5 text-white" /> : <SortAsc className="w-5 h-5 text-white" />}
               </motion.button>
 
-              <div className="flex comprehensive-glass glass-button rounded-xl overflow-hidden">
+              <div className="flex glass-frosted glass-button rounded-xl overflow-hidden">
                 <motion.button
                   onClick={() => setViewMode('grid')}
                   className={`p-3 ${viewMode === 'grid' ? 'bg-indigo-500 text-white' : 'text-white/60'} hover:bg-indigo-500 hover:text-white transition-colors`}
@@ -548,7 +553,7 @@ const Clips = () => {
         ].map((stat, index) => (
           <motion.div 
             key={stat.label}
-            className="comprehensive-glass rounded-xl p-6"
+            className="glass-frosted rounded-xl p-6"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1, duration: 0.5 }}
@@ -568,7 +573,7 @@ const Clips = () => {
       {/* Enhanced Clips Grid/List */}
       {filteredAndSortedClips.length === 0 ? (
         <motion.div 
-          className="comprehensive-glass rounded-2xl p-12 text-center"
+          className="glass-frosted rounded-2xl p-12 text-center"
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}

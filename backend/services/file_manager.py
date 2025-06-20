@@ -687,3 +687,65 @@ class FileManager:
                 'success': False,
                 'error': str(e)
             }
+    
+    async def save_upload(self, file, project_id: str) -> str:
+        """Save uploaded file and return file path (compatibility method for main.py)"""
+        try:
+            # Read file content
+            file_content = await file.read()
+            file.file.seek(0)  # Reset file pointer
+            
+            # Save the file
+            result = await self.save_uploaded_file(
+                file.file, 
+                file.filename, 
+                project_id
+            )
+            
+            if result['success']:
+                return result['file_path']
+            else:
+                raise Exception(result['error'])
+                
+        except Exception as e:
+            logger.error(f"Error saving upload: {e}")
+            raise
+    
+    def cleanup_project_files(self, project_id: str) -> bool:
+        """Clean up all files associated with a project"""
+        try:
+            deleted_count = 0
+            
+            # Find all files for this project
+            project_files = self.get_project_files(project_id)
+            
+            for file_info in project_files:
+                file_id = file_info.get('file_id')
+                if file_id:
+                    # Delete file asynchronously (but we'll run it sync for now)
+                    import asyncio
+                    try:
+                        # Try to run in existing event loop
+                        loop = asyncio.get_event_loop()
+                        if loop.is_running():
+                            # Schedule for later execution
+                            loop.create_task(self.delete_file(file_id))
+                        else:
+                            loop.run_until_complete(self.delete_file(file_id))
+                        deleted_count += 1
+                    except:
+                        # Fallback to sync deletion
+                        try:
+                            file_path = Path(file_info['storage_path'])
+                            if file_path.exists():
+                                file_path.unlink()
+                                deleted_count += 1
+                        except Exception as e:
+                            logger.warning(f"Could not delete file {file_path}: {e}")
+            
+            logger.info(f"Cleaned up {deleted_count} files for project {project_id}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error cleaning up project files: {e}")
+            return False

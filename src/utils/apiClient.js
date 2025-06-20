@@ -1,4 +1,5 @@
 import axios from 'axios'
+import authService from '../services/authService'
 
 class APIError extends Error {
   constructor(message, statusCode, response = null) {
@@ -22,6 +23,12 @@ class APIClient {
     // Request interceptor
     this.client.interceptors.request.use(
       (config) => {
+        // Add auth token
+        const token = authService.getAccessToken()
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`
+        }
+        
         // Add timestamp to requests
         config.metadata = { startTime: new Date() }
         return config
@@ -57,58 +64,96 @@ class APIClient {
   }
 
   async handleError(error) {
-    if (error.response) {
-      // Server responded with error
-      const { status, data } = error.response
-      
-      let message = 'An error occurred'
-      if (data && data.message) {
-        message = data.message
-      } else if (data && typeof data === 'string') {
-        message = data
-      } else if (error.message) {
-        message = error.message
-      }
+    const duration = new Date() - error.config?.metadata?.startTime
+    console.error(`API Request failed in ${duration}ms:`, {
+      url: error.config?.url,
+      method: error.config?.method,
+      status: error.response?.status,
+      message: error.message,
+      duration
+    })
 
-      throw new APIError(message, status, data)
-    } else if (error.request) {
-      // Network error
-      throw new APIError('Network error - please check your connection', 0)
-    } else {
-      // Other error
-      throw new APIError(error.message || 'Unknown error occurred', 0)
+    // Handle authentication errors
+    if (error.response?.status === 401) {
+      try {
+        // Try to refresh token
+        const newToken = await authService.refreshAccessToken()
+        if (newToken) {
+          // Retry original request with new token
+          error.config.headers.Authorization = `Bearer ${newToken}`
+          return this.client.request(error.config)
+        }
+      } catch (refreshError) {
+        // Refresh failed, redirect to login
+        authService.logout()
+        window.location.href = '/login'
+        return Promise.reject(refreshError)
+      }
     }
+
+    // Handle rate limiting
+    if (error.response?.status === 429) {
+      const retryAfter = error.response.headers['retry-after'] || 1
+      await new Promise(resolve => setTimeout(resolve, retryAfter * 1000))
+      return this.client.request(error.config)
+    }
+
+    // Handle network errors
+    if (!error.response) {
+      return Promise.reject(new Error('Network error - please check your connection'))
+    }
+
+    // Extract error message
+    const message = error.response?.data?.message || 
+                   error.response?.data?.error || 
+                   error.message || 
+                   'An unexpected error occurred'
+
+    return Promise.reject(new Error(message))
   }
 
-  // Retry mechanism for failed requests
   async retryRequest(requestFn, maxRetries = 3, delay = 1000) {
-    for (let attempt = 0; attempt < maxRetries; attempt++) {
+    for (let i = 0; i < maxRetries; i++) {
       try {
         return await requestFn()
       } catch (error) {
-        if (attempt === maxRetries - 1) {
-          throw error
-        }
-        
-        // Only retry on network errors or 5xx server errors
-        if (error.statusCode === 0 || (error.statusCode >= 500 && error.statusCode < 600)) {
-          await new Promise(resolve => setTimeout(resolve, delay * Math.pow(2, attempt)))
-          continue
-        }
-        
-        throw error
+        if (i === maxRetries - 1) throw error
+        await new Promise(resolve => setTimeout(resolve, delay * (i + 1)))
       }
     }
   }
 
   // Health check
   async healthCheck() {
-    return this.retryRequest(() => this.client.get('/health'))
+    return this.client.get('/health')
+  }
+
+  // Authentication
+  async login(credentials) {
+    return this.client.post('/api/auth/login', credentials)
+  }
+
+  async register(userData) {
+    return this.client.post('/api/auth/register', userData)
+  }
+
+  async refreshToken(refreshToken) {
+    return this.client.post('/api/auth/refresh', { refresh_token: refreshToken })
+  }
+
+  async logout() {
+    return this.client.post('/api/auth/logout')
+  }
+
+  async getCurrentUser() {
+    return this.retryRequest(() => this.client.get('/api/auth/me'))
   }
 
   // Projects
   async getProjects() {
-    return this.retryRequest(() => this.client.get('/api/projects'))
+    const response = await this.retryRequest(() => this.client.get('/api/projects'))
+    // Handle the backend response format: {"projects": [...]}
+    return response.projects || response
   }
 
   async getProject(projectId) {
@@ -127,32 +172,38 @@ class APIClient {
     return this.client.delete(`/api/projects/${projectId}`)
   }
 
-  // Video upload
-  async uploadVideo(projectId, videoFile, onProgress = null) {
-    const formData = new FormData()
-    formData.append('file', videoFile)
+  async searchProjects(query, filters = {}) {
+    const params = new URLSearchParams({
+      query,
+      ...filters
+    })
+    return this.retryRequest(() => this.client.get(`/api/projects/search?${params}`))
+  }
 
-    const config = {
+  // Video upload and processing
+  async uploadVideo(projectId, file, onProgress) {
+    const formData = new FormData()
+    formData.append('video', file)
+    
+    return this.client.post(`/api/projects/${projectId}/upload`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
-      timeout: 300000, // 5 minutes for large files
-    }
-
-    if (onProgress) {
-      config.onUploadProgress = (progressEvent) => {
-        const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total)
-        onProgress(progress)
-      }
-    }
-
-    return this.client.post(`/api/projects/${projectId}/upload`, formData, config)
+      onUploadProgress: (progressEvent) => {
+        if (onProgress) {
+          const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+          onProgress(progress)
+        }
+      },
+      timeout: 300000, // 5 minutes for large uploads
+    })
   }
 
-  // YouTube processing
   async processYouTube(projectId, youtubeUrl) {
     return this.client.post(`/api/projects/${projectId}/youtube`, {
-      youtube_url: youtubeUrl
+      url: youtubeUrl
+    }, {
+      timeout: 300000, // 5 minutes for YouTube processing
     })
   }
 
@@ -171,31 +222,64 @@ class APIClient {
     })
   }
 
+  async getAnalysisStatus(projectId) {
+    return this.retryRequest(() => this.client.get(`/api/projects/${projectId}/analysis/status`))
+  }
+
   // Clips
-  async updateClip(projectId, clipId, clipData) {
-    return this.client.put(`/api/projects/${projectId}/clips/${clipId}`, clipData)
+  async getClips(projectId) {
+    return this.retryRequest(() => this.client.get(`/api/projects/${projectId}/clips`))
   }
 
-  async deleteClip(projectId, clipId) {
-    return this.client.delete(`/api/projects/${projectId}/clips/${clipId}`)
+  async getClip(clipId) {
+    return this.retryRequest(() => this.client.get(`/api/clips/${clipId}`))
   }
 
+  async updateClip(clipId, updates) {
+    return this.client.put(`/api/clips/${clipId}`, updates)
+  }
+
+  async deleteClip(clipId) {
+    return this.client.delete(`/api/clips/${clipId}`)
+  }
+
+  // Export
   async exportClips(projectId, exportSettings) {
     return this.client.post(`/api/projects/${projectId}/export`, exportSettings, {
-      timeout: 300000, // 5 minutes for export
+      timeout: 600000, // 10 minutes for export
+    })
+  }
+
+  async exportClip(clipId, exportSettings) {
+    return this.client.post(`/api/clips/${clipId}/export`, exportSettings, {
+      timeout: 300000, // 5 minutes for single clip export
+    })
+  }
+
+  async getExportStatus(exportId) {
+    return this.retryRequest(() => this.client.get(`/api/exports/${exportId}/status`))
+  }
+
+  async downloadExport(exportId) {
+    return this.client.get(`/api/exports/${exportId}/download`, {
+      responseType: 'blob'
     })
   }
 
   // Settings
-  async getSettings() {
+  async getUserSettings() {
     return this.retryRequest(() => this.client.get('/api/settings'))
   }
 
-  async updateSettings(category, key, value) {
-    return this.client.post('/api/settings', {
+  async saveUserSettings(settings) {
+    return this.client.post('/api/settings', settings)
+  }
+
+  async updateUserSetting(category, key, value) {
+    return this.client.put('/api/settings', {
       category,
       key,
-      value,
+      value
     })
   }
 
@@ -204,8 +288,10 @@ class APIClient {
     return this.retryRequest(() => this.client.get('/api/providers'))
   }
 
-  async getProviderModels(provider) {
-    return this.retryRequest(() => this.client.get(`/api/models/${provider}`))
+  async getProviderModels(provider, apiKey) {
+    return this.retryRequest(() => this.client.post(`/api/models/${provider}`, {
+      api_key: apiKey
+    }))
   }
 
   async testAPIConnection(provider, apiKey) {
@@ -215,28 +301,83 @@ class APIClient {
     })
   }
 
-  async setApiKey(provider, apiKey) {
-    return this.client.post('/api/settings/api-key', {
-      provider,
-      api_key: apiKey,
+  // Analytics
+  async getAnalytics(timeRange = '7d') {
+    return this.retryRequest(() => this.client.get(`/api/analytics?range=${timeRange}`))
+  }
+
+  async getProjectAnalytics(projectId) {
+    return this.retryRequest(() => this.client.get(`/api/projects/${projectId}/analytics`))
+  }
+
+  // File management
+  async uploadFile(file, onProgress) {
+    const formData = new FormData()
+    formData.append('file', file)
+    
+    return this.client.post('/api/files/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      onUploadProgress: (progressEvent) => {
+        if (onProgress) {
+          const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+          onProgress(progress)
+        }
+      },
     })
   }
 
-  // File operations
-  async downloadFile(url, filename) {
-    const response = await this.client.get(url, {
-      responseType: 'blob',
-    })
-    
-    const blob = new Blob([response.data])
-    const downloadUrl = window.URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = downloadUrl
-    link.download = filename
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    window.URL.revokeObjectURL(downloadUrl)
+  async deleteFile(fileId) {
+    return this.client.delete(`/api/files/${fileId}`)
+  }
+
+  // User management
+  async updateProfile(profileData) {
+    return this.client.put('/api/users/profile', profileData)
+  }
+
+  async changePassword(passwordData) {
+    return this.client.post('/api/users/change-password', passwordData)
+  }
+
+  async deleteAccount() {
+    return this.client.delete('/api/users/account')
+  }
+
+  // Teams (if implementing collaborative features)
+  async getTeams() {
+    return this.retryRequest(() => this.client.get('/api/teams'))
+  }
+
+  async createTeam(teamData) {
+    return this.client.post('/api/teams', teamData)
+  }
+
+  async joinTeam(teamId, inviteCode) {
+    return this.client.post(`/api/teams/${teamId}/join`, { invite_code: inviteCode })
+  }
+
+  // Notifications
+  async getNotifications() {
+    return this.retryRequest(() => this.client.get('/api/notifications'))
+  }
+
+  async markNotificationRead(notificationId) {
+    return this.client.put(`/api/notifications/${notificationId}/read`)
+  }
+
+  async markAllNotificationsRead() {
+    return this.client.put('/api/notifications/read-all')
+  }
+
+  // System
+  async getSystemStatus() {
+    return this.retryRequest(() => this.client.get('/api/system/status'))
+  }
+
+  async getSystemMetrics() {
+    return this.retryRequest(() => this.client.get('/api/system/metrics'))
   }
 
   // Utility methods

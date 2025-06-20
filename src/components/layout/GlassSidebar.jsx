@@ -72,7 +72,7 @@ const GlassSidebar = ({ isOpen, onClose }) => {
       {/* Sidebar */}
       <AnimatePresence>
         <motion.div
-          className={`glass-minimal fixed left-4 top-20 bottom-4 w-64 rounded-2xl p-6 z-40 gpu-accelerated ${
+          className={`glass-frosted fixed left-4 top-20 bottom-4 w-64 rounded-2xl p-6 z-40 gpu-accelerated ${
             isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
           } transition-transform lg:transition-none`}
           variants={sidebarVariants}
@@ -83,7 +83,7 @@ const GlassSidebar = ({ isOpen, onClose }) => {
           <div className="relative z-10">
             {/* Close button for mobile */}
             <button
-              className="lg:hidden absolute top-4 right-4 glass-minimal rounded-lg p-2 text-white hover:bg-white/10 transition-colors"
+              className="lg:hidden absolute top-4 right-4 glass-frosted rounded-lg p-2 text-white hover:bg-white/10 transition-colors"
               onClick={onClose}
             >
               <X className="w-4 h-4" />
@@ -129,7 +129,7 @@ const GlassSidebar = ({ isOpen, onClose }) => {
               </h3>
               
               <div className="grid grid-cols-2 gap-3">
-                <div className="glass-minimal rounded-xl p-3 hover:bg-white/10 transition-colors">
+                <div className="glass-frosted rounded-xl p-3 hover:bg-white/10 transition-colors">
                   <div className="flex items-center gap-2 mb-1">
                     <Folder className="w-4 h-4 text-indigo-300" />
                     <span className="text-xs text-white/60">Projects</span>
@@ -137,7 +137,7 @@ const GlassSidebar = ({ isOpen, onClose }) => {
                   <p className="text-lg font-bold text-white">{stats.totalProjects}</p>
                 </div>
                 
-                <div className="glass-minimal rounded-xl p-3 hover:bg-white/10 transition-colors">
+                <div className="glass-frosted rounded-xl p-3 hover:bg-white/10 transition-colors">
                   <div className="flex items-center gap-2 mb-1">
                     <Film className="w-4 h-4 text-purple-300" />
                     <span className="text-xs text-white/60">Clips</span>
@@ -145,7 +145,7 @@ const GlassSidebar = ({ isOpen, onClose }) => {
                   <p className="text-lg font-bold text-white">{stats.totalClips}</p>
                 </div>
                 
-                <div className="glass-minimal rounded-xl p-3 hover:bg-white/10 transition-colors">
+                <div className="glass-frosted rounded-xl p-3 hover:bg-white/10 transition-colors">
                   <div className="flex items-center gap-2 mb-1">
                     <TrendingUp className="w-4 h-4 text-green-300" />
                     <span className="text-xs text-white/60">Active</span>
@@ -153,7 +153,7 @@ const GlassSidebar = ({ isOpen, onClose }) => {
                   <p className="text-lg font-bold text-white">{stats.activeProjects}</p>
                 </div>
                 
-                <div className="glass-minimal rounded-xl p-3 hover:bg-white/10 transition-colors">
+                <div className="glass-frosted rounded-xl p-3 hover:bg-white/10 transition-colors">
                   <div className="flex items-center gap-2 mb-1">
                     <Target className="w-4 h-4 text-blue-300" />
                     <span className="text-xs text-white/60">Done</span>
@@ -164,7 +164,7 @@ const GlassSidebar = ({ isOpen, onClose }) => {
             </div>
             
             {/* AI Assistant Preview */}
-            <div className="glass-minimal rounded-xl p-4 mb-6">
+            <div className="glass-frosted rounded-xl p-4 mb-6">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-8 h-8 bg-gradient-to-br from-indigo-400 to-purple-400 rounded-lg flex items-center justify-center">
                   <Brain className="w-4 h-4 text-white" />

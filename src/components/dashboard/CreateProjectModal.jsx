@@ -54,6 +54,9 @@ const CreateProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
       selectedFile: selectedFile ? selectedFile.name : null 
     })
     console.log('Can proceed?', canProceedToNext())
+    console.log('Auth token:', localStorage.getItem('access_token'))
+    console.log('User data:', localStorage.getItem('user_data'))
+    
     handleCreateProject(onProjectCreated, onClose)
   }
   

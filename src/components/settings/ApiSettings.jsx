@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import { CheckIcon, RefreshCwIcon, EyeIcon, EyeOffIcon } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useSettingsStore } from '../../stores/settingsStore'
+import Win98ProgressBar from '../Common/Win98ProgressBar'
+import { getCurrentTheme } from '../../config/themes'
 
 const ApiSettings = () => {
   const {
@@ -16,25 +18,75 @@ const ApiSettings = () => {
   const [showApiKeys, setShowApiKeys] = useState({})
   const [testingConnection, setTestingConnection] = useState({})
   const [loadingModels, setLoadingModels] = useState({})
+  const [showWin98Progress, setShowWin98Progress] = useState(false)
+  const [showWin98ModelsProgress, setShowWin98ModelsProgress] = useState(false)
+  const [currentTestingProvider, setCurrentTestingProvider] = useState('')
+  const [currentModelProvider, setCurrentModelProvider] = useState('')
+  
+  const isRetroTheme = getCurrentTheme() === 'retro'
   
   const handleTestConnection = async (provider) => {
     setTestingConnection(prev => ({ ...prev, [provider]: true }))
+    
+    // Show Win98 progress bar in retro theme
+    if (isRetroTheme) {
+      setCurrentTestingProvider(provider)
+      setShowWin98Progress(true)
+    }
+    
     try {
       const result = await testApiConnection(provider)
+      
+      // Wait for progress bar to complete in retro theme
+      if (isRetroTheme) {
+        // The progress bar will handle the completion
+        return
+      }
+      
       if (result.success) {
         toast.success(`${provider} connection successful`)
       } else {
         toast.error(`${provider} connection failed: ${result.message}`)
       }
     } catch (error) {
+      if (!isRetroTheme) {
+        toast.error(`Connection test failed: ${error.message}`)
+      }
+    } finally {
+      if (!isRetroTheme) {
+        setTestingConnection(prev => ({ ...prev, [provider]: false }))
+      }
+    }
+  }
+  
+  const handleProgressComplete = async () => {
+    setShowWin98Progress(false)
+    
+    try {
+      const result = await testApiConnection(currentTestingProvider)
+      if (result.success) {
+        toast.success(`${currentTestingProvider} connection successful`)
+      } else {
+        toast.error(`${currentTestingProvider} connection failed: ${result.message}`)
+      }
+    } catch (error) {
       toast.error(`Connection test failed: ${error.message}`)
     } finally {
-      setTestingConnection(prev => ({ ...prev, [provider]: false }))
+      setTestingConnection(prev => ({ ...prev, [currentTestingProvider]: false }))
+      setCurrentTestingProvider('')
     }
   }
   
   const handleFetchModels = async (provider) => {
     setLoadingModels(prev => ({ ...prev, [provider]: true }))
+    
+    // Show Win98 progress bar in retro theme
+    if (isRetroTheme) {
+      setCurrentModelProvider(provider)
+      setShowWin98ModelsProgress(true)
+      return
+    }
+    
     try {
       await fetchAvailableModels(provider)
       toast.success(`Models loaded for ${provider}`)
@@ -45,8 +97,41 @@ const ApiSettings = () => {
     }
   }
   
+  const handleModelsProgressComplete = async () => {
+    setShowWin98ModelsProgress(false)
+    
+    try {
+      await fetchAvailableModels(currentModelProvider)
+      toast.success(`Models loaded for ${currentModelProvider}`)
+    } catch (error) {
+      toast.error(`Failed to load models: ${error.message}`)
+    } finally {
+      setLoadingModels(prev => ({ ...prev, [currentModelProvider]: false }))
+      setCurrentModelProvider('')
+    }
+  }
+  
   return (
-    <div className="space-y-6">
+    <>
+      {/* Windows 98 Progress Bar for API Testing */}
+      <Win98ProgressBar
+        isVisible={showWin98Progress}
+        title="API Connection Test"
+        status={`Testing ${currentTestingProvider} connection...`}
+        onComplete={handleProgressComplete}
+        duration={2500}
+      />
+      
+      {/* Windows 98 Progress Bar for Model Fetching */}
+      <Win98ProgressBar
+        isVisible={showWin98ModelsProgress}
+        title="Loading Models"
+        status={`Fetching available models from ${currentModelProvider}...`}
+        onComplete={handleModelsProgressComplete}
+        duration={3000}
+      />
+      
+      <div className="space-y-6">
       {/* API Keys */}
       <div className="card p-6">
         <h3 className="text-lg font-semibold text-gray-100 mb-4">
@@ -192,8 +277,8 @@ const ApiSettings = () => {
                     {availableModels.length === 0 ? (
                       <option value="">No models available - fetch models first</option>
                     ) : (
-                      availableModels.map(model => (
-                        <option key={model.id} value={model.id}>
+                      availableModels.map((model, index) => (
+                        <option key={`${provider}-${model.id || index}`} value={model.id}>
                           {model.name} - {model.description}
                         </option>
                       ))
@@ -211,6 +296,7 @@ const ApiSettings = () => {
         </div>
       </div>
     </div>
+    </>
   )
 }
 

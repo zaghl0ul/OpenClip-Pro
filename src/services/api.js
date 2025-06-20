@@ -1,9 +1,12 @@
 // API service with authentication
+import debug from '../utils/debug';
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 class ApiService {
   constructor() {
     this.baseURL = API_BASE_URL;
+    debug.log('API', 'API Service initialized', { baseURL: this.baseURL });
   }
 
   getAuthHeaders() {
@@ -21,11 +24,14 @@ class ApiService {
       ...options
     };
 
+    debug.logApiCall(endpoint, options.method || 'GET', options.body);
+
     try {
       const response = await fetch(url, config);
       
       // Handle authentication errors
       if (response.status === 401) {
+        debug.log('API', 'Authentication error, clearing tokens');
         localStorage.removeItem('access_token');
         localStorage.removeItem('user_data');
         window.location.reload();
@@ -38,8 +44,10 @@ class ApiService {
         throw new Error(data.detail || `HTTP ${response.status}`);
       }
       
+      debug.logApiResponse(endpoint, data);
       return data;
     } catch (error) {
+      debug.logApiError(endpoint, error);
       console.error(`API Error (${endpoint}):`, error);
       throw error;
     }

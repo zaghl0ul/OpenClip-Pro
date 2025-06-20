@@ -1,44 +1,161 @@
-import { useState, useRef } from 'react'
-import useProjectStore from '../stores/projectStore'
+import { useState } from 'react'
 import toast from 'react-hot-toast'
-import apiService from '../services/api'
+import useProjectStore from '../stores/projectStore'
 
 export const useCreateProjectModal = () => {
-  const { createProject } = useProjectStore()
-  
   const [step, setStep] = useState(1)
   const [projectType, setProjectType] = useState('upload')
   const [projectName, setProjectName] = useState('')
   const [description, setDescription] = useState('')
-  const [youtubeUrl, setYoutubeUrl] = useState('')
   const [selectedFile, setSelectedFile] = useState(null)
+  const [youtubeUrl, setYoutubeUrl] = useState('')
   const [isCreating, setIsCreating] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
   const [dragActive, setDragActive] = useState(false)
-  
-  const fileInputRef = useRef(null)
-  
+  const fileInputRef = useState(null)
+
+  const { createProject, uploadVideo, processYouTube } = useProjectStore()
+
   const resetForm = () => {
     setStep(1)
     setProjectType('upload')
     setProjectName('')
     setDescription('')
-    setYoutubeUrl('')
     setSelectedFile(null)
+    setYoutubeUrl('')
     setIsCreating(false)
+    setUploadProgress(0)
     setDragActive(false)
   }
-  
-  const handleFileSelect = (file) => {
-    if (file && file.type.startsWith('video/')) {
-      setSelectedFile(file)
-      if (!projectName) {
-        setProjectName(file.name.replace(/\.[^/.]+$/, ''))
-      }
-    } else {
-      toast.error('Please select a valid video file')
+
+  const canProceedToNext = () => {
+    switch (step) {
+      case 1: // Project type
+        return projectType !== ''
+      case 2: // Project details
+        return projectName.trim() !== ''
+      case 3: // File/URL input
+        if (projectType === 'upload') {
+          return selectedFile !== null
+        } else if (projectType === 'youtube') {
+          return youtubeUrl.trim() !== '' && validateYouTubeUrl(youtubeUrl)
+        }
+        return true
+      default:
+        return true
     }
   }
-  
+
+  const validateYouTubeUrl = (url) => {
+    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/
+    return youtubeRegex.test(url)
+  }
+
+  const handleCreateProject = async (onProjectCreated, onClose) => {
+    if (!canProceedToNext()) {
+      toast.error('Please fill in all required fields')
+      return
+    }
+
+    setIsCreating(true)
+
+    try {
+      // Create the project first
+      const projectData = {
+        name: projectName.trim(),
+        description: description.trim(),
+        type: projectType
+      }
+
+      console.log('Creating project:', projectData)
+      const project = await createProject(projectData)
+      console.log('Project created:', project)
+
+      if (project) {
+        // Handle file upload or YouTube processing
+        if (projectType === 'upload' && selectedFile) {
+          try {
+            console.log('Uploading video file...')
+            const loadingToast = toast.loading('Uploading video...')
+            
+            await uploadVideo(project.id, selectedFile, (progress) => {
+              setUploadProgress(progress)
+            })
+            
+            toast.dismiss(loadingToast)
+            toast.success('Project created and video uploaded successfully!')
+          } catch (uploadError) {
+            console.error('Video upload error:', uploadError)
+            toast.error(`Failed to upload video: ${uploadError.message}`)
+          }
+        } else if (projectType === 'youtube' && youtubeUrl) {
+          try {
+            console.log('Processing YouTube URL...')
+            const loadingToast = toast.loading('Processing YouTube video...')
+            
+            await processYouTube(project.id, youtubeUrl)
+            
+            toast.dismiss(loadingToast)
+            toast.success('YouTube video processed successfully!')
+          } catch (youtubeError) {
+            console.error('YouTube processing error:', youtubeError)
+            toast.error(`Failed to process YouTube video: ${youtubeError.message}`)
+          }
+        } else {
+          toast.success('Project created successfully!')
+        }
+
+        if (onProjectCreated) {
+          console.log('Calling onProjectCreated callback')
+          onProjectCreated(project)
+        } else {
+          console.warn('onProjectCreated callback is not provided')
+        }
+
+        if (onClose) {
+          onClose()
+        }
+      }
+    } catch (error) {
+      console.error('Project creation error:', error)
+      toast.error(`Failed to create project: ${error.message}`)
+    } finally {
+      setIsCreating(false)
+      setUploadProgress(0)
+    }
+  }
+
+  const handleFileSelect = (file) => {
+    // Validate file type
+    const validTypes = [
+      'video/mp4',
+      'video/avi',
+      'video/mov',
+      'video/mkv',
+      'video/wmv',
+      'video/flv',
+      'video/webm',
+      'video/m4v',
+      'video/3gp',
+      'video/ogv'
+    ]
+
+    if (!validTypes.includes(file.type)) {
+      toast.error('Please select a valid video file')
+      return
+    }
+
+    // Check file size (limit to 2GB)
+    const maxSize = 2 * 1024 * 1024 * 1024 // 2GB in bytes
+    if (file.size > maxSize) {
+      toast.error('File size must be less than 2GB')
+      return
+    }
+
+    setSelectedFile(file)
+    toast.success(`Selected: ${file.name}`)
+  }
+
   const handleDrag = (e) => {
     e.preventDefault()
     e.stopPropagation()
@@ -48,7 +165,7 @@ export const useCreateProjectModal = () => {
       setDragActive(false)
     }
   }
-  
+
   const handleDrop = (e) => {
     e.preventDefault()
     e.stopPropagation()
@@ -58,144 +175,44 @@ export const useCreateProjectModal = () => {
       handleFileSelect(e.dataTransfer.files[0])
     }
   }
-  
-  const validateYouTubeUrl = (url) => {
-    const youtubeRegex = /^(https?\:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/
-    return youtubeRegex.test(url)
-  }
-  
-  const handleCreateProject = async (onProjectCreated, onClose) => {
-    if (!projectName.trim()) {
-      toast.error('Project name is required')
-      return
-    }
+
+  const handleYoutubeUrlChange = (url) => {
+    setYoutubeUrl(url)
     
-    if (projectType === 'youtube' && !validateYouTubeUrl(youtubeUrl)) {
+    if (url && !validateYouTubeUrl(url)) {
       toast.error('Please enter a valid YouTube URL')
-      return
-    }
-    
-    if (projectType === 'upload' && !selectedFile) {
-      toast.error('Please select a video file')
-      return
-    }
-    
-    setIsCreating(true)
-    console.log('Creating project with:', { projectName, description, projectType })
-    
-    try {
-      // Create the project with the correct API structure
-      const projectData = {
-        name: projectName.trim(),
-        description: description.trim(),
-        type: projectType,
-        youtube_url: projectType === 'youtube' ? youtubeUrl : null
-      };
-      
-      console.log('Project data being sent to API:', projectData)
-      
-      // Call the createProject function with the complete projectData object
-      const project = await createProject(projectData);
-      console.log('Project created successfully:', project)
-      
-      if (project) {
-        // If it's a file upload, handle the file upload after project creation
-        if (projectType === 'upload' && selectedFile) {
-          try {
-            // Mock file upload instead of calling the backend
-            // await apiService.uploadVideo(project.id, selectedFile);
-            
-            // Wait for 1 second to simulate upload
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            toast.success('Project created and video uploaded successfully!');
-          } catch (uploadError) {
-            console.error('Video upload error:', uploadError)
-            toast.error('Project created but failed to upload video');
-          }
-        } else if (projectType === 'youtube') {
-          // If it's a YouTube project, process the YouTube URL
-          try {
-            const loadingToast = toast.loading('Processing YouTube video...');
-            
-            // Mock YouTube processing instead of calling the backend
-            // await apiService.processYouTube(project.id, youtubeUrl);
-            
-            // Wait for 1 second to simulate processing
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            toast.dismiss(loadingToast);
-            toast.success('YouTube video processed successfully!');
-          } catch (youtubeError) {
-            console.error('YouTube processing error:', youtubeError);
-            toast.error(`Failed to process YouTube video: ${youtubeError.message || 'Unknown error'}`);
-          }
-        }
-        
-        if (onProjectCreated) {
-          console.log('Calling onProjectCreated callback')
-          onProjectCreated(project);
-        } else {
-          console.warn('onProjectCreated callback is not provided')
-        }
-        
-        resetForm();
-        
-        if (onClose) {
-          console.log('Calling onClose callback')
-          onClose();
-        } else {
-          console.warn('onClose callback is not provided')
-        }
-      }
-    } catch (error) {
-      console.error('Project creation error details:', error)
-      toast.error(`Failed to create project: ${error.message || 'Unknown error'}`);
-    } finally {
-      setIsCreating(false);
     }
   }
-  
-  const canProceedToNext = () => {
-    switch (step) {
-      case 1:
-        return projectType !== null
-      case 2:
-        return projectName.trim().length > 0
-      case 3:
-        if (projectType === 'youtube') {
-          return validateYouTubeUrl(youtubeUrl)
-        }
-        return selectedFile !== null
-      default:
-        return false
-    }
-  }
-  
+
   return {
-    // State
+    // Form state
     step,
     projectType,
     projectName,
     description,
-    youtubeUrl,
     selectedFile,
+    youtubeUrl,
     isCreating,
+    uploadProgress,
     dragActive,
     fileInputRef,
     
-    // Actions
+    // Form actions
     setStep,
     setProjectType,
     setProjectName,
     setDescription,
     setYoutubeUrl,
-    resetForm,
     handleFileSelect,
     handleDrag,
     handleDrop,
+    resetForm,
+    
+    // Validation
     validateYouTubeUrl,
-    handleCreateProject,
-    canProceedToNext
+    canProceedToNext,
+    
+    // Submit
+    handleCreateProject
   }
 }

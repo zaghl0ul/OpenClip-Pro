@@ -25,13 +25,19 @@ logger = logging.getLogger(__name__)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
 
-# Redis for token blacklisting and rate limiting
-redis_client = redis.Redis(
-    host=settings.REDIS_HOST,
-    port=settings.REDIS_PORT,
-    db=0,
-    decode_responses=True
-)
+# Redis for token blacklisting and rate limiting (optional for development)
+try:
+    redis_client = redis.Redis(
+        host=settings.REDIS_HOST,
+        port=settings.REDIS_PORT,
+        db=0,
+        decode_responses=True
+    )
+    # Test connection
+    redis_client.ping()
+except:
+    redis_client = None
+    logger.warning("Redis not available - token blacklisting disabled")
 
 class TokenData(BaseModel):
     """Token payload structure"""
@@ -128,13 +134,14 @@ class AuthHandler:
         Checks expiration and blacklist status.
         """
         try:
-            # Check if token is blacklisted
-            jti = self._extract_jti(token)
-            if jti and redis_client.get(f"blacklist:{jti}"):
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Token has been revoked"
-                )
+            # Check if token is blacklisted (only if Redis is available)
+            if redis_client:
+                jti = self._extract_jti(token)
+                if jti and redis_client.get(f"blacklist:{jti}"):
+                    raise HTTPException(
+                        status_code=status.HTTP_401_UNAUTHORIZED,
+                        detail="Token has been revoked"
+                    )
             
             payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
             return payload
@@ -189,7 +196,7 @@ class AuthHandler:
         Revoke token by adding to blacklist.
         Supports both access and refresh token revocation.
         """
-        if token_type == "access":
+        if token_type == "access" and redis_client:
             jti = self._extract_jti(token)
             if jti:
                 # Add to Redis blacklist with TTL matching token expiry
@@ -276,24 +283,49 @@ def rate_limit(max_requests: int = 5, window_seconds: int = 60):
     Prevents brute force attacks on authentication endpoints.
     """
     def decorator(func):
-        async def wrapper(request: Request, *args, **kwargs):
-            client_ip = request.client.host
-            key = f"rate_limit:{func.__name__}:{client_ip}"
+        import functools
+        
+        @functools.wraps(func)
+        async def wrapper(*args, **kwargs):
+            # Extract request from args/kwargs
+            request = None
+            for arg in args:
+                if hasattr(arg, 'client'):
+                    request = arg
+                    break
             
-            current = redis_client.get(key)
-            if current and int(current) >= max_requests:
-                raise HTTPException(
-                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                    detail="Too many requests. Please try again later."
-                )
+            if not request:
+                for value in kwargs.values():
+                    if hasattr(value, 'client'):
+                        request = value
+                        break
             
-            # Increment counter
-            pipe = redis_client.pipeline()
-            pipe.incr(key)
-            pipe.expire(key, window_seconds)
-            pipe.execute()
+            if request and hasattr(request, 'client') and request.client:
+                client_ip = request.client.host
+                key = f"rate_limit:{func.__name__}:{client_ip}"
+                
+                if redis_client:
+                    try:
+                        current = redis_client.get(key)
+                        if current and int(current) >= max_requests:
+                            raise HTTPException(
+                                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                                detail="Too many requests. Please try again later."
+                            )
+                        
+                        # Increment counter
+                        pipe = redis_client.pipeline()
+                        pipe.incr(key)
+                        pipe.expire(key, window_seconds)
+                        pipe.execute()
+                    except Exception as e:
+                        # If Redis is not available, log but don't block the request
+                        logger.warning(f"Rate limiting failed: {e}")
+                else:
+                    # Skip rate limiting if Redis is not available
+                    pass
             
-            return await func(request, *args, **kwargs)
+            return await func(*args, **kwargs)
         
         return wrapper
     return decorator

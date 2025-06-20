@@ -1,4 +1,4 @@
-import apiService from './api';
+import apiClient from '../utils/apiClient';
 
 class AuthService {
   constructor() {
@@ -8,13 +8,26 @@ class AuthService {
 
   async login({ email, password }) {
     try {
-      const response = await apiService.login(email, password);
-      if (response && response.access_token) {
-        localStorage.setItem(this.tokenKey, response.access_token);
-        localStorage.setItem(this.userKey, JSON.stringify(response.user || {}));
-        return { success: true, user: response.user };
+      const formData = new FormData();
+      formData.append('username', email);
+      formData.append('password', password);
+
+      const response = await fetch('http://localhost:8000/api/auth/login', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.access_token) {
+          localStorage.setItem(this.tokenKey, data.access_token);
+          localStorage.setItem(this.userKey, JSON.stringify(data.user || {}));
+          return { success: true, user: data.user };
+        }
       }
-      return { success: false, error: 'Invalid response from server' };
+      
+      const errorData = await response.json();
+      return { success: false, error: errorData.detail || 'Login failed' };
     } catch (error) {
       console.error('Login error:', error);
       return { 
@@ -26,11 +39,11 @@ class AuthService {
 
   async register(userData) {
     try {
-      const response = await apiService.register(
-        userData.email, 
-        userData.password, 
-        userData.full_name
-      );
+      const response = await apiClient.register({
+        email: userData.email, 
+        password: userData.password, 
+        full_name: userData.full_name
+      });
       
       if (response && response.access_token) {
         localStorage.setItem(this.tokenKey, response.access_token);
@@ -61,6 +74,10 @@ class AuthService {
     return localStorage.getItem(this.tokenKey);
   }
 
+  getAccessToken() {
+    return localStorage.getItem(this.tokenKey);
+  }
+
   getUser() {
     const userData = localStorage.getItem(this.userKey);
     if (userData) {
@@ -75,12 +92,12 @@ class AuthService {
 
   async refreshAccessToken() {
     try {
-      const response = await apiService.verifyToken();
-      if (response && response.access_token) {
-        localStorage.setItem(this.tokenKey, response.access_token);
-        return response.access_token;
+      // For now, just return the current token since we don't have refresh token implementation
+      const currentToken = this.getToken();
+      if (currentToken) {
+        return currentToken;
       }
-      throw new Error('Failed to refresh token');
+      throw new Error('No token available');
     } catch (error) {
       console.error('Token refresh error:', error);
       // If refresh fails, log the user out

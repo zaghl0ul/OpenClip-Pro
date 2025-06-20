@@ -1,27 +1,19 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
+import SettingsSidebar from '../components/settings/SettingsSidebar'
+import SettingsHeader from '../components/settings/SettingsHeader'
+import ApiSettings from '../components/settings/ApiSettings'
+import AppSettings from '../components/settings/AppSettings'
+import PerformanceSettings from '../components/settings/PerformanceSettings'
+import SecuritySettings from '../components/settings/SecuritySettings'
 import { motion } from 'framer-motion'
-import { useAdaptiveUI } from '../contexts/AdaptiveUIContext'
-import {
-  ApiSettings,
-  AppSettings,
-  AdaptiveSettings,
-  PerformanceSettings,
-  SecuritySettings,
-  SettingsHeader,
-  SettingsSidebar
-} from '../components/settings'
+import { useSettingsStore } from '../stores/settingsStore'
 
 const SettingsPage = () => {
-  const { trackTimeInArea } = useAdaptiveUI()
-  const [activeTab, setActiveTab] = useState('api')
+  const [activeSection, setActiveSection] = useState('api')
+  const { initialize, isLoading } = useSettingsStore()
   
-  useEffect(() => {
-    const cleanup = trackTimeInArea('settings')
-    return cleanup
-  }, [])
-  
-  const renderTabContent = () => {
-    switch (activeTab) {
+  const renderContent = () => {
+    switch (activeSection) {
       case 'api':
         return <ApiSettings />
       case 'app':
@@ -30,29 +22,35 @@ const SettingsPage = () => {
         return <PerformanceSettings />
       case 'security':
         return <SecuritySettings />
-      case 'adaptive':
-        return <AdaptiveSettings />
       default:
-        return <div className="text-center text-gray-400">Coming soon...</div>
+        return <ApiSettings />
     }
   }
   
   return (
-    <div className="p-6">
-      <SettingsHeader />
+    <div className="flex h-screen bg-background">
+      {/* Sidebar */}
+      <SettingsSidebar 
+        activeSection={activeSection}
+        onSectionChange={setActiveSection}
+      />
       
-      <div className="flex gap-6">
-        <SettingsSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col">
+        {/* Header */}
+        <SettingsHeader />
         
-        {/* Content */}
-        <div className="flex-1">
+        {/* Content Area */}
+        <div className="flex-1 overflow-y-auto p-6">
           <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.2 }}
+            key={activeSection}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+            className="max-w-4xl mx-auto"
           >
-            {renderTabContent()}
+            {renderContent()}
           </motion.div>
         </div>
       </div>

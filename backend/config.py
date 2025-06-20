@@ -5,7 +5,8 @@ Uses environment variables with sensible fallbacks.
 
 import os
 from typing import Optional
-from pydantic import BaseSettings, validator
+from pydantic_settings import BaseSettings
+from pydantic import field_validator
 from pathlib import Path
 
 class Settings(BaseSettings):
@@ -104,25 +105,28 @@ class Settings(BaseSettings):
     FREE_TIER_PROJECTS: int = 10
     FREE_TIER_API_CALLS: int = 1000
     
-    @validator("UPLOAD_DIR", "TEMP_DIR", "OUTPUTS_DIR")
+    @field_validator("UPLOAD_DIR", "TEMP_DIR", "OUTPUTS_DIR")
+    @classmethod
     def create_directories(cls, v):
         """Ensure directories exist"""
         path = Path(v)
         path.mkdir(parents=True, exist_ok=True)
         return path
     
-    @validator("DATABASE_URL")
-    def validate_database_url(cls, v, values):
+    @field_validator("DATABASE_URL")
+    @classmethod
+    def validate_database_url(cls, v):
         """Add async support for SQLite"""
         if v.startswith("sqlite:///"):
             # Add check_same_thread=False for SQLite
             return v + "?check_same_thread=False"
         return v
     
-    @validator("SECRET_KEY")
-    def validate_secret_key(cls, v, values):
+    @field_validator("SECRET_KEY")
+    @classmethod
+    def validate_secret_key(cls, v, info):
         """Ensure secret key is set in production"""
-        if values.get("ENVIRONMENT") == "production" and "CHANGE-THIS" in v:
+        if info.data.get("ENVIRONMENT") == "production" and "CHANGE-THIS" in v:
             raise ValueError("SECRET_KEY must be set in production")
         return v
     

@@ -13,6 +13,8 @@ import {
   Plus
 } from 'lucide-react'
 import useProjectStore from '../../stores/projectStore'
+import ThemeSelector from '../Common/ThemeSelector'
+import Win98Menu from '../Common/Win98Menu'
 
 const Header = ({ onMenuClick }) => {
   const location = useLocation()
@@ -65,30 +67,36 @@ const Header = ({ onMenuClick }) => {
         <div className="flex items-center justify-between h-16">
           {/* Left side */}
           <div className="flex items-center gap-4">
-            {/* Menu button for sidebar */}
+            {/* Menu button for sidebar (hidden in retro theme) */}
             <button
               onClick={onMenuClick}
-              className="lg:hidden p-2 rounded-lg text-subtle hover:text-white hover:bg-white/10 transition-all"
+              className="lg:hidden p-2 rounded-lg text-subtle hover:text-white hover:bg-white/10 transition-all theme-retro:hidden"
             >
                 <Menu className="w-5 h-5" />
             </button>
             
-            {/* Logo */}
-            <Link
-              to="/"
-              className="flex items-center gap-2 text-xl font-bold text-white hover:text-primary transition-colors"
-            >
-              <div className="w-8 h-8 bg-primary/20 rounded-lg flex items-center justify-center relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-transparent"></div>
-                <div className="absolute top-0 left-0 right-0 h-px bg-white/20"></div>
-                <div className="absolute top-0 bottom-0 left-0 w-px bg-white/20"></div>
-                <span className="text-primary font-bold text-sm relative z-10">OC</span>
-              </div>
-              <span className="hidden sm:block">OpenClip</span>
-            </Link>
+            {/* Logo with integrated Win98 Menu */}
+            <div className="flex items-center gap-2">
+              {/* Windows 98 Menu integrated into logo (only visible in retro theme) */}
+              <Win98Menu />
+              
+              {/* Regular Logo (hidden in retro theme) */}
+              <Link
+                to="/"
+                className="flex items-center gap-2 text-xl font-bold text-white hover:text-primary transition-colors theme-retro:hidden"
+              >
+                <div className="w-8 h-8 bg-primary/20 rounded-lg flex items-center justify-center relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-transparent"></div>
+                  <div className="absolute top-0 left-0 right-0 h-px bg-white/20"></div>
+                  <div className="absolute top-0 bottom-0 left-0 w-px bg-white/20"></div>
+                  <span className="text-primary font-bold text-sm relative z-10">OC</span>
+                </div>
+                <span className="hidden sm:block">OpenClip</span>
+              </Link>
+            </div>
             
-            {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center gap-1 ml-8">
+            {/* Desktop Navigation (hidden in retro theme) */}
+            <nav className="hidden lg:flex items-center gap-1 ml-8 theme-retro:hidden">
               {navItems.map(item => {
                 const Icon = item.icon
                 const isActive = location.pathname === item.path
@@ -168,10 +176,10 @@ const Header = ({ onMenuClick }) => {
           
           {/* Right side */}
           <div className="flex items-center gap-2">
-            {/* Quick Create Button */}
+            {/* Quick Create Button (hidden in retro theme) */}
             <button
               onClick={() => navigate('/projects?create=true')}
-              className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-primary/20 hover:bg-primary/30 border border-primary/30 rounded-lg text-sm font-medium text-white transition-all relative overflow-hidden group"
+              className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-primary/20 hover:bg-primary/30 border border-primary/30 rounded-lg text-sm font-medium text-white transition-all relative overflow-hidden group theme-retro:hidden"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent opacity-50"></div>
               <div className="absolute top-0 left-0 right-0 h-px bg-white/30"></div>
@@ -179,10 +187,10 @@ const Header = ({ onMenuClick }) => {
               <span className="relative">New Project</span>
             </button>
             
-            {/* Mobile menu toggle */}
+            {/* Mobile menu toggle (hidden in retro theme) */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 rounded-lg text-subtle hover:text-white hover:bg-white/10 transition-all"
+              className="lg:hidden p-2 rounded-lg text-subtle hover:text-white hover:bg-white/10 transition-all theme-retro:hidden"
             >
               {mobileMenuOpen ? (
                 <X className="w-5 h-5" />
@@ -193,25 +201,28 @@ const Header = ({ onMenuClick }) => {
             
             {/* Desktop actions */}
             <div className="hidden lg:flex items-center gap-2">
-              {/* Notifications */}
+              {/* Theme Selector - Compact Mode */}
+              <ThemeSelector compact />
+              
+              {/* Notifications (hidden in retro theme) */}
               <button
-                className="p-2 rounded-lg text-subtle hover:text-white hover:bg-white/10 transition-all relative"
+                className="p-2 rounded-lg text-subtle hover:text-white hover:bg-white/10 transition-all relative theme-retro:hidden"
               >
                 <Bell className="w-5 h-5" />
                 {/* Notification badge */}
                 <span className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full"></span>
               </button>
               
-              {/* Settings */}
+              {/* Settings (hidden in retro theme) */}
               <Link
                 to="/settings"
-                className="p-2 rounded-lg text-subtle hover:text-white hover:bg-white/10 transition-all"
+                className="p-2 rounded-lg text-subtle hover:text-white hover:bg-white/10 transition-all theme-retro:hidden"
               >
                 <Settings className="w-5 h-5" />
               </Link>
               
-              {/* User Menu */}
-              <div className="relative">
+              {/* User Menu (hidden in retro theme) */}
+              <div className="relative theme-retro:hidden">
                 <button
                   className="flex items-center gap-2 p-2 rounded-lg text-subtle hover:text-white hover:bg-white/10 transition-all"
                 >

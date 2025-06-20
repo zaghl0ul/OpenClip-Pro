@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import {
-  SendIcon,
-  SparklesIcon,
-  ClockIcon,
-  TargetIcon,
-  TrendingUpIcon,
-  UsersIcon,
-  MessageSquareIcon,
-  BarChart3Icon
+  Send,
+  Sparkles,
+  Clock,
+  Target,
+  TrendingUp,
+  Users,
+  MessageSquare,
+  BarChart3
 } from 'lucide-react'
 
 const AnalysisPrompt = ({ onAnalyze, isAnalyzing = false, className = '', initialPrompt = '' }) => {
@@ -26,42 +26,42 @@ const AnalysisPrompt = ({ onAnalyze, isAnalyzing = false, className = '', initia
       id: 'engagement',
       title: 'Engagement Analysis',
       description: 'Analyze viewer engagement and retention patterns',
-      icon: TrendingUpIcon,
+      icon: TrendingUp,
       prompt: 'Analyze the engagement patterns in this video. Focus on moments where viewers are most engaged, drop-off points, and suggest improvements for better retention.'
     },
     {
       id: 'content',
       title: 'Content Quality',
       description: 'Evaluate content structure and delivery',
-      icon: TargetIcon,
+      icon: Target,
       prompt: 'Evaluate the content quality of this video. Analyze the structure, pacing, clarity of message, and provide suggestions for improvement.'
     },
     {
       id: 'audience',
       title: 'Audience Insights',
       description: 'Understand your target audience better',
-      icon: UsersIcon,
+      icon: Users,
       prompt: 'Provide insights about the target audience for this video. Analyze who would be most interested in this content and suggest ways to better reach them.'
     },
     {
       id: 'performance',
       title: 'Performance Metrics',
       description: 'Comprehensive performance analysis',
-      icon: BarChart3Icon,
+      icon: BarChart3,
       prompt: 'Analyze the overall performance of this video. Include metrics interpretation, comparison with similar content, and actionable recommendations.'
     },
     {
       id: 'storytelling',
       title: 'Storytelling Analysis',
       description: 'Evaluate narrative structure and flow',
-      icon: MessageSquareIcon,
+      icon: MessageSquare,
       prompt: 'Analyze the storytelling elements in this video. Evaluate the narrative structure, emotional arc, and suggest improvements for better storytelling.'
     },
     {
       id: 'timing',
       title: 'Timing & Pacing',
       description: 'Optimize video timing and pacing',
-      icon: ClockIcon,
+      icon: Clock,
       prompt: 'Analyze the timing and pacing of this video. Identify segments that are too fast or slow, and suggest optimal pacing for better viewer experience.'
     }
   ]
@@ -84,33 +84,34 @@ const AnalysisPrompt = ({ onAnalyze, isAnalyzing = false, className = '', initia
   }
 
   return (
-    <div className={`bg-white rounded-lg shadow-sm border border-gray-200 p-6 ${className}`}>
+    <div className={`glass-shine rounded-lg p-6 ${className}`}>
       <div className="flex items-center gap-2 mb-6">
-        <SparklesIcon className="w-5 h-5 text-primary-600" />
-        <h3 className="text-lg font-semibold text-gray-900">AI Video Analysis</h3>
+        <Sparkles className="w-5 h-5 text-green-400" />
+        <h3 className="text-lg font-semibold text-white">AI Video Analysis</h3>
       </div>
 
       {/* Analysis Templates */}
       <div className="mb-6">
-        <h4 className="text-sm font-medium text-gray-700 mb-3">Quick Analysis Templates</h4>
+        <h4 className="text-sm font-medium text-white/80 mb-3">Quick Analysis Templates</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {analysisTemplates.map((template) => {
             const IconComponent = template.icon
             return (
               <motion.button
                 key={template.id}
+                type="button"
                 onClick={() => handleTemplateSelect(template)}
                 className={`p-3 rounded-lg border text-left transition-all ${
                   selectedTemplate?.id === template.id
-                    ? 'border-primary-500 bg-primary-50 text-primary-900'
-                    : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-gray-300 hover:bg-gray-100'
+                    ? 'border-green-500 bg-green-500/20 text-white'
+                    : 'border-white/20 bg-white/5 text-white/80 hover:border-white/30 hover:bg-white/10'
                 }`}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
                 <div className="flex items-start gap-2">
                   <IconComponent className={`w-4 h-4 mt-0.5 ${
-                    selectedTemplate?.id === template.id ? 'text-primary-600' : 'text-gray-500'
+                    selectedTemplate?.id === template.id ? 'text-green-400' : 'text-white/60'
                   }`} />
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-sm">{template.title}</div>
@@ -127,14 +128,14 @@ const AnalysisPrompt = ({ onAnalyze, isAnalyzing = false, className = '', initia
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label htmlFor="analysis-prompt" className="text-sm font-medium text-gray-700">
+            <label htmlFor="analysis-prompt" className="text-sm font-medium text-white/80">
               Analysis Prompt
             </label>
             {selectedTemplate && (
               <button
                 type="button"
                 onClick={handleCustomPrompt}
-                className="text-xs text-primary-600 hover:text-primary-700 transition-colors"
+                className="text-xs text-green-400 hover:text-green-300 transition-colors"
               >
                 Write custom prompt
               </button>
@@ -146,7 +147,7 @@ const AnalysisPrompt = ({ onAnalyze, isAnalyzing = false, className = '', initia
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             placeholder="Describe what you'd like to analyze about this video..."
-            className="w-full h-32 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+            className="w-full h-32 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
             disabled={isAnalyzing}
           />
         </div>
@@ -155,15 +156,15 @@ const AnalysisPrompt = ({ onAnalyze, isAnalyzing = false, className = '', initia
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-blue-50 border border-blue-200 rounded-lg p-3"
+            className="bg-green-500/10 border border-green-500/30 rounded-lg p-3"
           >
             <div className="flex items-start gap-2">
-              <selectedTemplate.icon className="w-4 h-4 text-blue-600 mt-0.5" />
+              <selectedTemplate.icon className="w-4 h-4 text-green-400 mt-0.5" />
               <div>
-                <div className="text-sm font-medium text-blue-900">
+                <div className="text-sm font-medium text-green-300">
                   Using template: {selectedTemplate.title}
                 </div>
-                <div className="text-xs text-blue-700 mt-1">
+                <div className="text-xs text-green-400/80 mt-1">
                   {selectedTemplate.description}
                 </div>
               </div>
@@ -172,14 +173,14 @@ const AnalysisPrompt = ({ onAnalyze, isAnalyzing = false, className = '', initia
         )}
 
         <div className="flex items-center justify-between">
-          <div className="text-xs text-gray-500">
+          <div className="text-xs text-white/50">
             {prompt.length}/1000 characters
           </div>
           
           <motion.button
             type="submit"
             disabled={!prompt.trim() || isAnalyzing}
-            className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium shadow-lg"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -190,7 +191,7 @@ const AnalysisPrompt = ({ onAnalyze, isAnalyzing = false, className = '', initia
               </>
             ) : (
               <>
-                <SendIcon className="w-4 h-4" />
+                <Send className="w-4 h-4" />
                 Analyze Video
               </>
             )}
@@ -199,9 +200,9 @@ const AnalysisPrompt = ({ onAnalyze, isAnalyzing = false, className = '', initia
       </form>
 
       {/* Analysis Tips */}
-      <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-        <h5 className="text-sm font-medium text-gray-700 mb-2">💡 Analysis Tips</h5>
-        <ul className="text-xs text-gray-600 space-y-1">
+      <div className="mt-6 p-4 bg-white/5 rounded-lg border border-white/10">
+        <h5 className="text-sm font-medium text-white/80 mb-2">💡 Analysis Tips</h5>
+        <ul className="text-xs text-white/60 space-y-1">
           <li>• Be specific about what aspects you want to analyze</li>
           <li>• Mention your target audience or goals for better insights</li>
           <li>• Ask for actionable recommendations, not just observations</li>

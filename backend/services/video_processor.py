@@ -42,6 +42,12 @@ class VideoProcessor:
     
     def _find_ffmpeg(self) -> Optional[str]:
         """Find FFmpeg executable"""
+        # Check local installation first
+        local_ffmpeg = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 
+                                   "ffmpeg", "ffmpeg-7.1.1-essentials_build", "bin", "ffmpeg.exe")
+        if os.path.exists(local_ffmpeg):
+            return local_ffmpeg
+        
         try:
             result = subprocess.run(['ffmpeg', '-version'], 
                                   capture_output=True, text=True)
@@ -67,6 +73,12 @@ class VideoProcessor:
     
     def _find_ffprobe(self) -> Optional[str]:
         """Find FFprobe executable"""
+        # Check local installation first
+        local_ffprobe = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 
+                                    "ffmpeg", "ffmpeg-7.1.1-essentials_build", "bin", "ffprobe.exe")
+        if os.path.exists(local_ffprobe):
+            return local_ffprobe
+        
         try:
             result = subprocess.run(['ffprobe', '-version'], 
                                   capture_output=True, text=True)
@@ -178,7 +190,7 @@ class VideoProcessor:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             base_filename = f"yt_{url_hash}_{timestamp}"
             
-            # Configure yt-dlp options
+            # Configure yt-dlp options with local FFmpeg path
             ydl_opts = {
                 'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
                 'outtmpl': os.path.join(download_dir, f"{base_filename}.%(ext)s"),
@@ -189,6 +201,10 @@ class VideoProcessor:
                 'ignoreerrors': False,
                 'noprogress': True,
             }
+            
+            # Add FFmpeg path if available
+            if self.ffmpeg_path:
+                ydl_opts['ffmpeg_location'] = os.path.dirname(self.ffmpeg_path)
             
             # Download the video
             file_path = None

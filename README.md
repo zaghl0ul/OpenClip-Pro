@@ -45,11 +45,33 @@ OpenClip Pro/
 
 ## 🚀 Quick Start
 
+### 🎯 One-Click Test (Windows)
+
+For the fastest way to test the full application:
+
+```bash
+# Simply run the test script - it handles everything!
+test-app.bat
+```
+
+This will:
+- ✅ Check all dependencies (Python, Node.js, npm)
+- ✅ Install frontend and backend dependencies
+- ✅ Set up Python virtual environment
+- ✅ Configure FFmpeg for video processing
+- ✅ Initialize the database
+- ✅ Create a test video file
+- ✅ Start both backend and frontend servers
+- ✅ Open the application in your browser
+- ✅ Provide test instructions and cleanup
+
+**Default credentials**: admin@openclippro.com / admin123!
+
 ### Prerequisites
 
 - **Python 3.8+** with pip
 - **Node.js 18+** with npm
-- **FFmpeg** (for video processing)
+- **FFmpeg** (included in project)
 - **Git** for version control
 
 ### Installation

@@ -1,364 +1,435 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { v4 as uuidv4 } from 'uuid'
+import apiClient from '../utils/apiClient'
+import { useSettingsStore } from './settingsStore'
 
 const useProjectStore = create(
   persist(
     (set, get) => ({
-      // Current state
+      // State
       projects: [],
       currentProject: null,
+      isLoading: false,
       isProcessing: false,
       processingProgress: 0,
       processingStatus: '',
+      error: null,
       
-      // Initialize store
-      initialize: async () => {
-        set({ isProcessing: false });
-        return true;
-      },
+      // Actions
+      setLoading: (loading) => set({ isLoading: loading }),
+      setError: (error) => set({ error }),
+      clearError: () => set({ error: null }),
       
-      // Actions - Real implementations
+      // Project CRUD
       createProject: async (projectData) => {
-        set({ isProcessing: true });
-        
         try {
-          const project = {
-            id: uuidv4(),
-            name: typeof projectData === 'string' ? projectData : projectData.name,
-            description: typeof projectData === 'string' ? '' : (projectData.description || ''),
-            type: projectData.type || 'upload',
-            status: 'created',
-            clips: [],
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          };
+          set({ isLoading: true, error: null })
           
-          set((state) => ({
-            projects: [project, ...state.projects],
+          const project = await apiClient.createProject(projectData)
+          
+          set(state => ({
+            projects: [...state.projects, project],
             currentProject: project,
-            isProcessing: false
-          }));
+            isLoading: false
+          }))
           
-          return project;
+          return project
         } catch (error) {
-          set({ isProcessing: false });
-          throw error;
+          set({ error: error.message, isLoading: false })
+          throw error
         }
       },
       
-      updateProject: (projectId, updates) => {
-        set((state) => ({
-          projects: state.projects.map(project =>
-            project.id === projectId
-              ? { ...project, ...updates, updated_at: new Date().toISOString() }
-              : project
-          ),
-          currentProject: state.currentProject?.id === projectId
-            ? { ...state.currentProject, ...updates, updated_at: new Date().toISOString() }
-            : state.currentProject,
-        }))
+      updateProject: async (projectId, updates) => {
+        try {
+          set({ isLoading: true, error: null })
+          
+          const updatedProject = await apiClient.updateProject(projectId, updates)
+          
+          set(state => ({
+            projects: state.projects.map(p => 
+              p.id === projectId ? updatedProject : p
+            ),
+            currentProject: state.currentProject?.id === projectId 
+              ? updatedProject 
+              : state.currentProject,
+            isLoading: false
+          }))
+          
+          return updatedProject
+        } catch (error) {
+          set({ error: error.message, isLoading: false })
+          throw error
+        }
       },
       
       deleteProject: async (projectId) => {
-        set((state) => ({
-          projects: state.projects.filter(project => project.id !== projectId),
-          currentProject: state.currentProject?.id === projectId ? null : state.currentProject,
-        }));
-      },
-      
-      setCurrentProject: (projectId) => {
-        const state = get()
-        const project = state.projects.find(p => p.id === projectId)
-        if (project) {
-          set({ currentProject: project })
-        }
-      },
-      
-      addVideoToProject: async (projectId, videoData) => {
-        set({ isProcessing: true });
-        
         try {
-          // Real video data from file/upload
-          const video = {
-            id: uuidv4(),
-            name: videoData.name || 'Uploaded Video',
-            path: videoData.path || null,
-            url: videoData.url || null,
-            duration: videoData.duration || 0, // Real duration from video metadata
-            size: videoData.size || 0,
-            format: videoData.format || videoData.name.split('.').pop().toLowerCase() || 'mp4',
-            width: videoData.width || null,
-            height: videoData.height || null,
-            frameRate: videoData.frameRate || null,
-            bitrate: videoData.bitrate || null,
-            codec: videoData.codec || null,
-            uploaded_at: new Date().toISOString()
-          };
+          set({ isLoading: true, error: null })
           
-          get().updateProject(projectId, { 
-            video,
-            status: 'uploaded'
-          });
+          await apiClient.deleteProject(projectId)
           
-          set({ isProcessing: false });
-          return video;
+          set(state => ({
+            projects: state.projects.filter(p => p.id !== projectId),
+            currentProject: state.currentProject?.id === projectId 
+              ? null 
+              : state.currentProject,
+            isLoading: false
+          }))
         } catch (error) {
-          set({ isProcessing: false });
-          throw error;
-        }
-      },
-      
-      setAnalysisPrompt: (projectId, prompt) => {
-        get().updateProject(projectId, {
-          analysisPrompt: prompt,
-        })
-      },
-      
-      startAnalysis: async (projectId, provider = null, model = null) => {
-        const state = get()
-        const project = state.projects.find(p => p.id === projectId)
-        
-        if (!project || !project.video || !project.analysisPrompt) {
-          throw new Error('Project, video, and analysis prompt are required')
-        }
-        
-        set({
-          isProcessing: true,
-          processingProgress: 0,
-          processingStatus: 'Initializing analysis...',
-        })
-        
-        get().updateProject(projectId, { status: 'analyzing' })
-        
-        try {
-          // Real analysis implementation would:
-          // 1. Send video and prompt to AI service
-          // 2. Receive analysis results with detected segments
-          // 3. Process and store the results
-          
-          // For now, return empty clips array until backend is connected
-          const analysisResults = {
-            clips: [],
-            provider: provider || 'none',
-            model: model || 'none',
-            analysisCompleted: false,
-            error: 'Analysis service not connected. Please configure AI provider in settings.'
-          };
-          
-          get().updateProject(projectId, {
-            clips: analysisResults.clips,
-            status: 'error',
-            analysis_provider: analysisResults.provider,
-            analysis_model: analysisResults.model,
-            error: analysisResults.error
-          });
-          
-          set({
-            isProcessing: false,
-            processingProgress: 0,
-            processingStatus: '',
-          });
-          
-          return analysisResults;
-        } catch (error) {
-          get().updateProject(projectId, {
-            status: 'error',
-            error: error.message,
-          })
+          set({ error: error.message, isLoading: false })
           throw error
-        } finally {
-          set({
-            isProcessing: false,
-            processingProgress: 0,
-            processingStatus: '',
-          })
         }
       },
       
-      updateClip: (projectId, clipId, updates) => {
-        set((state) => ({
-          projects: state.projects.map(project =>
-            project.id === projectId
-              ? {
-                  ...project,
-                  clips: project.clips.map(clip =>
-                    clip.id === clipId ? { ...clip, ...updates } : clip
-                  ),
-                  updated_at: new Date().toISOString(),
-                }
-              : project
-          ),
-          currentProject: state.currentProject?.id === projectId
-            ? {
-                ...state.currentProject,
-                clips: state.currentProject.clips.map(clip =>
-                  clip.id === clipId ? { ...clip, ...updates } : clip
-                ),
-                updated_at: new Date().toISOString(),
-              }
-            : state.currentProject,
-        }))
-      },
-      
-      deleteClip: (projectId, clipId) => {
-        set((state) => ({
-          projects: state.projects.map(project =>
-            project.id === projectId
-              ? {
-                  ...project,
-                  clips: project.clips.filter(clip => clip.id !== clipId),
-                  updated_at: new Date().toISOString(),
-                }
-              : project
-          ),
-          currentProject: state.currentProject?.id === projectId
-            ? {
-                ...state.currentProject,
-                clips: state.currentProject.clips.filter(clip => clip.id !== clipId),
-                updated_at: new Date().toISOString(),
-              }
-            : state.currentProject,
-        }))
-      },
-      
-      reorderClips: (projectId, clipIds) => {
-        const state = get()
-        const project = state.projects.find(p => p.id === projectId)
-        if (!project) return
-        
-        const reorderedClips = clipIds.map(id => 
-          project.clips.find(clip => clip.id === id)
-        ).filter(Boolean)
-        
-        get().updateProject(projectId, { clips: reorderedClips })
-      },
-      
-      exportClip: async (projectId, clipId, format = 'mp4', options = {}) => {
-        const state = get()
-        const project = state.projects.find(p => p.id === projectId)
-        const clip = project?.clips.find(c => c.id === clipId)
-        
-        if (!project || !clip) {
-          throw new Error('Project or clip not found')
-        }
-        
-        set({
-          isProcessing: true,
-          processingStatus: `Preparing export for ${clip.name}...`,
-        })
-        
+      getProject: async (projectId) => {
         try {
-          // Real export would:
-          // 1. Extract video segment based on clip timestamps
-          // 2. Apply any transformations/effects
-          // 3. Encode to requested format
-          // 4. Return download URL or blob
+          set({ isLoading: true, error: null })
           
-          const exportData = {
-            clipId,
-            projectId,
-            format,
-            exportedAt: Date.now(),
-            filename: `${clip.name}.${format}`,
-            status: 'pending',
-            error: 'Export service not available. Please ensure FFmpeg is properly configured.',
-            ...options
+          const project = await apiClient.getProject(projectId)
+          
+          set(state => ({
+            currentProject: project,
+            // Update in projects list if it exists
+            projects: state.projects.map(p => 
+              p.id === projectId ? project : p
+            ),
+            isLoading: false
+          }))
+          
+          return project
+        } catch (error) {
+          set({ error: error.message, isLoading: false })
+          throw error
+        }
+      },
+      
+      loadProjects: async () => {
+        try {
+          set({ isLoading: true, error: null })
+          
+          const projects = await apiClient.getProjects()
+          
+          set({
+            projects,
+            isLoading: false
+          })
+          
+          return projects
+        } catch (error) {
+          set({ error: error.message, isLoading: false })
+          throw error
+        }
+      },
+      
+      // Video upload
+      uploadVideo: async (projectId, file, onProgress) => {
+        try {
+          set({ isLoading: true, error: null })
+          
+          const result = await apiClient.uploadVideo(projectId, file, onProgress)
+          
+          // Update project with video data
+          await get().updateProject(projectId, {
+            status: 'uploaded',
+            video_data: result.video_data,
+            file_path: result.file_path
+          })
+          
+          set({ isLoading: false })
+          return result
+        } catch (error) {
+          set({ error: error.message, isLoading: false })
+          throw error
+        }
+      },
+      
+      // YouTube processing
+      processYouTube: async (projectId, youtubeUrl) => {
+        try {
+          set({ isLoading: true, error: null })
+          
+          const result = await apiClient.processYouTube(projectId, youtubeUrl)
+          
+          // Update project with YouTube data
+          await get().updateProject(projectId, {
+            status: 'uploaded',
+            youtube_url: youtubeUrl,
+            video_data: result.video_data,
+            file_path: result.file_path
+          })
+          
+          set({ isLoading: false })
+          return result
+        } catch (error) {
+          set({ error: error.message, isLoading: false })
+          throw error
+        }
+      },
+      
+      // AI Analysis
+      analyzeVideo: async (projectId, prompt, provider = null, model = null) => {
+        try {
+          set({ 
+            isProcessing: true, 
+            processingProgress: 0,
+            processingStatus: 'Starting analysis...',
+            error: null 
+          })
+          
+          // Get settings if provider/model not specified
+          if (!provider || !model) {
+            const settings = useSettingsStore.getState()
+            provider = provider || settings.modelSettings.defaultProvider
+            model = model || settings.modelSettings.selectedModels[provider]
           }
           
-          // For now, return error status
-          return exportData
+          // Update project status
+          await get().updateProject(projectId, {
+            status: 'analyzing',
+            analysis_prompt: prompt,
+            analysis_provider: provider,
+            analysis_model: model
+          })
           
-        } finally {
+          // Simulate progress updates
+          const progressInterval = setInterval(() => {
+            set(state => {
+              const newProgress = Math.min(state.processingProgress + 5, 90)
+              return {
+                processingProgress: newProgress,
+                processingStatus: newProgress < 30 ? 'Extracting video frames...' :
+                                newProgress < 60 ? 'Analyzing content with AI...' :
+                                newProgress < 90 ? 'Generating clips...' :
+                                'Finalizing results...'
+              }
+            })
+          }, 1000)
+          
+          try {
+            // Start analysis
+            const result = await apiClient.analyzeVideo(projectId, prompt, provider, model)
+            
+            clearInterval(progressInterval)
+            
+            set({
+              processingProgress: 100,
+              processingStatus: 'Analysis complete!',
+            })
+            
+            // Update project with results
+            await get().updateProject(projectId, {
+              status: 'completed',
+              clips: result.clips || []
+            })
+            
+            setTimeout(() => {
+              set({
+                isProcessing: false,
+                processingProgress: 0,
+                processingStatus: '',
+              })
+            }, 1000)
+            
+            return result
+          } catch (analysisError) {
+            clearInterval(progressInterval)
+            
+            // Update project with error
+            await get().updateProject(projectId, {
+              status: 'error',
+              error_message: analysisError.message
+            })
+            
+            throw analysisError
+          }
+        } catch (error) {
           set({
             isProcessing: false,
+            processingProgress: 0,
             processingStatus: '',
+            error: error.message
           })
+          throw error
+        }
+      },
+      
+      // Clip management
+      updateClip: async (projectId, clipId, updates) => {
+        try {
+          const updatedClip = await apiClient.updateClip(clipId, updates)
+          
+          set(state => ({
+            projects: state.projects.map(p => 
+              p.id === projectId 
+                ? {
+                    ...p,
+                    clips: p.clips.map(c => 
+                      c.id === clipId ? updatedClip : c
+                    )
+                  }
+                : p
+            ),
+            currentProject: state.currentProject?.id === projectId
+              ? {
+                  ...state.currentProject,
+                  clips: state.currentProject.clips.map(c =>
+                    c.id === clipId ? updatedClip : c
+                  )
+                }
+              : state.currentProject
+          }))
+          
+          return updatedClip
+        } catch (error) {
+          set({ error: error.message })
+          throw error
+        }
+      },
+      
+      deleteClip: async (projectId, clipId) => {
+        try {
+          await apiClient.deleteClip(clipId)
+          
+          set(state => ({
+            projects: state.projects.map(p => 
+              p.id === projectId 
+                ? {
+                    ...p,
+                    clips: p.clips.filter(c => c.id !== clipId)
+                  }
+                : p
+            ),
+            currentProject: state.currentProject?.id === projectId
+              ? {
+                  ...state.currentProject,
+                  clips: state.currentProject.clips.filter(c => c.id !== clipId)
+                }
+              : state.currentProject
+          }))
+        } catch (error) {
+          set({ error: error.message })
+          throw error
+        }
+      },
+      
+      // Export functionality
+      exportClips: async (projectId, exportSettings) => {
+        try {
+          set({ isLoading: true, error: null })
+          
+          const result = await apiClient.exportClips(projectId, exportSettings)
+          
+          set({ isLoading: false })
+          return result
+        } catch (error) {
+          set({ error: error.message, isLoading: false })
+          throw error
+        }
+      },
+      
+      exportClip: async (clipId, exportSettings) => {
+        try {
+          set({ isLoading: true, error: null })
+          
+          const result = await apiClient.exportClip(clipId, exportSettings)
+          
+          set({ isLoading: false })
+          return result
+        } catch (error) {
+          set({ error: error.message, isLoading: false })
+          throw error
+        }
+      },
+      
+      // Search and filter
+      searchProjects: async (query, filters = {}) => {
+        try {
+          set({ isLoading: true, error: null })
+          
+          const results = await apiClient.searchProjects(query, filters)
+          
+          set({
+            projects: results,
+            isLoading: false
+          })
+          
+          return results
+        } catch (error) {
+          set({ error: error.message, isLoading: false })
+          throw error
         }
       },
       
       // Utility functions
       getProjectById: (projectId) => {
-        const state = get()
-        return state.projects.find(p => p.id === projectId)
+        const { projects } = get()
+        return projects.find(p => p.id === projectId)
+      },
+      
+      getProjectsByStatus: (status) => {
+        const { projects } = get()
+        return projects.filter(p => p.status === status)
       },
       
       getRecentProjects: (limit = 5) => {
-        const state = get()
-        const projects = state.projects || []
+        const { projects } = get()
         return projects
-          .sort((a, b) => {
-            const aDate = new Date(a.updated_at || a.created_at || 0)
-            const bDate = new Date(b.updated_at || b.created_at || 0)
-            return bDate - aDate
-          })
+          .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
           .slice(0, limit)
       },
-
-      searchProjects: (query) => {
-        const state = get()
-        const projects = state.projects || []
-        const lowercaseQuery = query.toLowerCase()
-        return projects.filter(project =>
-          (project.name || '').toLowerCase().includes(lowercaseQuery) ||
-          (project.description || '').toLowerCase().includes(lowercaseQuery)
-        )
-      },
       
+      // Analytics
       getProjectStats: () => {
-        const state = get()
-        const projects = Array.isArray(state.projects) ? state.projects : []
+        const { projects } = get()
+        
         return {
-          totalProjects: projects.length,
-          completedProjects: projects.filter(p => p.status === 'completed').length,
-          totalClips: projects.reduce((sum, p) => sum + (Array.isArray(p.clips) ? p.clips.length : 0), 0),
-          averageScore: projects.length > 0 ? projects.reduce((sum, p) => {
-            const projectAvg = Array.isArray(p.clips) && p.clips.length > 0 
-              ? p.clips.reduce((s, c) => s + (c?.score || 0), 0) / p.clips.length 
-              : 0
-            return sum + projectAvg
-          }, 0) / projects.length : 0,
+          total: projects.length,
+          completed: projects.filter(p => p.status === 'completed').length,
+          analyzing: projects.filter(p => p.status === 'analyzing').length,
+          error: projects.filter(p => p.status === 'error').length,
+          totalClips: projects.reduce((sum, p) => sum + (p.clips?.length || 0), 0),
+          totalDuration: projects.reduce((sum, p) => 
+            sum + (p.video_data?.duration || 0), 0
+          )
         }
       },
       
-      getProject: async (projectId) => {
-        const { projects } = get();
-        return projects.find(p => p.id === projectId);
-      },
-      
-      // Backend integration methods
-      connectToBackend: async (backendUrl) => {
+      // Initialize
+      initialize: async () => {
         try {
-          const response = await fetch(`${backendUrl}/api/health`);
-          if (response.ok) {
-            set({ isBackendConnected: true });
-            return true;
-          }
-          return false;
+          await get().loadProjects()
+          return true
         } catch (error) {
-          console.error('Backend connection failed:', error);
-          return false;
+          console.warn('Failed to load projects:', error.message)
+          return false
         }
       },
       
-      syncWithBackend: async () => {
-        // Implement backend sync when available
-        const state = get();
-        if (state.isBackendConnected) {
-          // Sync projects with backend
-          try {
-            // await syncProjects(state.projects);
-          } catch (error) {
-            console.error('Sync failed:', error);
-          }
-        }
+      // Reset store
+      reset: () => {
+        set({
+          projects: [],
+          currentProject: null,
+          isLoading: false,
+          isProcessing: false,
+          processingProgress: 0,
+          processingStatus: '',
+          error: null
+        })
       }
     }),
     {
       name: 'openclip-projects',
+      // Only persist project references, not full data
       partialize: (state) => ({
-        projects: state.projects,
-      }),
+        projects: state.projects.map(p => ({
+          id: p.id,
+          name: p.name,
+          status: p.status,
+          updated_at: p.updated_at
+        }))
+      })
     }
   )
 )

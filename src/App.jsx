@@ -7,7 +7,10 @@ import Projects from './pages/Projects';
 import ProjectDetail from './pages/ProjectDetail';
 import Clips from './pages/Clips';
 import Analytics from './pages/Analytics';
-import Settings from './pages/Settings';
+import SettingsPage from './pages/SettingsPage';
+import GlassEffect from './components/Common/GlassEffect';
+import ErrorBoundary from './components/Common/ErrorBoundary';
+import TestingPanel from './components/TestingPanel';
 import './index.css';
 
 function App() {
@@ -19,7 +22,7 @@ function App() {
       document.documentElement.style.setProperty('--cursor-y', `${e.clientY}px`);
       
       // Update glass element hover effects
-      const glassElements = document.querySelectorAll('.glass, .glass-card, .card, .btn-glass, .glass-panel');
+      const glassElements = document.querySelectorAll('.glass, .glass-card, .card, .btn-glass, .glass-panel, .glass-minimal, .glass-prism, .glass-shine, .glass-frosted');
       
       glassElements.forEach(element => {
         const rect = element.getBoundingClientRect();
@@ -46,8 +49,81 @@ function App() {
           // Increase opacity based on proximity
           const proximityFactor = 1 - (distanceFromCenter / (maxDistance * 1.5));
           element.style.setProperty('--glow-opacity', proximityFactor.toFixed(2));
+          
+          // For glass-prism elements, create subtle edge refraction effect with rainbow hint
+          if (element.classList.contains('glass-prism')) {
+            // Calculate distances to each edge
+            const distanceToLeft = x;
+            const distanceToRight = rect.width - x;
+            const distanceToTop = y;
+            const distanceToBottom = rect.height - y;
+            
+            // Find the closest edge
+            const edgeDistances = [
+              { edge: 'left', distance: distanceToLeft, x: 0, y: y, angle: 0 },
+              { edge: 'right', distance: distanceToRight, x: rect.width, y: y, angle: 180 },
+              { edge: 'top', distance: distanceToTop, x: x, y: 0, angle: 90 },
+              { edge: 'bottom', distance: distanceToBottom, x: x, y: rect.height, angle: 270 }
+            ];
+            
+            // Sort by distance to find the closest edge
+            edgeDistances.sort((a, b) => a.distance - b.distance);
+            const closestEdge = edgeDistances[0];
+            
+            // Only activate effect when cursor is very close to an edge (more subtle threshold)
+            const baseThreshold = Math.min(12, rect.width * 0.08, rect.height * 0.08);
+            
+            if (closestEdge.distance < baseThreshold) {
+              // Calculate intensity based on proximity to edge
+              const edgeIntensity = Math.pow(1 - (closestEdge.distance / baseThreshold), 1.8); // Steeper falloff
+              
+              // Position the highlight at the edge closest to cursor
+              element.style.setProperty('--edge-x', `${closestEdge.x}px`);
+              element.style.setProperty('--edge-y', `${closestEdge.y}px`);
+              
+              // Set angle perpendicular to the edge
+              element.style.setProperty('--edge-angle', `${closestEdge.angle}deg`);
+              
+              // Set a very small radius for a subtle highlight
+              // Different sizes for vertical vs horizontal edges
+              const isVertical = closestEdge.edge === 'left' || closestEdge.edge === 'right';
+              const edgeRadius = isVertical ? Math.min(rect.height * 0.2, 40) : Math.min(rect.width * 0.2, 40);
+              const edgeThin = Math.min(baseThreshold * 0.8, 6); // Very thin highlight
+              
+              element.style.setProperty('--edge-radius', `${edgeRadius}px`);
+              element.style.setProperty('--edge-thin', `${edgeThin}px`);
+              element.style.setProperty('--edge-intensity', edgeIntensity.toFixed(2));
+              
+              // Add subtle rainbow shift based on position
+              let huePosition;
+              if (isVertical) {
+                huePosition = y / rect.height;
+              } else {
+                huePosition = x / rect.width;
+              }
+              
+              // Use current time for subtle animation
+              const timeOffset = (Date.now() % 10000) / 10000; // Complete cycle every 10 seconds
+              const hueShift = ((huePosition + timeOffset) * 360) % 360;
+              element.style.setProperty('--edge-hue', hueShift.toFixed(0));
+            } else {
+              element.style.setProperty('--edge-intensity', '0');
+            }
+          }
+          
+          // For glass-shine elements, update reflection position
+          if (element.classList.contains('glass-shine')) {
+            const percentX = ((x / rect.width) * 100).toFixed(2);
+            const percentY = ((y / rect.height) * 100).toFixed(2);
+            element.style.setProperty('--shine-x', `${percentX}%`);
+            element.style.setProperty('--shine-y', `${percentY}%`); 
+          }
         } else {
           element.style.setProperty('--glow-opacity', '0');
+          
+          if (element.classList.contains('glass-prism')) {
+            element.style.setProperty('--edge-intensity', '0');
+          }
         }
       });
     };
@@ -61,7 +137,7 @@ function App() {
   }, []);
   
   return (
-    <>
+    <ErrorBoundary>
       <Router>
         <div className="min-h-screen bg-background">
           <Routes>
@@ -110,13 +186,19 @@ function App() {
               path="/settings" 
               element={
                 <Layout>
-                  <Settings />
+                  <SettingsPage />
                 </Layout>
               } 
             />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </div>
+        
+        {/* Glass Effect Controller */}
+        <GlassEffect />
+        
+        {/* Testing Panel - Only in development */}
+        {import.meta.env.DEV && <TestingPanel />}
       </Router>
       
       <Toaster 
@@ -147,7 +229,7 @@ function App() {
           },
         }}
       />
-    </>
+    </ErrorBoundary>
   );
 }
 

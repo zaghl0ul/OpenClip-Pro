@@ -15,6 +15,22 @@ from sqlalchemy.orm import Session
 import platform
 import sys
 
+# AI service imports (optional)
+try:
+    import openai
+except ImportError:
+    openai = None
+
+try:
+    import google.generativeai as genai
+except ImportError:
+    genai = None
+
+try:
+    import yt_dlp
+except ImportError:
+    yt_dlp = None
+
 # Import our modules
 from models.project import Project as ProjectSchema, Clip as ClipSchema, AnalysisRequest
 from models.database import Project, Clip, Setting, User
@@ -234,6 +250,21 @@ async def get_available_models(
         return {"models": models}
     except HTTPException:
         raise
+    except Exception as e:
+        logger.error(f"Error getting models: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get models")
+
+@app.post("/api/models/{provider}")
+async def get_models_with_key(
+    provider: str,
+    request: APITestRequest,
+    current_user: User = Depends(auth_handler.get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get available models for a provider with provided API key"""
+    try:
+        models = await api_manager.get_available_models(provider, request.api_key, db, security_manager, SettingsRepository)
+        return {"models": models}
     except Exception as e:
         logger.error(f"Error getting models: {e}")
         raise HTTPException(status_code=500, detail="Failed to get models")
@@ -607,6 +638,20 @@ async def get_settings(
         logger.error(f"Error getting settings: {e}")
         raise HTTPException(status_code=500, detail="Failed to get settings")
 
+@app.post("/api/settings/test-api")
+async def test_api_connection(
+    request: APITestRequest,
+    current_user: User = Depends(auth_handler.get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Test API connection for a provider"""
+    try:
+        result = await api_manager.test_connection(request.provider, request.api_key)
+        return {"success": True, "result": result}
+    except Exception as e:
+        logger.error(f"API test failed: {e}")
+        return {"success": False, "message": str(e)}
+
 @app.post("/api/settings/api-key")
 async def set_api_key(
     request: APITestRequest,
@@ -668,6 +713,294 @@ async def get_admin_stats(db: Session = Depends(get_db)):
     except Exception as e:
         logger.error(f"Error getting admin stats: {e}")
         raise HTTPException(status_code=500, detail="Failed to get statistics")
+
+# Clips endpoints
+@app.get("/api/projects/{project_id}/clips")
+async def get_project_clips(
+    project_id: str,
+    current_user: User = Depends(auth_handler.get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get all clips for a project"""
+    project = db.query(Project).filter(
+        Project.id == project_id,
+        Project.user_id == current_user.id
+    ).first()
+    
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    clips = ClipRepository.get_clips_by_project(db, project_id)
+    return {"clips": [clip.to_dict() for clip in clips]}
+
+@app.get("/api/clips/{clip_id}")
+async def get_clip(
+    clip_id: str,
+    current_user: User = Depends(auth_handler.get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get a specific clip"""
+    clip = ClipRepository.get_clip_by_id(db, clip_id)
+    if not clip:
+        raise HTTPException(status_code=404, detail="Clip not found")
+    
+    # Verify user owns the project
+    project = db.query(Project).filter(
+        Project.id == clip.project_id,
+        Project.user_id == current_user.id
+    ).first()
+    
+    if not project:
+        raise HTTPException(status_code=404, detail="Clip not found")
+    
+    return {"clip": clip.to_dict()}
+
+@app.put("/api/clips/{clip_id}")
+async def update_clip(
+    clip_id: str,
+    updates: dict,
+    current_user: User = Depends(auth_handler.get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update a clip"""
+    clip = ClipRepository.get_clip_by_id(db, clip_id)
+    if not clip:
+        raise HTTPException(status_code=404, detail="Clip not found")
+    
+    # Verify user owns the project
+    project = db.query(Project).filter(
+        Project.id == clip.project_id,
+        Project.user_id == current_user.id
+    ).first()
+    
+    if not project:
+        raise HTTPException(status_code=404, detail="Clip not found")
+    
+    updated_clip = ClipRepository.update_clip(db, clip_id, updates)
+    return {"clip": updated_clip.to_dict()}
+
+@app.delete("/api/clips/{clip_id}")
+async def delete_clip(
+    clip_id: str,
+    current_user: User = Depends(auth_handler.get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Delete a clip"""
+    clip = ClipRepository.get_clip_by_id(db, clip_id)
+    if not clip:
+        raise HTTPException(status_code=404, detail="Clip not found")
+    
+    # Verify user owns the project
+    project = db.query(Project).filter(
+        Project.id == clip.project_id,
+        Project.user_id == current_user.id
+    ).first()
+    
+    if not project:
+        raise HTTPException(status_code=404, detail="Clip not found")
+    
+    success = ClipRepository.delete_clip(db, clip_id)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to delete clip")
+    
+    return {"success": True, "message": "Clip deleted successfully"}
+
+# Export endpoints
+@app.post("/api/projects/{project_id}/export")
+async def export_project_clips(
+    project_id: str,
+    export_settings: dict,
+    current_user: User = Depends(auth_handler.get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Export all clips from a project"""
+    project = db.query(Project).filter(
+        Project.id == project_id,
+        Project.user_id == current_user.id
+    ).first()
+    
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    if not project.video_data:
+        raise HTTPException(status_code=400, detail="No video data available")
+    
+    try:
+        clips = ClipRepository.get_clips_by_project(db, project_id)
+        if not clips:
+            raise HTTPException(status_code=400, detail="No clips to export")
+        
+        # Convert clips to dict format for video processor
+        clips_data = [clip.to_dict() for clip in clips]
+        
+        # Export clips using video processor
+        video_path = project.video_data.get("file_path")
+        export_result = await video_processor.export_clips(video_path, clips_data, export_settings)
+        
+        return {"export": export_result}
+        
+    except Exception as e:
+        logger.error(f"Export error: {e}")
+        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}")
+
+@app.post("/api/clips/{clip_id}/export")
+async def export_single_clip(
+    clip_id: str,
+    export_settings: dict,
+    current_user: User = Depends(auth_handler.get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Export a single clip"""
+    clip = ClipRepository.get_clip_by_id(db, clip_id)
+    if not clip:
+        raise HTTPException(status_code=404, detail="Clip not found")
+    
+    # Verify user owns the project
+    project = db.query(Project).filter(
+        Project.id == clip.project_id,
+        Project.user_id == current_user.id
+    ).first()
+    
+    if not project:
+        raise HTTPException(status_code=404, detail="Clip not found")
+    
+    if not project.video_data:
+        raise HTTPException(status_code=400, detail="No video data available")
+    
+    try:
+        # Export single clip
+        video_path = project.video_data.get("file_path")
+        clips_data = [clip.to_dict()]
+        
+        export_result = await video_processor.export_clips(video_path, clips_data, export_settings)
+        
+        # Update clip export status
+        ClipRepository.update_clip(db, clip_id, {
+            "is_exported": True,
+            "exported_at": datetime.now(),
+            "export_path": export_result["clips"][0]["output_path"] if export_result["clips"] else None
+        })
+        
+        return {"export": export_result}
+        
+    except Exception as e:
+        logger.error(f"Clip export error: {e}")
+        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}")
+
+# File management endpoints
+@app.post("/api/files/upload")
+async def upload_file(
+    file: UploadFile = File(...),
+    current_user: User = Depends(auth_handler.get_current_user)
+):
+    """Upload a general file"""
+    try:
+        # Check file size
+        if file.size > settings.MAX_UPLOAD_SIZE:
+            raise HTTPException(
+                status_code=413,
+                detail=f"File too large. Maximum size is {settings.MAX_UPLOAD_SIZE // (1024**3)}GB"
+            )
+        
+        # Save file with temporary project ID
+        file_path = await file_manager.save_upload(file, "temp")
+        
+        return {
+            "success": True,
+            "file_path": file_path,
+            "filename": file.filename,
+            "size": file.size
+        }
+        
+    except Exception as e:
+        logger.error(f"File upload error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to upload file")
+
+@app.delete("/api/files/{file_id}")
+async def delete_file(
+    file_id: str,
+    current_user: User = Depends(auth_handler.get_current_user)
+):
+    """Delete a file"""
+    try:
+        result = await file_manager.delete_file(file_id)
+        if result["success"]:
+            return {"success": True, "message": "File deleted successfully"}
+        else:
+            raise HTTPException(status_code=404, detail=result["error"])
+            
+    except Exception as e:
+        logger.error(f"File deletion error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete file")
+
+# System endpoints
+@app.get("/api/system/status")
+async def get_system_status(
+    current_user: User = Depends(auth_handler.get_current_user)
+):
+    """Get system status"""
+    try:
+        # Check various system components
+        status = {
+            "database": "healthy",
+            "file_storage": "healthy",
+            "ai_services": {},
+            "video_processing": "healthy" if video_processor.ffmpeg_path else "limited",
+            "timestamp": datetime.now().isoformat()
+        }
+        
+        # Check AI service availability
+        if openai:
+            status["ai_services"]["openai"] = "available"
+        if genai:
+            status["ai_services"]["gemini"] = "available"
+        if yt_dlp:
+            status["ai_services"]["youtube"] = "available"
+        
+        return status
+        
+    except Exception as e:
+        logger.error(f"System status error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get system status")
+
+@app.get("/api/system/metrics")
+async def get_system_metrics(
+    current_user: User = Depends(auth_handler.get_current_user)
+):
+    """Get system metrics"""
+    try:
+        # Get storage stats
+        storage_stats = file_manager.get_storage_stats()
+        
+        return {
+            "storage": storage_stats,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"System metrics error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get system metrics")
+
+# Search endpoints
+@app.get("/api/projects/search")
+async def search_projects(
+    query: str,
+    current_user: User = Depends(auth_handler.get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Search projects"""
+    try:
+        # Simple text search in project names and descriptions
+        projects = db.query(Project).filter(
+            Project.user_id == current_user.id,
+            (Project.name.ilike(f"%{query}%") | Project.description.ilike(f"%{query}%"))
+        ).order_by(Project.updated_at.desc()).all()
+        
+        return {"projects": [project.to_dict() for project in projects]}
+        
+    except Exception as e:
+        logger.error(f"Search error: {e}")
+        raise HTTPException(status_code=500, detail="Search failed")
 
 # Error handlers
 @app.exception_handler(HTTPException)

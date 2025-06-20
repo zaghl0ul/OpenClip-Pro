@@ -60,7 +60,7 @@ const ActionCard = ({ action }) => {
     <CardComponent
       to={action.to}
       onClick={action.onClick}
-      className="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
+      className="flex items-center gap-4 p-4 glass-frosted transition-all"
     >
       <div className={`p-3 rounded-full ${action.color}`}>
         <action.icon className="w-5 h-5 text-white" />

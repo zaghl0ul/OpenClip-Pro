@@ -8,7 +8,7 @@ import {
 const GlassHeader = ({ onMenuClick }) => {
   return (
     <motion.header
-      className="glass-minimal fixed top-4 left-4 right-4 rounded-2xl p-4 z-40 gpu-accelerated"
+      className="glass-frosted fixed top-4 left-4 right-4 rounded-2xl p-4 z-40 gpu-accelerated"
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
@@ -19,7 +19,7 @@ const GlassHeader = ({ onMenuClick }) => {
           <div className="flex items-center gap-4">
             {/* Mobile Menu Button */}
             <motion.button
-              className="lg:hidden glass-minimal rounded-xl p-2 text-white hover:bg-white/10 transition-colors"
+              className="lg:hidden glass-frosted rounded-xl p-2 text-white hover:bg-white/10 transition-colors"
               onClick={onMenuClick}
               whileTap={{ scale: 0.95 }}
             >
@@ -28,7 +28,7 @@ const GlassHeader = ({ onMenuClick }) => {
             
             {/* Logo */}
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 glass-minimal rounded-xl flex items-center justify-center">
+              <div className="w-10 h-10 glass-frosted rounded-xl flex items-center justify-center">
                 <Zap className="w-6 h-6 text-indigo-300" />
               </div>
               <span className="text-xl font-bold text-white hidden sm:block">VideoForge</span>
@@ -42,7 +42,7 @@ const GlassHeader = ({ onMenuClick }) => {
               <input
                 type="text"
                 placeholder="Search projects, clips, or keywords..."
-                className="w-full glass-minimal rounded-xl pl-10 pr-4 py-2.5 text-white placeholder-white/40 border-0 focus:outline-none focus:ring-2 focus:ring-indigo-400/50 transition-all"
+                className="w-full glass-frosted rounded-xl pl-10 pr-4 py-2.5 text-white placeholder-white/40 border-0 focus:outline-none focus:ring-2 focus:ring-indigo-400/50 transition-all"
               />
             </div>
           </div>
@@ -51,7 +51,7 @@ const GlassHeader = ({ onMenuClick }) => {
           <div className="flex items-center gap-3">
             {/* Quick Actions */}
             <button
-              className="glass-minimal px-4 py-2 rounded-xl text-white hover:bg-white/10 transition-colors flex items-center gap-2 hidden sm:flex"
+              className="glass-frosted px-4 py-2 rounded-xl text-white hover:bg-white/10 transition-colors flex items-center gap-2 hidden sm:flex"
             >
               <Upload className="w-4 h-4" />
               <span className="hidden lg:inline">Upload</span>
@@ -66,28 +66,28 @@ const GlassHeader = ({ onMenuClick }) => {
             
             {/* Notification Button */}
             <button
-              className="relative glass-minimal rounded-xl p-2.5 text-white hover:bg-white/10 transition-colors"
+              className="relative glass-frosted rounded-xl p-2.5 text-white hover:bg-white/10 transition-colors"
             >
               <Bell className="w-5 h-5" />
             </button>
             
             {/* Settings Button */}
             <button
-              className="glass-minimal rounded-xl p-2.5 text-white hover:bg-white/10 transition-colors"
+              className="glass-frosted rounded-xl p-2.5 text-white hover:bg-white/10 transition-colors"
             >
               <Settings className="w-5 h-5" />
             </button>
             
             {/* Help Button */}
             <button
-              className="glass-minimal rounded-xl p-2.5 text-white hover:bg-white/10 transition-colors"
+              className="glass-frosted rounded-xl p-2.5 text-white hover:bg-white/10 transition-colors"
             >
               <HelpCircle className="w-5 h-5" />
             </button>
             
             {/* User Profile */}
             <button
-              className="flex items-center gap-3 glass-minimal rounded-xl p-2 hover:bg-white/10 transition-colors"
+              className="flex items-center gap-3 glass-frosted rounded-xl p-2 hover:bg-white/10 transition-colors"
             >
               <div className="w-8 h-8 bg-gradient-to-br from-indigo-400 to-purple-400 rounded-lg flex items-center justify-center">
                 <User className="w-4 h-4 text-white" />
@@ -107,7 +107,7 @@ const GlassHeader = ({ onMenuClick }) => {
             <input
               type="text"
               placeholder="Search..."
-              className="w-full glass-minimal rounded-xl pl-10 pr-4 py-2.5 text-white placeholder-white/40 border-0 focus:outline-none focus:ring-2 focus:ring-indigo-400/50 transition-all"
+              className="w-full glass-frosted rounded-xl pl-10 pr-4 py-2.5 text-white placeholder-white/40 border-0 focus:outline-none focus:ring-2 focus:ring-indigo-400/50 transition-all"
             />
           </div>
         </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   FolderOpen,
   Plus,
@@ -31,6 +31,9 @@ const Projects = () => {
     initialize
   } = useProjectStore();
 
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('updated');
   const [filterBy, setFilterBy] = useState('all');
@@ -41,6 +44,16 @@ const Projects = () => {
   useEffect(() => {
     initialize();
   }, [initialize]);
+
+  // Check if we should open the create modal from URL parameter
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    if (searchParams.get('create') === 'true') {
+      setShowCreateModal(true);
+      // Clean up the URL
+      navigate('/projects', { replace: true });
+    }
+  }, [location.search, navigate]);
 
   const filteredProjects = projects
     .filter(project => {
@@ -95,12 +108,12 @@ const Projects = () => {
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
-      className="comprehensive-glass rounded-2xl overflow-hidden hover:scale-[1.02] transition-transform cursor-pointer"
+      className="glass-frosted rounded-2xl overflow-hidden hover:scale-[1.02] transition-transform cursor-pointer"
       whileHover={{ y: -4 }}
     >
       <div className="relative z-10">
         {/* Project Thumbnail with Glass Enhancement */}
-        <div className="aspect-video comprehensive-glass glass-button relative overflow-hidden">
+        <div className="aspect-video glass-frosted glass-button relative overflow-hidden">
           {project.thumbnail ? (
             <img
               src={project.thumbnail}
@@ -116,7 +129,7 @@ const Projects = () => {
           {/* Enhanced Status Badge with Glass */}
           <div className="absolute top-3 left-3">
             <motion.span 
-              className={`px-3 py-1 rounded-full text-xs font-medium comprehensive-glass glass-button border ${getStatusColor(project.status)}`}
+              className={`px-3 py-1 rounded-full text-xs font-medium glass-frosted glass-button border ${getStatusColor(project.status)}`}
               whileHover={{ scale: 1.05 }}
             >
               {project.status}
@@ -128,7 +141,7 @@ const Projects = () => {
             <div className="relative">
               <motion.button
                 onClick={() => setSelectedProject(selectedProject === project.id ? null : project.id)}
-                className="p-2 comprehensive-glass glass-button text-white rounded-lg hover:bg-white/20 transition-colors"
+                className="p-2 glass-frosted glass-button text-white rounded-lg hover:bg-white/20 transition-colors"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -141,7 +154,7 @@ const Projects = () => {
                     initial={{ opacity: 0, scale: 0.95, y: -10 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                    className="absolute top-full right-0 mt-2 w-48 comprehensive-glass rounded-lg p-2 z-20"
+                    className="absolute top-full right-0 mt-2 w-48 glass-frosted rounded-lg p-2 z-20"
                   >
                     <Link
                       to={`/projects/${project.id}`}
@@ -193,10 +206,10 @@ const Projects = () => {
           {/* Enhanced Stats with Glass Pills */}
           <div className="flex items-center justify-between text-sm mb-4">
             <div className="flex items-center gap-3">
-              <div className="comprehensive-glass glass-button px-2 py-1 rounded-lg">
+              <div className="glass-frosted glass-button px-2 py-1 rounded-lg">
                 <span className="text-white/80">{project.videos?.length || 0} videos</span>
               </div>
-              <div className="comprehensive-glass glass-button px-2 py-1 rounded-lg">
+              <div className="glass-frosted glass-button px-2 py-1 rounded-lg">
                 <span className="text-white/80">{project.clips?.length || 0} clips</span>
               </div>
             </div>
@@ -208,7 +221,7 @@ const Projects = () => {
             className="w-full"
           >
             <motion.div
-              className="w-full comprehensive-glass glass-button py-3 rounded-xl text-white font-medium hover:bg-white/20 transition-colors flex items-center justify-center gap-2"
+              className="w-full glass-frosted glass-button py-3 rounded-xl text-white font-medium hover:bg-white/20 transition-colors flex items-center justify-center gap-2"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -227,13 +240,13 @@ const Projects = () => {
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
-      className="comprehensive-glass rounded-xl p-6 hover:bg-white/10 transition-all"
+      className="glass-frosted rounded-xl p-6 hover:bg-white/10 transition-all"
       whileHover={{ scale: 1.01 }}
     >
       <div className="relative z-10">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-6 flex-1">
-            <div className="w-20 h-14 comprehensive-glass glass-button rounded-lg flex items-center justify-center overflow-hidden">
+            <div className="w-20 h-14 glass-frosted glass-button rounded-lg flex items-center justify-center overflow-hidden">
               {project.thumbnail ? (
                 <img
                   src={project.thumbnail}
@@ -250,7 +263,7 @@ const Projects = () => {
                 <h3 className="font-semibold text-white text-lg">
                   {project.name}
                 </h3>
-                <span className={`px-3 py-1 rounded-full text-xs font-medium comprehensive-glass glass-button border ${getStatusColor(project.status)}`}>
+                <span className={`px-3 py-1 rounded-full text-xs font-medium glass-frosted glass-button border ${getStatusColor(project.status)}`}>
                   {project.status}
                 </span>
               </div>
@@ -263,10 +276,10 @@ const Projects = () => {
               
               <div className="flex items-center gap-6 text-xs text-white/50">
                 <div className="flex items-center gap-2">
-                  <div className="comprehensive-glass glass-button px-2 py-1 rounded">
+                  <div className="glass-frosted glass-button px-2 py-1 rounded">
                     <span>{project.videos?.length || 0} videos</span>
                   </div>
-                  <div className="comprehensive-glass glass-button px-2 py-1 rounded">
+                  <div className="glass-frosted glass-button px-2 py-1 rounded">
                     <span>{project.clips?.length || 0} clips</span>
                   </div>
                 </div>
@@ -279,13 +292,13 @@ const Projects = () => {
           <div className="flex items-center gap-2">
             <Link
               to={`/projects/${project.id}`}
-              className="p-3 comprehensive-glass glass-button text-blue-300 hover:bg-blue-500/20 rounded-lg transition-colors"
+              className="p-3 glass-frosted glass-button text-blue-300 hover:bg-blue-500/20 rounded-lg transition-colors"
             >
               <Edit className="w-4 h-4" />
             </Link>
             <motion.button
               onClick={() => handleDeleteProject(project.id)}
-              className="p-3 comprehensive-glass glass-button text-red-300 hover:bg-red-500/20 rounded-lg transition-colors"
+              className="p-3 glass-frosted glass-button text-red-300 hover:bg-red-500/20 rounded-lg transition-colors"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -318,7 +331,7 @@ const Projects = () => {
     <div className="space-y-8">
       {/* Enhanced Header with Glass */}
       <motion.div 
-        className="comprehensive-glass rounded-2xl p-8"
+        className="glass-frosted rounded-2xl p-8"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -355,7 +368,7 @@ const Projects = () => {
                 placeholder="Search projects..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 comprehensive-glass glass-button rounded-xl text-white placeholder-white/40 border-0 focus:outline-none focus:ring-2 focus:ring-indigo-400/50 transition-all bg-transparent"
+                className="w-full pl-12 pr-4 py-3 glass-frosted glass-button rounded-xl text-white placeholder-white/40 border-0 focus:outline-none focus:ring-2 focus:ring-indigo-400/50 transition-all bg-transparent"
               />
             </div>
             
@@ -363,7 +376,7 @@ const Projects = () => {
               <select
                 value={filterBy}
                 onChange={(e) => setFilterBy(e.target.value)}
-                className="px-4 py-3 comprehensive-glass glass-button rounded-xl text-white focus:ring-2 focus:ring-indigo-400/50 focus:outline-none bg-transparent"
+                className="px-4 py-3 glass-frosted glass-button rounded-xl text-white focus:ring-2 focus:ring-indigo-400/50 focus:outline-none bg-transparent"
               >
                 <option value="all">All Projects</option>
                 <option value="active">Active</option>
@@ -374,14 +387,14 @@ const Projects = () => {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-3 comprehensive-glass glass-button rounded-xl text-white focus:ring-2 focus:ring-indigo-400/50 focus:outline-none bg-transparent"
+                className="px-4 py-3 glass-frosted glass-button rounded-xl text-white focus:ring-2 focus:ring-indigo-400/50 focus:outline-none bg-transparent"
               >
                 <option value="updated">Last Updated</option>
                 <option value="created">Date Created</option>
                 <option value="name">Name</option>
               </select>
               
-              <div className="flex comprehensive-glass glass-button rounded-xl overflow-hidden">
+              <div className="flex glass-frosted glass-button rounded-xl overflow-hidden">
                 <motion.button
                   onClick={() => setViewMode('grid')}
                   className={`p-3 ${viewMode === 'grid' ? 'bg-indigo-500 text-white' : 'text-white/60'} hover:bg-indigo-500 hover:text-white transition-colors`}
@@ -407,7 +420,7 @@ const Projects = () => {
       {/* Enhanced Projects Grid/List */}
       {filteredProjects.length === 0 ? (
         <motion.div 
-          className="comprehensive-glass rounded-2xl p-12 text-center"
+          className="glass-frosted rounded-2xl p-12 text-center"
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}

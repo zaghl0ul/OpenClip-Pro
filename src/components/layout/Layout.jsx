@@ -2,10 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import { getCurrentTheme } from '../../config/themes';
 
 const Layout = ({ children }) => {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const location = useLocation();
+  const currentTheme = getCurrentTheme();
+  const isRetroTheme = currentTheme === 'retro';
 
   const toggleSidebar = () => {
     setSidebarOpen(prev => !prev);
@@ -45,14 +48,16 @@ const Layout = ({ children }) => {
       {/* Subtle gradient overlay */}
       <div className="fixed inset-0 bg-gradient-to-br from-transparent via-background to-black/20 pointer-events-none z-0"></div>
       
-      {/* Sidebar container */}
-      <div className="fixed top-0 left-0 h-full z-50">
-        <Sidebar isOpen={isSidebarOpen} setOpen={setSidebarOpen} />
-      </div>
+      {/* Sidebar container (hidden in retro theme) */}
+      {!isRetroTheme && (
+        <div className="fixed top-0 left-0 h-full z-50">
+          <Sidebar isOpen={isSidebarOpen} setOpen={setSidebarOpen} />
+        </div>
+      )}
       
       {/* Main content with fixed left margin */}
       <div className={`flex-1 flex flex-col transition-all duration-300 relative ${
-        isSidebarOpen ? 'lg:ml-64 ml-0' : 'ml-20'
+        !isRetroTheme && isSidebarOpen ? 'lg:ml-64 ml-0' : !isRetroTheme ? 'ml-20' : 'ml-0'
       }`}>
         <Header onMenuClick={toggleSidebar} />
         

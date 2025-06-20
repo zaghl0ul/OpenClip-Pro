@@ -1,391 +1,325 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
-import useProjectStore from '../stores/projectStore'
-import { useAdaptiveUI } from '../contexts/AdaptiveUIContext'
 import { 
-  ArrowLeftIcon,
-  PlayIcon,
-  PauseIcon,
-  UploadIcon,
-  SparklesIcon,
-  DownloadIcon,
-  EditIcon,
-  TrashIcon,
-  PlusIcon
+  Video, 
+  Upload, 
+  Sparkles, 
+  Download, 
+  Share2,
+  Settings,
+  ChevronLeft,
+  Loader,
+  AlertCircle
 } from 'lucide-react'
-import VideoUpload from '../components/Video/VideoUpload'
 import VideoPlayer from '../components/Video/VideoPlayer'
-import AnalysisPrompt from '../components/Analysis/AnalysisPrompt'
+import VideoUpload from '../components/Video/VideoUpload'
 import ClipsList from '../components/Clips/ClipsList'
 import ClipEditor from '../components/Clips/ClipEditor'
-import ProcessingOverlay from '../components/Common/ProcessingOverlay'
+import AnalysisModal from '../components/Analysis/AnalysisModal'
+import useProjectStore from '../stores/projectStore'
 import toast from 'react-hot-toast'
 
 const ProjectPage = () => {
   const { id } = useParams()
   const navigate = useNavigate()
-  const {
-    currentProject,
-    setCurrentProject,
+  const { 
+    projects, 
+    currentProject, 
+    loadProject, 
     updateProject,
-    addVideoToProject,
-    setAnalysisPrompt,
-    startAnalysis,
-    isProcessing,
-    processingProgress,
-    processingStatus
+    createClips,
+    exportClips 
   } = useProjectStore()
   
-  const {
-    trackTimeInArea,
-    trackWorkflow,
-    createAdaptiveClickHandler,
-    getAdaptiveClasses
-  } = useAdaptiveUI()
-  
+  const [activeTab, setActiveTab] = useState('video')
   const [selectedClip, setSelectedClip] = useState(null)
+  const [showAnalysisModal, setShowAnalysisModal] = useState(false)
   const [showClipEditor, setShowClipEditor] = useState(false)
-  const [currentStep, setCurrentStep] = useState('upload') // upload, prompt, analyze, clips
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
   
   useEffect(() => {
     if (id) {
-      setCurrentProject(id)
+      loadProject(id)
     }
-  }, [id, setCurrentProject])
+  }, [id, loadProject])
   
-  useEffect(() => {
-    const cleanup = trackTimeInArea('project-page')
-    return cleanup
-  }, [])
+  const project = currentProject || projects.find(p => p.id === id)
   
-  useEffect(() => {
-    if (currentProject) {
-      // Determine current step based on project state
-      if (!currentProject.video) {
-        setCurrentStep('upload')
-      } else if (!currentProject.analysisPrompt) {
-        setCurrentStep('prompt')
-      } else if (currentProject.status === 'analyzing') {
-        setCurrentStep('analyze')
-      } else if (currentProject.clips.length > 0) {
-        setCurrentStep('clips')
-      } else {
-        setCurrentStep('analyze')
-      }
-    }
-  }, [currentProject])
-  
-  if (!currentProject) {
+  if (!project) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-300 mb-2">
-            Project not found
-          </h2>
+          <AlertCircle className="w-12 h-12 text-error mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-white mb-2">Project not found</h2>
           <button
-            onClick={() => navigate('/')}
-            className="btn btn-primary"
+            onClick={() => navigate('/projects')}
+            className="btn btn-primary mt-4"
           >
-            Back to Dashboard
+            Back to Projects
           </button>
         </div>
       </div>
     )
   }
   
-  const handleVideoUpload = async (videoData) => {
+  const handleVideoUpload = async (file, metadata) => {
     try {
-      await addVideoToProject(currentProject.id, videoData)
-      trackWorkflow('video-upload', 'completed', { videoSize: videoData.size })
+      // Update project with video info
+      await updateProject(project.id, {
+        video: {
+          file: file,
+          ...metadata
+        }
+      })
       toast.success('Video uploaded successfully!')
-      setCurrentStep('prompt')
+      setActiveTab('analysis')
     } catch (error) {
       toast.error('Failed to upload video')
-      console.error('Upload error:', error)
+      console.error(error)
     }
   }
   
-  const handlePromptSubmit = (prompt) => {
-    setAnalysisPrompt(currentProject.id, prompt)
-    trackWorkflow('analysis-prompt', 'submitted', { promptLength: prompt.length })
-    toast.success('Analysis prompt saved!')
-    setCurrentStep('analyze')
-  }
-  
-  const handleStartAnalysis = async () => {
+  const handleStartAnalysis = async (settings) => {
     try {
-      trackWorkflow('analysis', 'started')
-      await startAnalysis(currentProject.id)
-      trackWorkflow('analysis', 'completed', { 
-        clipsGenerated: currentProject.clips.length 
-      })
-      toast.success('Analysis completed!')
-      setCurrentStep('clips')
+      setIsAnalyzing(true)
+      setShowAnalysisModal(false)
+      
+      // Create clips with analysis settings
+      await createClips(project.id, settings)
+      
+      toast.success('Analysis completed! Clips generated.')
+      setActiveTab('clips')
     } catch (error) {
-      toast.error('Analysis failed: ' + error.message)
-      console.error('Analysis error:', error)
+      toast.error('Analysis failed')
+      console.error(error)
+    } finally {
+      setIsAnalyzing(false)
     }
   }
   
-  const handleClipSelect = (clip) => {
-    setSelectedClip(clip)
-    setShowClipEditor(true)
-    trackWorkflow('clip-editing', 'opened', { clipId: clip.id })
-  }
-  
-  const renderStepIndicator = () => {
-    const steps = [
-      { id: 'upload', label: 'Upload Video', icon: UploadIcon },
-      { id: 'prompt', label: 'Analysis Prompt', icon: EditIcon },
-      { id: 'analyze', label: 'AI Analysis', icon: SparklesIcon },
-      { id: 'clips', label: 'Generated Clips', icon: PlayIcon },
-    ]
+  const handleExportAll = async () => {
+    if (!project.clips || project.clips.length === 0) {
+      toast.error('No clips to export')
+      return
+    }
     
-    return (
-      <div className="flex items-center justify-center mb-8">
-        {steps.map((step, index) => {
-          const isActive = step.id === currentStep
-          const isCompleted = steps.findIndex(s => s.id === currentStep) > index
-          const Icon = step.icon
-          
-          return (
-            <React.Fragment key={step.id}>
-              <div className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                isActive 
-                  ? 'bg-primary-600 text-white' 
-                  : isCompleted 
-                    ? 'bg-green-600 text-white'
-                    : 'bg-gray-800 text-gray-400'
-              }`}>
-                <Icon className="w-4 h-4" />
-                <span className="text-sm font-medium">{step.label}</span>
-              </div>
-              {index < steps.length - 1 && (
-                <div className={`w-8 h-0.5 mx-2 ${
-                  isCompleted ? 'bg-green-600' : 'bg-gray-700'
-                }`} />
-              )}
-            </React.Fragment>
-          )
-        })}
-      </div>
-    )
-  }
-  
-  const renderCurrentStep = () => {
-    switch (currentStep) {
-      case 'upload':
-        return (
-          <motion.div
-            key="upload"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="space-y-6"
-          >
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-100 mb-2">
-                Upload Your Video
-              </h2>
-              <p className="text-gray-400">
-                Upload a video file or provide a YouTube link to get started
-              </p>
-            </div>
-            <VideoUpload onUpload={handleVideoUpload} />
-          </motion.div>
-        )
-        
-      case 'prompt':
-        return (
-          <motion.div
-            key="prompt"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="space-y-6"
-          >
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-100 mb-2">
-                  Define Your Analysis Goal
-                </h2>
-                <p className="text-gray-400 mb-6">
-                  Tell the AI what kind of clips you're looking for
-                </p>
-                <AnalysisPrompt
-                  initialPrompt={currentProject.analysisPrompt}
-                  onSubmit={handlePromptSubmit}
-                />
-              </div>
-              <div>
-                <VideoPlayer
-                  src={currentProject.video?.url}
-                  poster={currentProject.video?.thumbnail}
-                />
-              </div>
-            </div>
-          </motion.div>
-        )
-        
-      case 'analyze':
-        return (
-          <motion.div
-            key="analyze"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="text-center space-y-6"
-          >
-            <div>
-              <h2 className="text-2xl font-bold text-gray-100 mb-2">
-                Ready for AI Analysis
-              </h2>
-              <p className="text-gray-400 mb-6">
-                The AI will analyze your video and generate clips based on your prompt
-              </p>
-            </div>
-            
-            <div className="card p-8 max-w-md mx-auto">
-              <div className="space-y-4">
-                <div className="text-sm text-gray-400">
-                  <strong>Video:</strong> {currentProject.video?.name}
-                </div>
-                <div className="text-sm text-gray-400">
-                  <strong>Analysis Goal:</strong> {currentProject.analysisPrompt}
-                </div>
-                <button
-                  onClick={createAdaptiveClickHandler('start-analysis', handleStartAnalysis)}
-                  disabled={isProcessing}
-                  className={getAdaptiveClasses('start-analysis', 'btn btn-primary btn-lg w-full')}
-                >
-                  {isProcessing ? (
-                    <>
-                      <div className="spinner w-5 h-5 mr-2" />
-                      Analyzing...
-                    </>
-                  ) : (
-                    <>
-                      <SparklesIcon className="w-5 h-5 mr-2" />
-                      Start AI Analysis
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )
-        
-      case 'clips':
-        return (
-          <motion.div
-            key="clips"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="space-y-6"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-100 mb-2">
-                  Generated Clips
-                </h2>
-                <p className="text-gray-400">
-                  {currentProject.clips.length} clips generated • Average score: {Math.round(currentProject.metadata?.averageScore || 0)}/100
-                </p>
-              </div>
-              <button
-                onClick={() => setCurrentStep('analyze')}
-                className="btn btn-secondary"
-              >
-                <PlusIcon className="w-4 h-4 mr-2" />
-                Generate More
-              </button>
-            </div>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <ClipsList
-                  clips={currentProject.clips}
-                  onClipSelect={handleClipSelect}
-                  projectId={currentProject.id}
-                />
-              </div>
-              <div>
-                <VideoPlayer
-                  src={currentProject.video?.url}
-                  poster={currentProject.video?.thumbnail}
-                />
-              </div>
-            </div>
-          </motion.div>
-        )
-        
-      default:
-        return null
+    try {
+      setIsExporting(true)
+      await exportClips(project.id, { all: true })
+      toast.success('Export started! Check your downloads.')
+    } catch (error) {
+      toast.error('Export failed')
+      console.error(error)
+    } finally {
+      setIsExporting(false)
     }
   }
+  
+  const handleExportClip = async (clip) => {
+    try {
+      await exportClips(project.id, { clipId: clip.id })
+      toast.success('Clip exported successfully!')
+    } catch (error) {
+      toast.error('Failed to export clip')
+      console.error(error)
+    }
+  }
+  
+  const handleSaveClip = async (editedClip) => {
+    try {
+      await updateProject(project.id, {
+        clips: project.clips.map(c => 
+          c.id === editedClip.id ? editedClip : c
+        )
+      })
+      toast.success('Clip saved successfully!')
+      setShowClipEditor(false)
+      setSelectedClip(null)
+    } catch (error) {
+      toast.error('Failed to save clip')
+      console.error(error)
+    }
+  }
+  
+  const tabs = [
+    { id: 'video', label: 'Video', icon: Video },
+    { id: 'analysis', label: 'AI Analysis', icon: Sparkles },
+    { id: 'clips', label: 'Clips', icon: Video }
+  ]
   
   return (
-    <div className="p-6">
+    <div className="min-h-screen p-8">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => navigate('/')}
-            className="btn btn-ghost btn-sm"
-          >
-            <ArrowLeftIcon className="w-4 h-4 mr-2" />
-            Back
-          </button>
+      <div className="mb-8">
+        <button
+          onClick={() => navigate('/projects')}
+          className="flex items-center gap-2 text-subtle hover:text-white transition-colors mb-4"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          Back to Projects
+        </button>
+        
+        <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-100">
-              {currentProject.name}
-            </h1>
-            {currentProject.description && (
-              <p className="text-gray-400 text-sm">
-                {currentProject.description}
-              </p>
+            <h1 className="text-3xl font-bold text-white mb-2">{project.name}</h1>
+            {project.description && (
+              <p className="text-subtle">{project.description}</p>
             )}
           </div>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <span className={`px-2 py-1 rounded text-xs font-medium ${
-            currentProject.status === 'completed' ? 'bg-green-600 text-white' :
-            currentProject.status === 'analyzing' ? 'bg-blue-600 text-white' :
-            currentProject.status === 'error' ? 'bg-red-600 text-white' :
-            'bg-gray-600 text-white'
-          }`}>
-            {currentProject.status}
-          </span>
+          
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleExportAll}
+              disabled={!project.clips || project.clips.length === 0 || isExporting}
+              className="btn btn-secondary flex items-center gap-2"
+            >
+              {isExporting ? (
+                <Loader className="w-4 h-4 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+              Export All
+            </button>
+            <button className="btn btn-ghost">
+              <Share2 className="w-4 h-4" />
+            </button>
+            <button className="btn btn-ghost">
+              <Settings className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
       
-      {/* Step Indicator */}
-      {renderStepIndicator()}
+      {/* Tabs */}
+      <div className="border-b border-white/10 mb-8">
+        <div className="flex gap-8">
+          {tabs.map(tab => {
+            const Icon = tab.icon
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`pb-4 px-1 flex items-center gap-2 transition-colors relative ${
+                  activeTab === tab.id
+                    ? 'text-primary'
+                    : 'text-subtle hover:text-white'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                {tab.label}
+                {activeTab === tab.id && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+                )}
+              </button>
+            )
+          })}
+        </div>
+      </div>
       
-      {/* Main Content */}
-      <AnimatePresence mode="wait">
-        {renderCurrentStep()}
-      </AnimatePresence>
+      {/* Content */}
+      <div>
+        {activeTab === 'video' && (
+          <div className="space-y-6">
+            {project.video ? (
+              <div className="glass-card p-6">
+                <h2 className="text-xl font-semibold text-white mb-4">Project Video</h2>
+                <VideoPlayer
+                  src={project.video.url}
+                  poster={project.video.thumbnail}
+                />
+              </div>
+            ) : (
+              <VideoUpload
+                onUpload={handleVideoUpload}
+                projectId={project.id}
+              />
+            )}
+          </div>
+        )}
+        
+        {activeTab === 'analysis' && (
+          <div className="space-y-6">
+            <div className="glass-card p-6 text-center">
+              <Sparkles className="w-12 h-12 text-primary mx-auto mb-4" />
+              <h2 className="text-xl font-semibold text-white mb-2">AI Video Analysis</h2>
+              <p className="text-subtle mb-6">
+                Use AI to automatically detect and create clips from your video
+              </p>
+              
+              {isAnalyzing ? (
+                <div className="py-8">
+                  <Loader className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
+                  <p className="text-subtle">Analyzing video...</p>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowAnalysisModal(true)}
+                  disabled={!project.video}
+                  className="btn btn-primary"
+                >
+                  Start AI Analysis
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {activeTab === 'clips' && (
+          <div>
+            {project.clips && project.clips.length > 0 ? (
+              <ClipsList
+                clips={project.clips}
+                onSelect={(clip) => {
+                  setSelectedClip(clip)
+                  setShowClipEditor(true)
+                }}
+                onExport={handleExportClip}
+                onDelete={(clipId) => {
+                  updateProject(project.id, {
+                    clips: project.clips.filter(c => c.id !== clipId)
+                  })
+                  toast.success('Clip deleted')
+                }}
+              />
+            ) : (
+              <div className="glass-card p-8 text-center">
+                <Video className="w-12 h-12 text-subtle mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-white mb-2">
+                  No clips yet
+                </h3>
+                <p className="text-subtle mb-6">
+                  Run AI analysis to generate clips from your video
+                </p>
+                <button
+                  onClick={() => setActiveTab('analysis')}
+                  className="btn btn-primary"
+                >
+                  Go to Analysis
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
       
-      {/* Processing Overlay */}
-      <ProcessingOverlay
-        isVisible={isProcessing}
-        progress={processingProgress}
-        status={processingStatus}
-      />
+      {/* Modals */}
+      {showAnalysisModal && (
+        <AnalysisModal
+          onStart={handleStartAnalysis}
+          onClose={() => setShowAnalysisModal(false)}
+        />
+      )}
       
-      {/* Clip Editor Modal */}
       {showClipEditor && selectedClip && (
         <ClipEditor
           clip={selectedClip}
-          projectId={currentProject.id}
-          onClose={() => {
+          onSave={handleSaveClip}
+          onCancel={() => {
             setShowClipEditor(false)
             setSelectedClip(null)
           }}
+          onExport={handleExportClip}
         />
       )}
     </div>

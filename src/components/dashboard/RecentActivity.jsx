@@ -1,276 +1,237 @@
-import React from 'react'
-import { motion } from 'framer-motion'
-import { Link, useNavigate } from 'react-router-dom'
-import { 
-  ClockIcon, 
-  VideoIcon, 
-  SparklesIcon, 
-  DownloadIcon,
-  EditIcon,
-  PlayIcon,
-  Clock,
-  ArrowRight,
-  Video,
-  Scissors,
-  Check,
-  Play,
-  Upload,
-  AlertCircle
-} from 'lucide-react'
-import { useAdaptiveUI } from '../../contexts/AdaptiveUIContext'
+import React, { useState, useEffect } from 'react'
+import { Clock, FileText, Video, Upload, Edit3, Share2, Sparkles, Download } from 'lucide-react'
+import apiClient from '../../utils/apiClient'
 
-const RecentActivity = () => {
-  const { createAdaptiveClickHandler, getAdaptiveClasses } = useAdaptiveUI()
-  const navigate = useNavigate()
-
-  // Mock activity data - in a real app, this would come from an API
-  const activities = [
-    {
-      id: 1,
-      type: 'project_created',
-      projectId: 'project-1',
-      projectName: 'Marketing Video 2023',
-      timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
-      status: 'success'
-    },
-    {
-      id: 2,
-      type: 'video_uploaded',
-      projectId: 'project-2',
-      projectName: 'Product Demo',
-      timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000), // 3 hours ago
-      status: 'success'
-    },
-    {
-      id: 3,
-      type: 'analysis_completed',
-      projectId: 'project-3',
-      projectName: 'Training Webinar',
-      timestamp: new Date(Date.now() - 45 * 60 * 1000), // 45 minutes ago
-      status: 'success',
-      resultCount: 5
-    },
-    {
-      id: 4,
-      type: 'clip_exported',
-      projectId: 'project-2',
-      projectName: 'Product Demo',
-      clipName: 'Feature Highlight',
-      clipId: 'clip-1',
-      timestamp: new Date(Date.now() - 20 * 60 * 1000), // 20 minutes ago
-      status: 'success'
-    },
-    {
-      id: 5,
-      type: 'analysis_failed',
-      projectId: 'project-4',
-      projectName: 'Customer Testimonial',
-      timestamp: new Date(Date.now() - 10 * 60 * 1000), // 10 minutes ago
-      status: 'error',
-      error: 'API connection failed'
-    }
-  ]
-
-  const getActivityIcon = (activity) => {
-    switch (activity.type) {
-      case 'project_created':
-        return <Video className="w-5 h-5 text-blue-500" />
-      case 'video_uploaded':
-        return <Upload className="w-5 h-5 text-green-500" />
-      case 'analysis_completed':
-        return <Check className="w-5 h-5 text-emerald-500" />
-      case 'analysis_failed':
-        return <AlertCircle className="w-5 h-5 text-red-500" />
-      case 'clip_exported':
-        return <Scissors className="w-5 h-5 text-purple-500" />
-      default:
-        return <Clock className="w-5 h-5 text-gray-500" />
-    }
+const getActivityIcon = (type) => {
+  switch (type) {
+    case 'upload':
+      return Upload
+    case 'edit':
+      return Edit3
+    case 'share':
+      return Share2
+    case 'video':
+      return Video
+    case 'analysis':
+      return Sparkles
+    case 'export':
+      return Download
+    default:
+      return FileText
   }
+}
 
-  const getActivityMessage = (activity) => {
-    switch (activity.type) {
-      case 'project_created':
-        return `Created project "${activity.projectName}"`
-      case 'video_uploaded':
-        return `Uploaded video to "${activity.projectName}"`
-      case 'analysis_completed':
-        return `Completed analysis for "${activity.projectName}" with ${activity.resultCount} clips`
-      case 'analysis_failed':
-        return `Analysis failed for "${activity.projectName}": ${activity.error}`
-      case 'clip_exported':
-        return `Exported clip "${activity.clipName}" from "${activity.projectName}"`
-      default:
-        return 'Unknown activity'
-    }
-  }
+const formatTimeAgo = (timestamp) => {
+  const now = new Date()
+  const time = new Date(timestamp)
+  const diff = now - time
+  
+  const minutes = Math.floor(diff / 60000)
+  const hours = Math.floor(diff / 3600000)
+  const days = Math.floor(diff / 86400000)
+  
+  if (minutes < 1) return 'Just now'
+  if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`
+  if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`
+  if (days < 7) return `${days} day${days > 1 ? 's' : ''} ago`
+  
+  return time.toLocaleDateString()
+}
 
-  const formatTimeAgo = (timestamp) => {
-    const now = new Date()
-    const diffMs = now - timestamp
-    const diffSec = Math.floor(diffMs / 1000)
-    const diffMin = Math.floor(diffSec / 60)
-    const diffHour = Math.floor(diffMin / 60)
-    const diffDay = Math.floor(diffHour / 24)
+const RecentActivity = ({ limit = 10 }) => {
+  const [activities, setActivities] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-    if (diffDay > 0) return `${diffDay}d ago`
-    if (diffHour > 0) return `${diffHour}h ago`
-    if (diffMin > 0) return `${diffMin}m ago`
-    return 'Just now'
-  }
+  useEffect(() => {
+    loadRecentActivity()
+  }, [limit])
 
-  const getNavigationUrl = (activity) => {
-    switch (activity.type) {
-      case 'project_created':
-      case 'video_uploaded':
-        // Navigate to project page
-        return `/projects/${activity.projectId}`
+  const loadRecentActivity = async () => {
+    try {
+      setIsLoading(true)
+      setError(null)
       
-      case 'analysis_completed':
-        // Navigate to project page with clips view
-        return `/projects/${activity.projectId}?tab=clips`
+      // Get recent projects and derive activities from them
+      const projects = await apiClient.getProjects()
       
-      case 'analysis_failed':
-        // Navigate to project page with error details
-        return `/projects/${activity.projectId}?tab=analysis&error=true`
+      // Convert projects to activity items
+      const activityItems = []
       
-      case 'clip_exported':
-        // Navigate to clips page or specific clip if ID is available
-        if (activity.clipId) {
-          return `/clips?project=${activity.projectId}&clip=${activity.clipId}`
+      projects.forEach(project => {
+        // Project creation
+        activityItems.push({
+          id: `create_${project.id}`,
+          type: 'upload',
+          title: 'Created new project',
+          description: project.name,
+          time: project.created_at,
+          projectId: project.id
+        })
+        
+        // Video upload (if different from creation)
+        if (project.video_data && project.updated_at !== project.created_at) {
+          activityItems.push({
+            id: `video_${project.id}`,
+            type: 'video',
+            title: 'Uploaded video',
+            description: `${project.name} - ${project.video_data.filename || 'video file'}`,
+            time: project.updated_at,
+            projectId: project.id
+          })
         }
-        return `/clips?project=${activity.projectId}`
-      
-      default:
-        return `/projects/${activity.projectId}`
-    }
-  }
-
-  const getActionLabel = (activity) => {
-    switch (activity.type) {
-      case 'project_created':
-        return 'Edit'
-      case 'video_uploaded':
-        return 'Analyze'
-      case 'analysis_completed':
-        return 'View Clips'
-      case 'analysis_failed':
-        return 'Retry'
-      case 'clip_exported':
-        return 'View Clip'
-      default:
-        return 'View'
-    }
-  }
-
-  const handleActivityClick = (activity) => {
-    createAdaptiveClickHandler(`activity-${activity.type}`, 'navigation')()
-    
-    const url = getNavigationUrl(activity)
-    navigate(url)
-  }
-
-  const handleQuickAction = (activity, e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    
-    createAdaptiveClickHandler(`activity-action-${activity.type}`, 'action')()
-    
-    switch (activity.type) {
-      case 'project_created':
-        navigate(`/projects/${activity.projectId}?action=edit`)
-        break
-      
-      case 'video_uploaded':
-        navigate(`/projects/${activity.projectId}?action=analyze`)
-        break
-      
-      case 'analysis_completed':
-        navigate(`/projects/${activity.projectId}?tab=clips`)
-        break
-      
-      case 'analysis_failed':
-        navigate(`/projects/${activity.projectId}?action=retry-analysis`)
-        break
-      
-      case 'clip_exported':
-        if (activity.clipId) {
-          navigate(`/clips?project=${activity.projectId}&clip=${activity.clipId}&action=view`)
-        } else {
-          navigate(`/clips?project=${activity.projectId}`)
+        
+        // Analysis completion
+        if (project.status === 'completed' && project.clips && project.clips.length > 0) {
+          activityItems.push({
+            id: `analysis_${project.id}`,
+            type: 'analysis',
+            title: 'Analysis completed',
+            description: `${project.name} - Generated ${project.clips.length} clip${project.clips.length > 1 ? 's' : ''}`,
+            time: project.updated_at,
+            projectId: project.id
+          })
         }
-        break
+        
+        // Clip exports
+        if (project.clips) {
+          project.clips.forEach(clip => {
+            if (clip.is_exported && clip.exported_at) {
+              activityItems.push({
+                id: `export_${clip.id}`,
+                type: 'export',
+                title: 'Exported clip',
+                description: `${clip.title} from ${project.name}`,
+                time: clip.exported_at,
+                projectId: project.id,
+                clipId: clip.id
+              })
+            }
+          })
+        }
+      })
       
-      default:
-        navigate(`/projects/${activity.projectId}`)
+      // Sort by time (most recent first) and limit
+      const sortedActivities = activityItems
+        .sort((a, b) => new Date(b.time) - new Date(a.time))
+        .slice(0, limit)
+      
+      setActivities(sortedActivities)
+    } catch (error) {
+      console.error('Failed to load recent activity:', error)
+      setError(error.message)
+    } finally {
+      setIsLoading(false)
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="card p-6">
+        <h3 className="text-lg font-semibold text-gray-100 mb-4">
+          Recent Activity
+        </h3>
+        <div className="space-y-3">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="flex items-center space-x-3 animate-pulse">
+              <div className="w-8 h-8 bg-gray-600 rounded-lg"></div>
+              <div className="flex-1">
+                <div className="h-4 bg-gray-600 rounded w-3/4 mb-1"></div>
+                <div className="h-3 bg-gray-700 rounded w-1/2"></div>
+              </div>
+              <div className="h-3 bg-gray-700 rounded w-16"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="card p-6">
+        <h3 className="text-lg font-semibold text-gray-100 mb-4">
+          Recent Activity
+        </h3>
+        <div className="text-center py-4">
+          <p className="text-gray-400 mb-2">Failed to load activity</p>
+          <button 
+            onClick={loadRecentActivity}
+            className="text-primary hover:text-primary-hover text-sm"
+          >
+            Try again
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="mb-8">
+    <div className="card p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+        <h3 className="text-lg font-semibold text-gray-100">
           Recent Activity
-        </h2>
-        <Link to="/analytics" className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-1 text-sm">
-          <span>View All</span>
-          <ArrowRight className="w-4 h-4" />
-        </Link>
+        </h3>
+        <button 
+          onClick={loadRecentActivity}
+          className="text-gray-400 hover:text-gray-300 text-sm"
+        >
+          Refresh
+        </button>
       </div>
       
-      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-        <div className="divide-y divide-gray-200 dark:divide-gray-700">
-          {activities.map((activity, index) => (
-            <motion.div
-              key={activity.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.05 }}
-              className={`p-4 flex items-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${
-                activity.status === 'error' ? 'bg-red-50 dark:bg-red-900/10' : ''
-              }`}
-              onClick={() => handleActivityClick(activity)}
-            >
-              <div className="mr-4">
-                {getActivityIcon(activity)}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                  {getActivityMessage(activity)}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {formatTimeAgo(activity.timestamp)}
-                </p>
-              </div>
-              <button
-                onClick={(e) => handleQuickAction(activity, e)}
-                className="ml-4 px-3 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-              >
-                {getActionLabel(activity)}
-              </button>
-            </motion.div>
-          ))}
+      {activities.length === 0 ? (
+        <div className="text-center py-8">
+          <Clock className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+          <p className="text-gray-400 mb-2">No recent activity</p>
+          <p className="text-gray-500 text-sm">
+            Start by creating a new project to see activity here
+          </p>
         </div>
-        
-        {activities.length === 0 && (
-          <div className="p-8 text-center">
-            <Clock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-              No recent activity
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              Start by creating a project or uploading a video
-            </p>
-            <Link
-              to="/projects"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
-            >
-              <Video className="w-4 h-4" />
-              Create Project
-            </Link>
-          </div>
-        )}
-      </div>
+      ) : (
+        <div className="space-y-3">
+          {activities.map((activity) => {
+            const Icon = getActivityIcon(activity.type)
+            
+            return (
+              <div
+                key={activity.id}
+                className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-800/50 transition-colors cursor-pointer"
+                onClick={() => {
+                  if (activity.projectId) {
+                    window.location.href = `/projects/${activity.projectId}`
+                  }
+                }}
+              >
+                <div className={`
+                  w-8 h-8 rounded-lg flex items-center justify-center
+                  ${activity.type === 'upload' ? 'bg-blue-500/20 text-blue-400' :
+                    activity.type === 'video' ? 'bg-purple-500/20 text-purple-400' :
+                    activity.type === 'analysis' ? 'bg-green-500/20 text-green-400' :
+                    activity.type === 'export' ? 'bg-orange-500/20 text-orange-400' :
+                    activity.type === 'edit' ? 'bg-yellow-500/20 text-yellow-400' :
+                    'bg-gray-500/20 text-gray-400'}
+                `}>
+                  <Icon className="w-4 h-4" />
+                </div>
+                
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-200 truncate">
+                    {activity.title}
+                  </p>
+                  <p className="text-xs text-gray-400 truncate">
+                    {activity.description}
+                  </p>
+                </div>
+                
+                <div className="text-xs text-gray-500 whitespace-nowrap">
+                  {formatTimeAgo(activity.time)}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }

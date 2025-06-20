@@ -54,17 +54,17 @@ const AnalysisModal = ({ isOpen, onClose, onStartAnalysis, defaultPrompt = '' })
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
-        className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl mx-auto max-h-[90vh] overflow-auto"
+        className="glass-prism rounded-2xl shadow-xl w-full max-w-4xl mx-auto max-h-[90vh] overflow-auto"
       >
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-            <Zap className="w-5 h-5 text-green-500" />
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+          <h3 className="text-xl font-semibold text-white flex items-center gap-2">
+            <Zap className="w-5 h-5 text-green-400" />
             AI Video Analysis
           </h3>
           <button
             onClick={onClose}
-            className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 rounded-lg"
+            className="p-2 text-white/60 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -83,10 +83,10 @@ const AnalysisModal = ({ isOpen, onClose, onStartAnalysis, defaultPrompt = '' })
             
             <div className="space-y-6">
               {/* Provider Selection */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+              <div className="glass-shine rounded-lg p-4">
                 <div className="flex items-center gap-2 mb-4">
-                  <Settings className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                  <h4 className="font-medium text-gray-900 dark:text-white">
+                  <Settings className="w-4 h-4 text-white/60" />
+                  <h4 className="font-medium text-white">
                     AI Provider
                   </h4>
                 </div>
@@ -98,21 +98,21 @@ const AnalysisModal = ({ isOpen, onClose, onStartAnalysis, defaultPrompt = '' })
                       onClick={() => setProvider(p.id)}
                       className={`flex items-center gap-3 w-full p-3 rounded-lg transition-colors ${
                         provider === p.id
-                          ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800'
-                          : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                          ? 'bg-green-500/20 border border-green-500/50'
+                          : 'hover:bg-white/10 border border-transparent'
                       }`}
                     >
                       <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center">
                         {provider === p.id ? (
-                          <Check className="w-5 h-5 text-green-500" />
+                          <Check className="w-5 h-5 text-green-400" />
                         ) : (
                           <img src={p.logo} alt={p.name} className="w-5 h-5 object-contain" />
                         )}
                       </div>
                       <span className={`text-sm font-medium ${
                         provider === p.id 
-                          ? 'text-green-700 dark:text-green-400' 
-                          : 'text-gray-700 dark:text-gray-300'
+                          ? 'text-green-300' 
+                          : 'text-white/80'
                       }`}>
                         {p.name}
                       </span>
@@ -122,10 +122,10 @@ const AnalysisModal = ({ isOpen, onClose, onStartAnalysis, defaultPrompt = '' })
               </div>
               
               {/* Settings & Info */}
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+              <div className="bg-white/5 rounded-lg p-4 border border-white/10">
                 <div className="flex items-start gap-3">
-                  <Info className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
-                  <div className="text-sm text-gray-600 dark:text-gray-300">
+                  <Info className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-white/70">
                     <p className="mb-2">
                       The AI will analyze your video and identify key moments based on your prompt.
                     </p>
@@ -140,7 +140,7 @@ const AnalysisModal = ({ isOpen, onClose, onStartAnalysis, defaultPrompt = '' })
 
           {/* Error Message */}
           {error && (
-            <div className="mt-6 p-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-lg text-sm">
+            <div className="mt-6 p-3 bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg text-sm">
               {error}
             </div>
           )}
