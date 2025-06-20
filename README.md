@@ -15,7 +15,16 @@ OpenClip Pro is a comprehensive video processing platform that leverages artific
 
 Choose from a variety of beautiful themes to match your style and workflow:
 
-![Theme Screenshots](https://github.com/zaghl0ul/OpenClip-Pro/blob/main/screenshots/)
+![Screenshot 2025-06-19 215504](https://github.com/user-attachments/assets/efaec52e-d265-4613-a24d-494110b89ef5)
+![Screenshot 2025-06-19 215454](https://github.com/user-attachments/assets/ff36e6d1-4067-4245-b1c7-9d4e82f0836a)
+![Screenshot 2025-06-19 215445](https://github.com/user-attachments/assets/72bb90b9-9660-4461-b4f4-58703b87b9e6)
+![Screenshot 2025-06-19 215429](https://github.com/user-attachments/assets/efcbf557-552c-4532-9659-280ad6e27566)
+![Screenshot 2025-06-19 215415](https://github.com/user-attachments/assets/4e315a30-84b0-4777-8dbc-69a572a493b1)
+![Screenshot 2025-06-19 214928](https://github.com/user-attachments/assets/ae5558fc-d9d9-4f82-8086-71464b1b2a9a)
+![Screenshot 2025-06-19 214916](https://github.com/user-attachments/assets/d4f995af-30dc-4511-acb2-d329d8586818)
+![Screenshot 2025-06-19 204216](https://github.com/user-attachments/assets/7bb7ade3-2d99-4dc6-b84f-275840b70dd9)
+
+
 
 - **🌙 Midnight** - Sleek dark theme with blue accents
 - **☀️ Daylight** - Clean, bright interface for daytime work  
