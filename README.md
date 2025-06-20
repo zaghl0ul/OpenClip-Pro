@@ -1,6 +1,6 @@
 # OpenClip Pro
 
-🎬 **AI-Powered Video Clip Generator** - Transform your videos into engaging clips automatically using advanced AI technology.
+�� **AI-Powered Video Clipping Studio** - Transform your videos into engaging clips automatically using advanced AI technology with a beautiful, modern interface.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
@@ -11,75 +11,69 @@
 
 OpenClip Pro is a comprehensive video processing platform that leverages artificial intelligence to automatically generate engaging video clips from longer content. Whether you're a content creator, marketer, or educator, OpenClip Pro helps you extract the most compelling moments from your videos with minimal effort.
 
+## 🎨 Multiple Stunning Themes
+
+Choose from a variety of beautiful themes to match your style and workflow:
+
+![Theme Screenshots](https://github.com/zaghl0ul/OpenClip-Pro/blob/main/screenshots/)
+
+- **🌙 Midnight** - Sleek dark theme with blue accents
+- **☀️ Daylight** - Clean, bright interface for daytime work  
+- **🌈 Cyberpunk** - Neon dreams with vibrant colors
+- **🌌 Aurora** - Northern lights inspired gradients
+- **🌊 Deep Ocean** - Calming blue depths
+- **🌅 Sunset Glow** - Warm oranges and pinks
+- **🌲 Enchanted Forest** - Natural greens and earth tones
+- **⭐ Cosmic Void** - Space-inspired dark theme
+- **⚫ Monochrome** - Pure black and white minimalism
+- **🖥️ Windows 98** - Nostalgic retro theme with authentic 90s styling
+
 ### ✨ Key Features
 
 - **🤖 AI-Powered Analysis**: Advanced AI models analyze your videos to identify key moments, emotions, and engaging content
 - **🎯 Smart Clip Generation**: Automatically generate clips based on content analysis, trending topics, or custom criteria
-- **🔄 Multi-Provider Support**: Integrate with OpenAI GPT-4 Vision, Google Gemini, and local LM Studio models
+- **🔄 Multi-Provider Support**: Integrate with OpenAI GPT-4 Vision, Google Gemini, and Anthropic Claude
 - **📱 Modern Web Interface**: Responsive, accessible React application with real-time progress tracking
-- **🎨 Adaptive UI**: Learning interface that adapts to your workflow and preferences
+- **🎨 Beautiful Themes**: 10 stunning themes including a nostalgic Windows 98 retro mode
 - **⚡ High Performance**: Optimized video processing with FFmpeg and efficient file handling
 - **🔒 Secure & Private**: Enterprise-grade security with encrypted API keys and secure file handling
 - **🌐 YouTube Integration**: Direct processing of YouTube videos via URL
 - **📊 Analytics Dashboard**: Track processing history, costs, and performance metrics
 - **🎬 Professional Export**: Multiple export formats and quality options
 
-## 🏗️ Architecture
-
-```
-OpenClip Pro/
-├── backend/                 # FastAPI Python backend
-│   ├── api/                # REST API endpoints
-│   ├── services/           # Core business logic
-│   ├── models/             # Pydantic data models
-│   └── utils/              # Utility functions
-├── frontend/               # React frontend application
-│   ├── src/
-│   │   ├── components/     # Reusable UI components
-│   │   ├── pages/          # Application pages
-│   │   ├── stores/         # State management
-│   │   └── utils/          # Frontend utilities
-│   └── public/             # Static assets
-└── docs/                   # Documentation
-```
-
 ## 🚀 Quick Start
 
-### 🎯 One-Click Test (Windows)
+### 🎯 One-Click Launcher (Windows)
 
-For the fastest way to test the full application:
+The fastest way to start both frontend and backend:
 
 ```bash
-# Simply run the test script - it handles everything!
-test-app.bat
+# Simply double-click the launcher script!
+start-app.bat
 ```
 
 This will:
-- ✅ Check all dependencies (Python, Node.js, npm)
-- ✅ Install frontend and backend dependencies
-- ✅ Set up Python virtual environment
-- ✅ Configure FFmpeg for video processing
-- ✅ Initialize the database
-- ✅ Create a test video file
-- ✅ Start both backend and frontend servers
+- ✅ Check Python and Node.js dependencies
+- ✅ Set up FFmpeg for video processing  
+- ✅ Start backend API server (http://localhost:8000)
+- ✅ Start frontend dev server (http://localhost:5173)
 - ✅ Open the application in your browser
-- ✅ Provide test instructions and cleanup
+- ✅ Show helpful URLs and status
 
-**Default credentials**: admin@openclippro.com / admin123!
+### Manual Setup
 
-### Prerequisites
+#### Prerequisites
 
 - **Python 3.8+** with pip
 - **Node.js 18+** with npm
-- **FFmpeg** (included in project)
 - **Git** for version control
 
-### Installation
+#### Installation
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/your-username/openclip-pro.git
-   cd openclip-pro
+   git clone https://github.com/zaghl0ul/OpenClip-Pro.git
+   cd OpenClip-Pro
    ```
 
 2. **Set up the backend**
@@ -93,343 +87,209 @@ This will:
    source venv/bin/activate
    
    pip install -r requirements.txt
-   cp .env.example .env
-   # Edit .env with your configuration
    ```
 
 3. **Set up the frontend**
    ```bash
-   cd ../frontend
+   # From the project root
    npm install
-   cp .env.example .env
-   # Edit .env with your configuration
    ```
 
 4. **Start the development servers**
    
-   **Backend** (Terminal 1):
+   **Option A: Use the launcher script**
    ```bash
-   cd backend
-   uvicorn main:app --reload --host 0.0.0.0 --port 8000
+   # Windows
+   start-app.bat
    ```
    
-   **Frontend** (Terminal 2):
+   **Option B: Manual start**
+   
+   Backend (Terminal 1):
    ```bash
-   cd frontend
+   cd backend
+   python main.py
+   ```
+   
+   Frontend (Terminal 2):
+   ```bash
    npm run dev
    ```
 
 5. **Access the application**
-   - Frontend: http://localhost:3000
+   - Frontend: http://localhost:5173
    - Backend API: http://localhost:8000
    - API Documentation: http://localhost:8000/docs
+
+## 🏗️ Project Structure
+
+```
+OpenClip Pro/
+├── backend/                 # FastAPI Python backend
+│   ├── auth/               # Authentication system
+│   ├── services/           # Core business logic
+│   ├── models/             # Database models
+│   ├── utils/              # Utility functions
+│   └── main.py             # FastAPI application
+├── src/                    # React frontend application
+│   ├── components/         # Reusable UI components
+│   ├── pages/              # Application pages
+│   ├── stores/             # Zustand state management
+│   ├── config/             # Theme configuration
+│   └── utils/              # Frontend utilities
+├── ffmpeg/                 # FFmpeg binaries (Windows)
+├── start-app.bat           # One-click launcher
+└── README.md               # This file
+```
 
 ## 🔧 Configuration
 
 ### AI Provider Setup
 
+Configure your AI providers in the Settings page of the application:
+
 #### OpenAI
 1. Get your API key from [OpenAI Platform](https://platform.openai.com/)
-2. Add to backend `.env`:
-   ```env
-   OPENAI_API_KEY=your-openai-api-key
-   OPENAI_MODEL=gpt-4-vision-preview
-   ```
+2. Enter in Settings → API Keys
+3. Test connection and save
 
 #### Google Gemini
 1. Get your API key from [Google AI Studio](https://makersuite.google.com/)
-2. Add to backend `.env`:
-   ```env
-   GEMINI_API_KEY=your-gemini-api-key
-   GEMINI_MODEL=gemini-pro-vision
-   ```
+2. Enter in Settings → API Keys  
+3. Test connection and save
 
-#### LM Studio (Local)
-1. Install [LM Studio](https://lmstudio.ai/) - A user-friendly desktop application for running local LLMs
-2. Start a local server with your preferred model
-3. Add to backend `.env`:
-   ```env
-   LMSTUDIO_BASE_URL=http://localhost:1234
-   LMSTUDIO_MODEL=your-local-model
-   ```
-
-### FFmpeg Installation
-
-#### Windows
-1. Download from [FFmpeg.org](https://ffmpeg.org/download.html)
-2. Extract and add to PATH
-3. Or use chocolatey: `choco install ffmpeg`
-
-#### macOS
-```bash
-brew install ffmpeg
-```
-
-#### Ubuntu/Debian
-```bash
-sudo apt update
-sudo apt install ffmpeg
-```
+#### Anthropic Claude
+1. Get your API key from [Anthropic Console](https://console.anthropic.com/)
+2. Enter in Settings → API Keys
+3. Test connection and save
 
 ## 📖 Usage
 
 ### Basic Workflow
 
-1. **Create a Project**
+1. **Choose Your Theme**
+   - Click the theme selector in the header
+   - Choose from 10 beautiful themes
+   - Settings are saved automatically
+
+2. **Create a Project**
    - Navigate to the dashboard
-   - Click "New Project"
+   - Click "Create Project"
    - Enter project details
 
-2. **Upload Video**
+3. **Upload Video**
    - Drag and drop video files
    - Or paste YouTube URL
    - Wait for processing to complete
 
-3. **Configure AI Analysis**
+4. **Configure AI Analysis**
    - Select AI provider and model
-   - Set analysis parameters
-   - Choose clip generation criteria
+   - Enter your analysis prompt
+   - Start the analysis
 
-4. **Generate Clips**
-   - Start AI analysis
+5. **Review and Export**
    - Review generated clips
-   - Edit or regenerate as needed
+   - Edit clip details if needed
+   - Export individual clips or all at once
 
-5. **Export Results**
-   - Select export format and quality
-   - Download individual clips or batch export
-   - Share or integrate with other platforms
+### Windows 98 Retro Theme
 
-### Advanced Features
+Experience authentic 90s nostalgia with our Windows 98 theme:
+- **Chunky 3D borders** with realistic bevel effects
+- **Classic scrollbars** with proper button styling
+- **Retro fonts** (MS Sans Serif/Tahoma)
+- **16x16 pixel art icons**
+- **Authentic dialog boxes** with title bars
+- **Win98 progress bars** for that nostalgic feel
 
-#### Custom Prompts
-Create custom AI prompts for specific use cases:
-```
-Find moments where the speaker shows strong emotion and the audience reacts positively. Focus on segments that would work well as social media clips.
-```
+Perfect for content creators making retro-themed videos or anyone who misses the classic Windows experience!
 
-#### Batch Processing
-Process multiple videos simultaneously:
-- Upload multiple files
-- Apply same settings to all
-- Monitor progress in real-time
+## 🎨 Theme System
 
-#### API Integration
-Use the REST API for programmatic access:
-```python
-import requests
+The application features a powerful theme system with:
 
-# Upload video
-response = requests.post(
-    "http://localhost:8000/api/upload",
-    files={"file": open("video.mp4", "rb")}
-)
+- **Real-time switching** - No page reload required
+- **Persistent preferences** - Your theme choice is remembered
+- **Responsive design** - All themes work on mobile and desktop
+- **Accessibility** - Proper contrast ratios and ARIA labels
+- **Custom CSS variables** - Easy to modify and extend
 
-# Start analysis
-response = requests.post(
-    "http://localhost:8000/api/analyze",
-    json={
-        "video_id": "video-id",
-        "provider": "openai",
-        "model": "gpt-4-vision-preview"
-    }
-)
-```
+### Theme Categories
+
+- **Modern Themes**: Midnight, Daylight, Aurora, Ocean
+- **Vibrant Themes**: Cyberpunk, Sunset Glow, Cosmic Void
+- **Nature Themes**: Enchanted Forest
+- **Minimal Themes**: Monochrome
+- **Retro Themes**: Windows 98
 
 ## 🛠️ Development
 
+### Adding New Themes
+
+1. Edit `src/config/themes.js`
+2. Add your theme configuration
+3. Update the theme selector component
+4. Test across all components
+
 ### Backend Development
 
-#### Project Structure
-```
-backend/
-├── api/
-│   ├── endpoints/          # API route handlers
-│   └── dependencies.py     # Dependency injection
-├── services/
-│   ├── video_processor.py  # Video processing logic
-│   ├── ai_analyzer.py      # AI analysis service
-│   └── file_manager.py     # File operations
-├── models/
-│   └── project.py          # Pydantic models
-└── utils/
-    ├── security.py         # Security utilities
-    └── config.py           # Configuration management
-```
-
-#### Adding New AI Providers
-1. Extend `AIAnalyzer` class
-2. Implement provider-specific methods
-3. Add configuration options
-4. Update API endpoints
-
-#### Running Tests
-```bash
-cd backend
-pytest tests/ -v
-pytest tests/ --cov=. --cov-report=html
-```
+The FastAPI backend provides:
+- **RESTful API** with automatic documentation
+- **Authentication** with JWT tokens
+- **File upload** handling with security
+- **AI integration** with multiple providers
+- **Database** management with SQLAlchemy
 
 ### Frontend Development
 
-#### Project Structure
-```
-frontend/src/
-├── components/
-│   ├── layout/             # Layout components
-│   ├── ui/                 # Reusable UI components
-│   └── features/           # Feature-specific components
-├── pages/
-│   ├── Dashboard.jsx       # Main dashboard
-│   └── ProjectPage.jsx     # Project management
-├── stores/
-│   └── projectStore.js     # Zustand state management
-└── utils/
-    └── api.js              # API client
-```
-
-#### Adding New Components
-1. Create component in appropriate directory
-2. Follow naming conventions
-3. Add to component index
-4. Include in Storybook (if applicable)
-
-#### Running Tests
-```bash
-cd frontend
-npm test
-npm run test:coverage
-```
-
-## 📊 Performance
-
-### Optimization Tips
-
-#### Video Processing
-- Use appropriate video codecs (H.264, H.265)
-- Optimize resolution for target use case
-- Enable hardware acceleration when available
-- Process videos in chunks for large files
-
-#### AI Analysis
-- Batch multiple requests when possible
-- Use appropriate model sizes for your needs
-- Implement caching for repeated analyses
-- Monitor API usage and costs
-
-#### Frontend Performance
-- Enable code splitting and lazy loading
-- Optimize images and assets
-- Use virtual scrolling for large lists
-- Implement proper caching strategies
-
-### Monitoring
-
-#### Backend Metrics
-- Processing time per video
-- AI API response times
-- Error rates and types
-- Resource usage (CPU, memory, disk)
-
-#### Frontend Metrics
-- Page load times
-- User interaction patterns
-- Bundle size and performance
-- Error tracking and reporting
-
-## 🔒 Security
-
-### Best Practices
-
-- **API Keys**: Store securely, never commit to version control
-- **File Uploads**: Validate file types and sizes
-- **User Input**: Sanitize all user inputs
-- **HTTPS**: Use HTTPS in production
-- **CORS**: Configure properly for your domain
-- **Rate Limiting**: Implement to prevent abuse
-
-### Security Features
-
-- Encrypted API key storage
-- Secure file handling and cleanup
-- Input validation and sanitization
-- Session management
-- Audit logging
-- CSRF protection
+The React frontend features:
+- **Modern hooks** and functional components
+- **Zustand** for state management
+- **Tailwind CSS** for styling
+- **Framer Motion** for animations
+- **React Router** for navigation
 
 ## 🚀 Deployment
 
-### Production Deployment
+### Production Build
 
-#### Backend (Docker)
-```dockerfile
-# Dockerfile
-FROM python:3.11-slim
-
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-
-COPY . .
-EXPOSE 8000
-
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
-```
-
-#### Frontend (Vercel/Netlify)
 ```bash
-# Build for production
+# Build frontend
 npm run build
 
-# Deploy to Vercel
-vercel --prod
-
-# Deploy to Netlify
-netlify deploy --prod --dir=dist
+# Start backend in production
+cd backend
+python main.py
 ```
 
-#### Environment Variables
-Set the following in your production environment:
+### Environment Variables
+
+Set these in production:
 
 **Backend**:
-- `OPENAI_API_KEY`
-- `GEMINI_API_KEY`
-- `SECRET_KEY`
-- `DATABASE_URL`
-- `REDIS_URL`
+- `SECRET_KEY` - JWT signing key
+- `DATABASE_URL` - Database connection string
+- `ENVIRONMENT` - Set to "production"
 
 **Frontend**:
-- `VITE_API_BASE_URL`
-- `VITE_APP_NAME`
-- `VITE_GA_TRACKING_ID`
-
-### Scaling Considerations
-
-- Use load balancers for multiple backend instances
-- Implement Redis for session storage and caching
-- Use CDN for static assets and video files
-- Consider message queues for heavy processing
-- Monitor and auto-scale based on demand
+- `VITE_API_BASE_URL` - Backend API URL
+- `VITE_APP_NAME` - Application name
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
-
-### Development Setup
+We welcome contributions! Please:
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Add tests for new functionality
-5. Ensure all tests pass
-6. Submit a pull request
+4. Test thoroughly
+5. Submit a pull request
 
 ### Code Style
 
 - **Backend**: Follow PEP 8, use Black for formatting
 - **Frontend**: Use ESLint and Prettier
-- **Commits**: Follow Conventional Commits format
-- **Documentation**: Update docs for new features
+- **Commits**: Use descriptive commit messages
 
 ## 📄 License
 
@@ -441,40 +301,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [React](https://reactjs.org/) - Frontend library
 - [FFmpeg](https://ffmpeg.org/) - Video processing
 - [OpenAI](https://openai.com/) - AI models and APIs
-- [Google AI](https://ai.google/) - Gemini AI models
 - [Tailwind CSS](https://tailwindcss.com/) - CSS framework
 - [Framer Motion](https://www.framer.com/motion/) - Animation library
 
 ## 📞 Support
 
-- **Documentation**: [docs.openclippro.com](https://docs.openclippro.com)
-- **Issues**: [GitHub Issues](https://github.com/your-username/openclip-pro/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-username/openclip-pro/discussions)
-- **Email**: support@openclippro.com
-- **Discord**: [Join our community](https://discord.gg/openclippro)
-
-## 🗺️ Roadmap
-
-### Version 1.1
-- [ ] Real-time collaboration features
-- [ ] Advanced video editing tools
-- [ ] Custom AI model training
-- [ ] Mobile app development
-
-### Version 1.2
-- [ ] Multi-language support
-- [ ] Advanced analytics dashboard
-- [ ] Integration with major platforms
-- [ ] Enterprise features and SSO
-
-### Version 2.0
-- [ ] Live streaming integration
-- [ ] Advanced AI features
-- [ ] Marketplace for templates
-- [ ] White-label solutions
+- **Issues**: [GitHub Issues](https://github.com/zaghl0ul/OpenClip-Pro/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/zaghl0ul/OpenClip-Pro/discussions)
 
 ---
 
-**Made with ❤️ by the OpenClip Pro Team**
+**Made with ❤️ by zaghl0ul**
 
-*Transform your videos into engaging content with the power of AI.*
+*Transform your videos into engaging content with the power of AI and beautiful themes.*
