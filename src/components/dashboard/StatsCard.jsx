@@ -1,0 +1,36 @@
+import React from 'react'
+import { TrendingUp, TrendingDown } from 'lucide-react'
+
+const StatsCard = ({ title, value, change, icon: Icon, trend = 'up' }) => {
+  const isPositive = trend === 'up'
+  
+  return (
+    <div className="glass-card p-6 hover:scale-[1.02] transition-transform cursor-pointer">
+      <div className="flex items-start justify-between">
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-subtle">{title}</p>
+          <p className="text-2xl font-bold text-white">{value}</p>
+          {change && (
+            <div className="flex items-center gap-1">
+              {isPositive ? (
+                <TrendingUp className="w-4 h-4 text-success" />
+              ) : (
+                <TrendingDown className="w-4 h-4 text-error" />
+              )}
+              <span className={`text-sm font-medium ${isPositive ? 'text-success' : 'text-error'}`}>
+                {change}
+              </span>
+            </div>
+          )}
+        </div>
+        {Icon && (
+          <div className="p-3 bg-primary/10 rounded-lg">
+            <Icon className="w-6 h-6 text-primary" />
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+export default StatsCard

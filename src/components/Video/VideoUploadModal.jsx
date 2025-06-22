@@ -1,0 +1,303 @@
+import React, { useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, Upload, Link } from 'lucide-react';
+
+const VideoUploadModal = ({ isOpen, onClose, onVideoUpload, onYoutubeUrl }) => {
+  const [mode, setMode] = useState('upload'); // 'upload' or 'youtube'
+  const [youtubeUrl, setYoutubeUrl] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const [error, setError] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [dragActive, setDragActive] = useState(false);
+  const fileInputRef = useRef(null);
+
+  if (!isOpen) return null;
+
+  const handleVideoUpload = async (file) => {
+    setIsUploading(true);
+    setError('');
+    try {
+      await onVideoUpload(file);
+      // Success is handled by parent component (modal close)
+    } catch (err) {
+      setError('Failed to upload video. Please try again.');
+      console.error('Upload error:', err);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleYoutubeSubmit = (e) => {
+    e.preventDefault();
+    if (!youtubeUrl.trim()) {
+      setError('Please enter a YouTube URL');
+      return;
+    }
+
+    // More comprehensive YouTube URL validation
+    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})($|&|\?).*/;
+    
+    if (!youtubeRegex.test(youtubeUrl)) {
+      setError('Please enter a valid YouTube video URL');
+      return;
+    }
+
+    setIsUploading(true);
+    setError('');
+    try {
+      onYoutubeUrl(youtubeUrl);
+      // Success is handled by parent component (modal close)
+    } catch (err) {
+      setError('Failed to process YouTube URL. Please try again.');
+      console.error('YouTube error:', err);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleFileSelect = (file) => {
+    setSelectedFile(file);
+  };
+
+  const handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === 'dragenter' || e.type === 'dragover') {
+      setDragActive(true);
+    } else if (e.type === 'dragleave') {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFileSelect(e.dataTransfer.files[0]);
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        className="relative w-full max-w-2xl bg-white dark:bg-gray-800 rounded-xl shadow-2xl"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+            {mode === 'upload' ? 'Upload Video' : 'YouTube Video'}
+          </h2>
+          <button
+            onClick={onClose}
+            disabled={isUploading}
+            className="p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        
+        {/* Mode Selector */}
+        <div className="flex border-b border-gray-200 dark:border-gray-700">
+          <button
+            onClick={() => setMode('upload')}
+            className={`flex-1 py-3 text-center transition-colors ${
+              mode === 'upload'
+                ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+            }`}
+            disabled={isUploading}
+          >
+            <span className="flex items-center justify-center gap-2">
+              <Upload className="w-4 h-4" />
+              Upload Video
+            </span>
+          </button>
+          <button
+            onClick={() => setMode('youtube')}
+            className={`flex-1 py-3 text-center transition-colors ${
+              mode === 'youtube'
+                ? 'text-red-600 dark:text-red-400 border-b-2 border-red-600 dark:border-red-400'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+            }`}
+            disabled={isUploading}
+          >
+            <span className="flex items-center justify-center gap-2">
+              <Link className="w-4 h-4" />
+              YouTube URL
+            </span>
+          </button>
+        </div>
+        
+        {/* Modal Content */}
+        <div className="p-6">
+          <AnimatePresence mode="wait">
+            {mode === 'upload' ? (
+              <motion.div
+                key="upload"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+              >
+                {selectedFile ? (
+                  <div className="p-6 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700">
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                        <Upload className="w-6 h-6" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-gray-900 dark:text-white truncate">{selectedFile.name}</h4>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setSelectedFile(null)}
+                        className="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 rounded"
+                        disabled={isUploading}
+                      >
+                        Change
+                      </button>
+                    </div>
+                    <div className="mt-6">
+                      <button
+                        onClick={() => handleVideoUpload(selectedFile)}
+                        disabled={isUploading}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isUploading ? (
+                          <>
+                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            Uploading...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-5 h-5" />
+                            Upload Video
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                      dragActive
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/10'
+                        : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 bg-gray-50 dark:bg-gray-700'
+                    }`}
+                    onDragEnter={handleDrag}
+                    onDragOver={handleDrag}
+                    onDragLeave={handleDrag}
+                    onDrop={handleDrop}
+                  >
+                    <div className="flex flex-col items-center justify-center gap-4">
+                      <div className={`p-4 rounded-full ${
+                        dragActive ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-gray-100 dark:bg-gray-600'
+                      }`}>
+                        <Upload className={`w-8 h-8 ${
+                          dragActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'
+                        }`} />
+                      </div>
+                      
+                      <div>
+                        <p className="text-gray-700 dark:text-gray-300 mb-2">
+                          {dragActive ? 'Drop your file here' : 'Drag & drop your video file here'}
+                        </p>
+                        <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">
+                          Supports MP4, MOV, AVI, and other common formats
+                        </p>
+                        
+                        <button
+                          onClick={() => fileInputRef.current?.click()}
+                          className="px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 rounded-lg transition-colors"
+                        >
+                          Browse Files
+                        </button>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="video/*"
+                          onChange={(e) => {
+                            if (e.target.files?.[0]) {
+                              handleFileSelect(e.target.files[0]);
+                            }
+                          }}
+                          className="hidden"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            ) : (
+              <motion.div
+                key="youtube"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-4"
+              >
+                <div>
+                  <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                    Enter YouTube URL
+                  </h4>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Paste a valid YouTube video URL
+                  </p>
+                </div>
+                <form onSubmit={handleYoutubeSubmit} className="space-y-4">
+                  <div>
+                    <input
+                      type="text"
+                      value={youtubeUrl}
+                      onChange={(e) => setYoutubeUrl(e.target.value)}
+                      placeholder="https://youtube.com/watch?v=..."
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      disabled={isUploading}
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={isUploading}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isUploading ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <Link className="w-5 h-5" />
+                        Process YouTube Video
+                      </>
+                    )}
+                  </button>
+                </form>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mt-4 p-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+export default VideoUploadModal; 
