@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Layout from './components/layout/Layout';
+import Landing from './pages/Landing';
 import Dashboard from './pages/Dashboard';
 import Projects from './pages/Projects';
 import ProjectDetail from './pages/ProjectDetail';
@@ -11,6 +12,7 @@ import SettingsPage from './pages/SettingsPage';
 import GlassEffect from './components/Common/GlassEffect';
 import ErrorBoundary from './components/Common/ErrorBoundary';
 import TestingPanel from './components/TestingPanel';
+import LogoDisplayDemo from './components/Common/LogoDisplayDemo';
 import authService from './services/authService';
 import './index.css';
 
@@ -149,7 +151,8 @@ function App() {
       <Router>
         <div className="min-h-screen bg-background">
           <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/" element={<Landing />} />
+            <Route path="/logo-demo" element={<LogoDisplayDemo />} />
             <Route 
               path="/dashboard" 
               element={
@@ -198,7 +201,7 @@ function App() {
                 </Layout>
               } 
             />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
         
