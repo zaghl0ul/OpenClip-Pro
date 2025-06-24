@@ -1,29 +1,29 @@
-import React, { useRef, useState } from 'react'
-import { Upload as UploadIcon, FileText as FileTextIcon } from 'lucide-react'
+import React, { useRef, useState } from 'react';
+import { Upload as UploadIcon, FileText as FileTextIcon } from 'lucide-react';
 
 const VideoUpload = ({ selectedFile, onFileSelect }) => {
-  const [dragActive, setDragActive] = useState(false)
-  const fileInputRef = useRef(null)
+  const [dragActive, setDragActive] = useState(false);
+  const fileInputRef = useRef(null);
 
   const handleDrag = (e) => {
-    e.preventDefault()
-    e.stopPropagation()
+    e.preventDefault();
+    e.stopPropagation();
     if (e.type === 'dragenter' || e.type === 'dragover') {
-      setDragActive(true)
+      setDragActive(true);
     } else if (e.type === 'dragleave') {
-      setDragActive(false)
+      setDragActive(false);
     }
-  }
+  };
 
   const handleDrop = (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setDragActive(false)
-    
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      onFileSelect(e.dataTransfer.files[0])
+      onFileSelect(e.dataTransfer.files[0]);
     }
-  }
+  };
 
   return (
     <div className="w-full">
@@ -60,14 +60,14 @@ const VideoUpload = ({ selectedFile, onFileSelect }) => {
           onDrop={handleDrop}
         >
           <div className="flex flex-col items-center justify-center gap-4">
-            <div className={`p-4 rounded-full ${
-              dragActive ? 'bg-primary-500/20' : 'bg-gray-700/50'
-            }`}>
-              <UploadIcon className={`w-8 h-8 ${
-                dragActive ? 'text-primary-400' : 'text-gray-400'
-              }`} />
+            <div
+              className={`p-4 rounded-full ${dragActive ? 'bg-primary-500/20' : 'bg-gray-700/50'}`}
+            >
+              <UploadIcon
+                className={`w-8 h-8 ${dragActive ? 'text-primary-400' : 'text-gray-400'}`}
+              />
             </div>
-            
+
             <div>
               <p className="text-gray-300 mb-2">
                 {dragActive ? 'Drop your file here' : 'Drag & drop your video file here'}
@@ -75,7 +75,7 @@ const VideoUpload = ({ selectedFile, onFileSelect }) => {
               <p className="text-gray-500 text-sm mb-4">
                 Supports MP4, MOV, AVI, and other common formats
               </p>
-              
+
               <button
                 onClick={() => fileInputRef.current?.click()}
                 className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
@@ -88,7 +88,7 @@ const VideoUpload = ({ selectedFile, onFileSelect }) => {
                 accept="video/*"
                 onChange={(e) => {
                   if (e.target.files?.[0]) {
-                    onFileSelect(e.target.files[0])
+                    onFileSelect(e.target.files[0]);
                   }
                 }}
                 className="hidden"
@@ -98,7 +98,7 @@ const VideoUpload = ({ selectedFile, onFileSelect }) => {
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default VideoUpload
+export default VideoUpload;

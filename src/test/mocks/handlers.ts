@@ -1,7 +1,7 @@
-import { http, HttpResponse } from 'msw'
+import { http, HttpResponse } from 'msw';
 
 // Mock API base URL
-const API_BASE = 'http://localhost:8001'
+const API_BASE = 'http://localhost:8001';
 
 export const handlers = [
   // Projects endpoints
@@ -16,11 +16,11 @@ export const handlers = [
           updated_at: '2024-01-01T00:00:00Z',
         },
       ],
-    })
+    });
   }),
 
   http.post(`${API_BASE}/projects`, async ({ request }) => {
-    const body = await request.json()
+    const body = await request.json();
     return HttpResponse.json({
       project: {
         id: 'mock-id',
@@ -29,7 +29,7 @@ export const handlers = [
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       },
-    })
+    });
   }),
 
   http.get(`${API_BASE}/projects/:id`, ({ params }) => {
@@ -41,7 +41,7 @@ export const handlers = [
         created_at: '2024-01-01T00:00:00Z',
         updated_at: '2024-01-01T00:00:00Z',
       },
-    })
+    });
   }),
 
   // Analysis endpoints
@@ -57,7 +57,7 @@ export const handlers = [
           confidence: 0.95,
         },
       ],
-    })
+    });
   }),
 
   // Settings endpoints
@@ -65,14 +65,11 @@ export const handlers = [
     return HttpResponse.json({
       openai: ['gpt-4-vision-preview', 'gpt-4'],
       gemini: ['gemini-pro-vision'],
-    })
+    });
   }),
 
   // Error scenarios for testing
   http.get(`${API_BASE}/projects/error`, () => {
-    return HttpResponse.json(
-      { error: 'Mock error for testing' },
-      { status: 500 }
-    )
+    return HttpResponse.json({ error: 'Mock error for testing' }, { status: 500 });
   }),
-] 
+];

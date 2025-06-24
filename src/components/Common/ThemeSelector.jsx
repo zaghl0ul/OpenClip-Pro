@@ -66,9 +66,7 @@ const ThemeSelector = ({ compact = false }) => {
           <Sparkles className="w-5 h-5 text-primary" />
           Theme Selection
         </h3>
-        <span className="text-sm text-subtle">
-          Current: {theme.name}
-        </span>
+        <span className="text-sm text-subtle">Current: {theme.name}</span>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -161,8 +159,8 @@ const ThemePreview = ({ theme, isActive, onClick, compact = false }) => {
           />
           <div
             className="w-8 h-8 rounded-lg shadow-sm"
-            style={{ 
-              background: `linear-gradient(135deg, ${theme.colors.gradientStart}, ${theme.colors.gradientEnd})` 
+            style={{
+              background: `linear-gradient(135deg, ${theme.colors.gradientStart}, ${theme.colors.gradientEnd})`,
             }}
             title="Gradient"
           />
@@ -174,7 +172,7 @@ const ThemePreview = ({ theme, isActive, onClick, compact = false }) => {
         </div>
 
         {/* Mini preview */}
-        <div 
+        <div
           className="rounded-lg p-3 space-y-2"
           style={{
             backgroundColor: theme.colors.surface + '80',
@@ -184,17 +182,17 @@ const ThemePreview = ({ theme, isActive, onClick, compact = false }) => {
           }}
         >
           <div className="flex items-center gap-2">
-            <div 
+            <div
               className="w-12 h-1 rounded-full"
               style={{ backgroundColor: theme.colors.subtle }}
             />
-            <div 
+            <div
               className="w-20 h-1 rounded-full"
               style={{ backgroundColor: theme.colors.subtle + '60' }}
             />
           </div>
           <div className="flex gap-2">
-            <div 
+            <div
               className="h-6 px-2 rounded flex items-center justify-center"
               style={{
                 backgroundColor: theme.colors.primary + '20',
@@ -202,14 +200,11 @@ const ThemePreview = ({ theme, isActive, onClick, compact = false }) => {
                 borderColor: theme.colors.primary + '40',
               }}
             >
-              <span 
-                className="text-xs font-medium"
-                style={{ color: theme.colors.primary }}
-              >
+              <span className="text-xs font-medium" style={{ color: theme.colors.primary }}>
                 Button
               </span>
             </div>
-            <div 
+            <div
               className="flex-1 h-6 rounded"
               style={{
                 backgroundColor: theme.colors.background + '40',
@@ -234,7 +229,7 @@ const ThemePreview = ({ theme, isActive, onClick, compact = false }) => {
       </div>
 
       {/* Hover effect */}
-      <div 
+      <div
         className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
         style={{
           background: `radial-gradient(circle at 50% 50%, ${theme.colors.primary}20 0%, transparent 70%)`,
@@ -244,4 +239,4 @@ const ThemePreview = ({ theme, isActive, onClick, compact = false }) => {
   );
 };
 
-export default ThemeSelector; 
+export default ThemeSelector;

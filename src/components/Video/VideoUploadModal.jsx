@@ -35,8 +35,9 @@ const VideoUploadModal = ({ isOpen, onClose, onVideoUpload, onYoutubeUrl }) => {
     }
 
     // More comprehensive YouTube URL validation
-    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})($|&|\?).*/;
-    
+    const youtubeRegex =
+      /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})($|&|\?).*/;
+
     if (!youtubeRegex.test(youtubeUrl)) {
       setError('Please enter a valid YouTube video URL');
       return;
@@ -73,7 +74,7 @@ const VideoUploadModal = ({ isOpen, onClose, onVideoUpload, onYoutubeUrl }) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
+
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFileSelect(e.dataTransfer.files[0]);
     }
@@ -105,7 +106,7 @@ const VideoUploadModal = ({ isOpen, onClose, onVideoUpload, onYoutubeUrl }) => {
             <X className="w-5 h-5" />
           </button>
         </div>
-        
+
         {/* Mode Selector */}
         <div className="flex border-b border-gray-200 dark:border-gray-700">
           <button
@@ -137,7 +138,7 @@ const VideoUploadModal = ({ isOpen, onClose, onVideoUpload, onYoutubeUrl }) => {
             </span>
           </button>
         </div>
-        
+
         {/* Modal Content */}
         <div className="p-6">
           <AnimatePresence mode="wait">
@@ -155,7 +156,9 @@ const VideoUploadModal = ({ isOpen, onClose, onVideoUpload, onYoutubeUrl }) => {
                         <Upload className="w-6 h-6" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-gray-900 dark:text-white truncate">{selectedFile.name}</h4>
+                        <h4 className="font-medium text-gray-900 dark:text-white truncate">
+                          {selectedFile.name}
+                        </h4>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
                           {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
                         </p>
@@ -201,14 +204,22 @@ const VideoUploadModal = ({ isOpen, onClose, onVideoUpload, onYoutubeUrl }) => {
                     onDrop={handleDrop}
                   >
                     <div className="flex flex-col items-center justify-center gap-4">
-                      <div className={`p-4 rounded-full ${
-                        dragActive ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-gray-100 dark:bg-gray-600'
-                      }`}>
-                        <Upload className={`w-8 h-8 ${
-                          dragActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'
-                        }`} />
+                      <div
+                        className={`p-4 rounded-full ${
+                          dragActive
+                            ? 'bg-blue-100 dark:bg-blue-900/30'
+                            : 'bg-gray-100 dark:bg-gray-600'
+                        }`}
+                      >
+                        <Upload
+                          className={`w-8 h-8 ${
+                            dragActive
+                              ? 'text-blue-600 dark:text-blue-400'
+                              : 'text-gray-500 dark:text-gray-400'
+                          }`}
+                        />
                       </div>
-                      
+
                       <div>
                         <p className="text-gray-700 dark:text-gray-300 mb-2">
                           {dragActive ? 'Drop your file here' : 'Drag & drop your video file here'}
@@ -216,7 +227,7 @@ const VideoUploadModal = ({ isOpen, onClose, onVideoUpload, onYoutubeUrl }) => {
                         <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">
                           Supports MP4, MOV, AVI, and other common formats
                         </p>
-                        
+
                         <button
                           onClick={() => fileInputRef.current?.click()}
                           className="px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 rounded-lg transition-colors"
@@ -300,4 +311,4 @@ const VideoUploadModal = ({ isOpen, onClose, onVideoUpload, onYoutubeUrl }) => {
   );
 };
 
-export default VideoUploadModal; 
+export default VideoUploadModal;

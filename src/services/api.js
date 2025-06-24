@@ -14,7 +14,7 @@ class ApiService {
     const token = localStorage.getItem('access_token');
     return {
       'Content-Type': 'application/json',
-      ...(token && { 'Authorization': `Bearer ${token}` })
+      ...(token && { Authorization: `Bearer ${token}` }),
     };
   }
 
@@ -22,14 +22,14 @@ class ApiService {
     const url = `${this.baseURL}${endpoint}`;
     const config = {
       headers: this.getAuthHeaders(),
-      ...options
+      ...options,
     };
 
     debug.logApiCall(endpoint, options.method || 'GET', options.body);
 
     try {
       const response = await fetch(url, config);
-      
+
       // Handle authentication errors
       if (response.status === 401) {
         debug.log('API', 'Authentication error, clearing tokens');
@@ -40,11 +40,11 @@ class ApiService {
       }
 
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.detail || `HTTP ${response.status}`);
       }
-      
+
       debug.logApiResponse(endpoint, data);
       return data;
     } catch (error) {
@@ -58,14 +58,14 @@ class ApiService {
   async login(email, password) {
     return this.request('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ email, password }),
     });
   }
 
   async register(email, password, full_name) {
     return this.request('/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ email, password, full_name })
+      body: JSON.stringify({ email, password, full_name }),
     });
   }
 
@@ -75,7 +75,7 @@ class ApiService {
 
   // Health check (no auth required)
   async healthCheck() {
-    return fetch(`${this.baseURL}/health`).then(res => res.json());
+    return fetch(`${this.baseURL}/health`).then((res) => res.json());
   }
 
   // Projects
@@ -90,13 +90,13 @@ class ApiService {
   async createProject(projectData) {
     return this.request('/api/projects', {
       method: 'POST',
-      body: JSON.stringify(projectData)
+      body: JSON.stringify(projectData),
     });
   }
 
   async deleteProject(id) {
     return this.request(`/api/projects/${id}`, {
-      method: 'DELETE'
+      method: 'DELETE',
     });
   }
 
@@ -107,43 +107,48 @@ class ApiService {
       name: file.name,
       size: file.size,
       type: file.type,
-      lastModified: file.lastModified
+      lastModified: file.lastModified,
     });
     console.log('🆔 Project ID:', projectId);
-    
+
     const token = localStorage.getItem('access_token');
     const formData = new FormData();
     formData.append('file', file);
 
-    console.log('📤 Sending upload request to:', `${this.baseURL}/api/projects/${projectId}/upload`);
+    console.log(
+      '📤 Sending upload request to:',
+      `${this.baseURL}/api/projects/${projectId}/upload`
+    );
 
     return fetch(`${this.baseURL}/api/projects/${projectId}/upload`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
-      body: formData
-    }).then(async res => {
-      console.log('📥 Upload response status:', res.status);
-      const data = await res.json();
-      console.log('📥 Upload response data:', data);
-      if (!res.ok) {
-        console.error('❌ Upload failed:', data);
-        throw new Error(data.detail || `Upload failed with status ${res.status}`);
-      }
-      console.log('✅ Upload successful!');
-      return data;
-    }).catch(error => {
-      console.error('❌ Upload error:', error);
-      throw error;
-    });
+      body: formData,
+    })
+      .then(async (res) => {
+        console.log('📥 Upload response status:', res.status);
+        const data = await res.json();
+        console.log('📥 Upload response data:', data);
+        if (!res.ok) {
+          console.error('❌ Upload failed:', data);
+          throw new Error(data.detail || `Upload failed with status ${res.status}`);
+        }
+        console.log('✅ Upload successful!');
+        return data;
+      })
+      .catch((error) => {
+        console.error('❌ Upload error:', error);
+        throw error;
+      });
   }
 
   // YouTube processing
   async getYouTubeInfo(url) {
     return this.request('/api/youtube/info', {
       method: 'POST',
-      body: JSON.stringify({ url })
+      body: JSON.stringify({ url }),
     });
   }
 
@@ -153,8 +158,8 @@ class ApiService {
       body: JSON.stringify({
         youtube_url: url,
         analyze,
-        analysis_types: analysisTypes
-      })
+        analysis_types: analysisTypes,
+      }),
     });
   }
 
@@ -174,8 +179,8 @@ class ApiService {
         project_id: projectId,
         prompt,
         provider,
-        model
-      })
+        model,
+      }),
     });
   }
 
@@ -196,14 +201,14 @@ class ApiService {
   async setApiKey(provider, apiKey) {
     return this.request('/api/settings/api-key', {
       method: 'POST',
-      body: JSON.stringify({ provider, api_key: apiKey })
+      body: JSON.stringify({ provider, api_key: apiKey }),
     });
   }
 
   async updateSetting(category, key, value) {
     return this.request('/api/settings', {
       method: 'POST',
-      body: JSON.stringify({ category, key, value })
+      body: JSON.stringify({ category, key, value }),
     });
   }
 }
@@ -227,7 +232,7 @@ export const getVideoStream = (projectId) => apiClient.get(`/api/projects/${proj
 export const analyzeVideo = (projectId, prompt, provider = 'openai') => {
   return apiClient.post(`/api/projects/${projectId}/analyze`, {
     prompt,
-    provider
+    provider,
   });
 };
 

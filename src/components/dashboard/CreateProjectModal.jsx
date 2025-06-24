@@ -1,27 +1,21 @@
-import React, { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import {
-  X as XIcon,
-  Loader as LoaderIcon,
-  ArrowLeft,
-  ArrowRight,
-  Check
-} from 'lucide-react'
-import { useCreateProjectModal } from '../../hooks/useCreateProjectModal'
-import { useNavigate } from 'react-router-dom'
-import useProjectStore from '../../stores/projectStore'
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X as XIcon, Loader as LoaderIcon, ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { useCreateProjectModal } from '../../hooks/useCreateProjectModal';
+import { useNavigate } from 'react-router-dom';
+import useProjectStore from '../../stores/projectStore';
 import {
   ProjectTypeStep,
   ProjectDetailsStep,
   YouTubeUrlStep,
-  VideoUploadStep
-} from '../project/steps'
+  VideoUploadStep,
+} from '../project/steps';
 
 const CreateProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
-  const navigate = useNavigate()
-  const { uploadProgress, isLoading } = useProjectStore()
-  const [isUploading, setIsUploading] = useState(false)
-  
+  const navigate = useNavigate();
+  const { uploadProgress, isLoading } = useProjectStore();
+  const [isUploading, setIsUploading] = useState(false);
+
   const {
     step,
     projectType,
@@ -46,55 +40,54 @@ const CreateProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
     handleCreateProject,
     canProceedToNext,
     nextStep,
-    prevStep
-  } = useCreateProjectModal()
-  
-  if (!isOpen) return null
+    prevStep,
+  } = useCreateProjectModal();
+
+  if (!isOpen) return null;
 
   const steps = [
     { id: 1, title: 'Project Type' },
     { id: 2, title: 'Details' },
-    { id: 3, title: projectType === 'youtube' ? 'YouTube URL' : 'Upload Video' }
-  ]
-  
+    { id: 3, title: projectType === 'youtube' ? 'YouTube URL' : 'Upload Video' },
+  ];
+
   const handleClose = () => {
-    resetForm()
-    setIsUploading(false)
-    onClose()
-  }
-  
+    resetForm();
+    setIsUploading(false);
+    onClose();
+  };
+
   const handleCreate = async () => {
     try {
       if (selectedFile) {
-        setIsUploading(true)
+        setIsUploading(true);
       }
-      
+
       const createdProject = await handleCreateProject(
         (project) => {
-          console.log('Project creation callback called with:', project)
+          console.log('Project creation callback called with:', project);
         },
         null // Don't auto-close
-      )
-      
+      );
+
       if (createdProject && createdProject.id) {
-        console.log('Navigating to project:', createdProject.id)
-        navigate(`/projects/${createdProject.id}`)
-        handleClose()
+        console.log('Navigating to project:', createdProject.id);
+        navigate(`/projects/${createdProject.id}`);
+        handleClose();
         if (onProjectCreated) {
-          onProjectCreated(createdProject)
+          onProjectCreated(createdProject);
         }
       } else {
-        console.error('Invalid project returned:', createdProject)
-        setError('Failed to create project. Please try again.')
+        console.error('Invalid project returned:', createdProject);
+        setError('Failed to create project. Please try again.');
       }
-      
     } catch (error) {
-      console.error('Project creation failed:', error)
+      console.error('Project creation failed:', error);
     } finally {
-      setIsUploading(false)
+      setIsUploading(false);
     }
-  }
-  
+  };
+
   const renderStep = () => {
     switch (step) {
       case 1:
@@ -104,7 +97,7 @@ const CreateProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
             setProjectType={setProjectType}
             error={errors.projectType}
           />
-        )
+        );
       case 2:
         return (
           <ProjectDetailsStep
@@ -114,7 +107,7 @@ const CreateProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
             setDescription={setDescription}
             errors={errors}
           />
-        )
+        );
       case 3:
         if (projectType === 'youtube') {
           return (
@@ -123,7 +116,7 @@ const CreateProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
               setYoutubeUrl={setYoutubeUrl}
               error={errors.youtubeUrl}
             />
-          )
+          );
         } else {
           return (
             <VideoUploadStep
@@ -137,13 +130,13 @@ const CreateProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
               uploadProgress={uploadProgress}
               isUploading={isUploading}
             />
-          )
+          );
         }
       default:
-        return null
+        return null;
     }
-  }
-  
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -174,22 +167,26 @@ const CreateProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
           <div className="flex items-center justify-between">
             {steps.map((stepItem, index) => (
               <div key={stepItem.id} className="flex items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
-                  step >= stepItem.id 
-                    ? 'bg-primary-500 text-white' 
-                    : 'bg-gray-700 text-gray-400'
-                }`}>
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
+                    step >= stepItem.id ? 'bg-primary-500 text-white' : 'bg-gray-700 text-gray-400'
+                  }`}
+                >
                   {step > stepItem.id ? <Check className="w-4 h-4" /> : stepItem.id}
                 </div>
-                <span className={`ml-2 text-sm font-medium ${
-                  step >= stepItem.id ? 'text-white' : 'text-gray-400'
-                }`}>
+                <span
+                  className={`ml-2 text-sm font-medium ${
+                    step >= stepItem.id ? 'text-white' : 'text-gray-400'
+                  }`}
+                >
                   {stepItem.title}
                 </span>
                 {index < steps.length - 1 && (
-                  <div className={`mx-4 h-px w-8 transition-colors ${
-                    step > stepItem.id ? 'bg-primary-500' : 'bg-gray-600'
-                  }`} />
+                  <div
+                    className={`mx-4 h-px w-8 transition-colors ${
+                      step > stepItem.id ? 'bg-primary-500' : 'bg-gray-600'
+                    }`}
+                  />
                 )}
               </div>
             ))}
@@ -198,10 +195,8 @@ const CreateProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
 
         {/* Content */}
         <div className="px-6 py-6">
-          <AnimatePresence mode="wait">
-            {renderStep()}
-          </AnimatePresence>
-          
+          <AnimatePresence mode="wait">{renderStep()}</AnimatePresence>
+
           {/* Upload Progress */}
           {(isUploading || uploadProgress > 0) && (
             <motion.div
@@ -217,7 +212,7 @@ const CreateProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                 <span className="text-sm text-blue-400">{uploadProgress}%</span>
               </div>
               <div className="w-full bg-gray-700 rounded-full h-2">
-                <motion.div 
+                <motion.div
                   className="bg-blue-500 h-2 rounded-full"
                   initial={{ width: 0 }}
                   animate={{ width: `${uploadProgress}%` }}
@@ -254,7 +249,7 @@ const CreateProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
             >
               Cancel
             </button>
-            
+
             {step < 3 ? (
               <button
                 onClick={nextStep}
@@ -267,10 +262,10 @@ const CreateProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
             ) : (
               <button
                 onClick={handleCreate}
-                               disabled={!canProceedToNext || isCreating || isUploading || uploadProgress > 0}
-                 className="flex items-center gap-2 px-6 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-               >
-                 {isCreating || isUploading || uploadProgress > 0 ? (
+                disabled={!canProceedToNext || isCreating || isUploading || uploadProgress > 0}
+                className="flex items-center gap-2 px-6 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {isCreating || isUploading || uploadProgress > 0 ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     {isUploading ? 'Uploading...' : 'Creating...'}
@@ -287,7 +282,7 @@ const CreateProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
         </div>
       </motion.div>
     </motion.div>
-  )
-}
+  );
+};
 
-export default CreateProjectModal
+export default CreateProjectModal;

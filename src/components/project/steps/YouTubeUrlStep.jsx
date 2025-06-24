@@ -1,13 +1,14 @@
-import React from 'react'
-import { motion } from 'framer-motion'
-import { AlertCircle as AlertCircleIcon } from 'lucide-react'
+import React from 'react';
+import { motion } from 'framer-motion';
+import { AlertCircle as AlertCircleIcon } from 'lucide-react';
+import { isValidYouTubeUrl } from '../../../utils/validators';
 
-const YouTubeUrlStep = ({ youtubeUrl, setYoutubeUrl, validateYouTubeUrl }) => {
+const YouTubeUrlStep = ({ youtubeUrl, setYoutubeUrl, error }) => {
   const stepVariants = {
     hidden: { opacity: 0, x: 20 },
     visible: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: -20 }
-  }
+    exit: { opacity: 0, x: -20 },
+  };
 
   return (
     <motion.div
@@ -18,18 +19,12 @@ const YouTubeUrlStep = ({ youtubeUrl, setYoutubeUrl, validateYouTubeUrl }) => {
       className="space-y-6"
     >
       <div>
-        <h3 className="text-lg font-semibold text-gray-100 mb-2">
-          YouTube URL
-        </h3>
-        <p className="text-gray-400">
-          Enter the YouTube video URL you want to analyze
-        </p>
+        <h3 className="text-lg font-semibold text-gray-100 mb-2">YouTube URL</h3>
+        <p className="text-gray-400">Enter the YouTube video URL you want to analyze</p>
       </div>
-      
+
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">
-          YouTube URL *
-        </label>
+        <label className="block text-sm font-medium text-gray-300 mb-2">YouTube URL *</label>
         <input
           type="url"
           value={youtubeUrl}
@@ -38,7 +33,13 @@ const YouTubeUrlStep = ({ youtubeUrl, setYoutubeUrl, validateYouTubeUrl }) => {
           className="input"
           autoFocus
         />
-        {youtubeUrl && !validateYouTubeUrl(youtubeUrl) && (
+        {error && (
+          <div className="flex items-center gap-2 mt-2 text-red-400">
+            <AlertCircleIcon className="w-4 h-4" />
+            <span className="text-sm">{error}</span>
+          </div>
+        )}
+        {youtubeUrl && !error && !isValidYouTubeUrl(youtubeUrl) && (
           <div className="flex items-center gap-2 mt-2 text-red-400">
             <AlertCircleIcon className="w-4 h-4" />
             <span className="text-sm">Please enter a valid YouTube URL</span>
@@ -46,7 +47,7 @@ const YouTubeUrlStep = ({ youtubeUrl, setYoutubeUrl, validateYouTubeUrl }) => {
         )}
       </div>
     </motion.div>
-  )
-}
+  );
+};
 
-export default YouTubeUrlStep
+export default YouTubeUrlStep;

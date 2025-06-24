@@ -1,13 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Play, Sparkles, Zap, Target, ArrowRight, Download, Star } from 'lucide-react';
+import { Play, Sparkles, Zap, Target, ArrowRight, Star } from 'lucide-react';
 import GeometricPattern from '../components/Common/GeometricPattern';
-import { detectDevicePerformance, startPerformanceMonitoring, getOptimalSettings } from '../utils/performance';
+import AnimatedWaveBackground from '../components/Common/AnimatedWaveBackground';
+import BetaSignupModal from '../components/Beta/BetaSignupModal';
+import {
+  detectDevicePerformance,
+  startPerformanceMonitoring,
+  getOptimalSettings,
+} from '../utils/performance';
 
 const Landing = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [performanceSettings, setPerformanceSettings] = useState(null);
+  const [showBetaSignup, setShowBetaSignup] = useState(false);
 
   useEffect(() => {
     const updateViewport = () => {
@@ -16,14 +23,14 @@ const Landing = () => {
 
     // Initialize performance monitoring
     startPerformanceMonitoring();
-    
+
     // Detect device performance and adjust settings
     const devicePerformance = detectDevicePerformance();
     const optimalSettings = getOptimalSettings();
     setPerformanceSettings({
       showAnimations: devicePerformance !== 'low' && optimalSettings.animationsEnabled,
       performanceMode: optimalSettings.performanceMode,
-      reducedPatterns: devicePerformance === 'low' || optimalSettings.performanceMode
+      reducedPatterns: devicePerformance === 'low' || optimalSettings.performanceMode,
     });
 
     updateViewport();
@@ -34,38 +41,36 @@ const Landing = () => {
   const features = [
     {
       icon: Sparkles,
-      title: "AI-Powered Analysis", 
-      description: "Advanced machine learning algorithms analyze your videos to identify the most engaging moments automatically."
+      title: 'AI-Powered Analysis',
+      description:
+        'Advanced machine learning algorithms analyze your videos to identify the most engaging moments automatically.',
     },
     {
       icon: Zap,
-      title: "Lightning Fast Processing",
-      description: "Process hours of content in minutes with our optimized video processing engine and smart thumbnail generation."
+      title: 'Lightning Fast Processing',
+      description:
+        'Process hours of content in minutes with our optimized video processing engine and smart thumbnail generation.',
     },
     {
       icon: Target,
-      title: "Precision Editing",
-      description: "Fine-tune your clips with frame-perfect accuracy and professional-grade editing tools built for creators."
-    }
+      title: 'Precision Editing',
+      description:
+        'Fine-tune your clips with frame-perfect accuracy and professional-grade editing tools built for creators.',
+    },
   ];
 
-  const stats = [
-    { number: "10M+", label: "Hours Processed" },
-    { number: "500K+", label: "Creators Trust Us" },
-    { number: "99.9%", label: "Uptime Guaranteed" },
-    { number: "4.9/5", label: "User Rating" }
-  ];
+
 
   // Optimized animation settings based on performance
   const getAnimationProps = (delay = 0) => {
     if (!performanceSettings?.showAnimations) {
       return { initial: { opacity: 1 }, animate: { opacity: 1 } };
     }
-    
+
     return {
       initial: { opacity: 0, y: 20 },
       animate: { opacity: 1, y: 0 },
-      transition: { duration: 0.6, delay }
+      transition: { duration: 0.6, delay },
     };
   };
 
@@ -74,9 +79,9 @@ const Landing = () => {
     if (performanceSettings?.reducedPatterns) {
       return null; // Skip patterns on low-performance devices
     }
-    
+
     return (
-      <GeometricPattern 
+      <GeometricPattern
         variant={variant}
         size={size}
         opacity={opacity}
@@ -88,34 +93,43 @@ const Landing = () => {
     );
   };
 
+
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-surface to-background overflow-hidden relative">
+      {/* Animated Wave Background - Full Page */}
+      <AnimatedWaveBackground 
+        intensity={performanceSettings?.reducedPatterns ? 'subtle' : 'medium'}
+        animate={performanceSettings?.showAnimations !== false}
+      />
+      
       {/* Optimized Background Elements - Simplified */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--color-primary)_0%,_transparent_50%)] opacity-5 z-0"></div>
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--color-accent)_0%,_transparent_50%)] opacity-5 z-0"></div>
-      
+
       {/* Navigation - Simplified */}
       <nav className="relative z-50 px-6 py-6 backdrop-blur-sm bg-background/20">
         {/* Single navigation pattern for high-performance devices only */}
         {!isMobile && (
           <div className="absolute top-0 right-0 opacity-40">
-            {renderGeometricPattern("simple", "small", 0.2, "primary", "w-16 h-16")}
+            {renderGeometricPattern('simple', 'small', 0.2, 'primary', 'w-16 h-16')}
           </div>
         )}
-        
+
         <div className="max-w-7xl mx-auto flex items-center justify-between relative">
-          <motion.div 
-            {...getAnimationProps(0)}
-            className="flex items-center space-x-3"
-          >
-            <motion.div 
+          <motion.div {...getAnimationProps(0)} className="flex items-center space-x-3">
+            <motion.div
               className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center"
-              whileHover={performanceSettings?.showAnimations ? { 
-                scale: 1.1,
-                rotate: 10,
-                boxShadow: "0 0 20px rgba(88, 166, 255, 0.3)"
-              } : {}}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              whileHover={
+                performanceSettings?.showAnimations
+                  ? {
+                      scale: 1.1,
+                      rotate: 10,
+                      boxShadow: '0 0 20px rgba(88, 166, 255, 0.3)',
+                    }
+                  : {}
+              }
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
             >
               <Play className="w-5 h-5 text-white fill-current" />
             </motion.div>
@@ -123,13 +137,10 @@ const Landing = () => {
               OpenClip Pro
             </span>
           </motion.div>
-          
-          <motion.div 
-            {...getAnimationProps(0.1)}
-            className="flex items-center space-x-6"
-          >
-            <Link 
-              to="/dashboard" 
+
+          <motion.div {...getAnimationProps(0.1)} className="flex items-center space-x-6">
+            <Link
+              to="/dashboard"
               className="btn-glass px-6 py-2.5 rounded-lg font-medium transition-all duration-300 hover:scale-105"
             >
               Enter App
@@ -143,13 +154,15 @@ const Landing = () => {
         {/* Single hero decoration - only on desktop high-performance */}
         {!isMobile && (
           <div className="absolute top-20 right-20 opacity-30">
-            {renderGeometricPattern("grid", "medium", 0.15, "primary", "w-24 h-24")}
+            {renderGeometricPattern('grid', 'medium', 0.15, 'primary', 'w-24 h-24')}
           </div>
         )}
         
+
+
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-1 gap-12 lg:gap-16 items-center text-center">
-            <motion.div 
+            <motion.div
               {...getAnimationProps(0.2)}
               className="space-y-8 max-w-4xl mx-auto relative"
             >
@@ -161,7 +174,7 @@ const Landing = () => {
                   <Star className="w-4 h-4 mr-2 text-accent" />
                   AI-Powered Video Intelligence
                 </motion.div>
-                
+
                 <h1 className="text-4xl sm:text-5xl lg:text-8xl font-bold leading-tight">
                   Create
                   <span className="block bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
@@ -169,44 +182,32 @@ const Landing = () => {
                   </span>
                   <span className="block text-secondary">Instantly</span>
                 </h1>
-                
+
                 <p className="text-xl lg:text-2xl text-subtle leading-relaxed max-w-3xl mx-auto">
-                  Transform your long-form content into engaging short clips with AI-powered analysis. 
-                  Perfect for YouTube Shorts, TikTok, Instagram Reels, and more.
+                  Transform your long-form content into engaging short clips with AI-powered
+                  analysis. Perfect for YouTube Shorts, TikTok, Instagram Reels, and more.
                 </p>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-6 justify-center">
-                <Link 
-                  to="/dashboard"
+                <button
+                  onClick={() => setShowBetaSignup(true)}
                   className="group bg-gradient-to-r from-primary to-accent text-white px-10 py-5 rounded-2xl font-bold text-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/25 flex items-center justify-center"
                 >
-                  Get Started Free
+                  Join Beta Program
                   <ArrowRight className="w-6 h-6 ml-3 group-hover:translate-x-1 transition-transform" />
-                </Link>
-                <button className="glass-frosted px-10 py-5 rounded-2xl font-bold text-xl transition-all duration-300 hover:scale-105 flex items-center justify-center backdrop-blur-md border border-primary/20">
-                  <Download className="w-6 h-6 mr-3" />
-                  Download App
                 </button>
+
+                <Link
+                  to="/dashboard"
+                  className="group border-2 border-primary/30 text-white px-10 py-5 rounded-2xl font-bold text-xl transition-all duration-300 hover:scale-105 hover:border-primary/60 flex items-center justify-center backdrop-blur-sm"
+                >
+                  Try Demo
+                  <Play className="w-6 h-6 ml-3" />
+                </Link>
               </div>
 
-              {/* Stats */}
-              <motion.div 
-                {...getAnimationProps(0.4)}
-                className="grid grid-cols-2 sm:grid-cols-4 gap-8 pt-12"
-              >
-                {stats.map((stat, index) => (
-                  <motion.div 
-                    key={index} 
-                    className="text-center glass-minimal p-4 rounded-xl backdrop-blur-md border border-primary/10"
-                    whileHover={performanceSettings?.showAnimations ? { scale: 1.05, y: -2 } : {}}
-                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  >
-                    <div className="text-3xl font-bold text-primary">{stat.number}</div>
-                    <div className="text-sm text-subtle mt-1">{stat.label}</div>
-                  </motion.div>
-                ))}
-              </motion.div>
+
             </motion.div>
           </div>
         </div>
@@ -214,11 +215,9 @@ const Landing = () => {
 
       {/* Features Section - Minimal decoration */}
       <section className="relative z-20 px-6 py-20 backdrop-blur-sm bg-background/10">
+
         <div className="max-w-7xl mx-auto">
-          <motion.div
-            {...getAnimationProps(0.5)}
-            className="text-center mb-16"
-          >
+          <motion.div {...getAnimationProps(0.5)} className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">
               Powered by Advanced
               <span className="block bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
@@ -226,8 +225,8 @@ const Landing = () => {
               </span>
             </h2>
             <p className="text-xl text-subtle max-w-3xl mx-auto">
-              Our cutting-edge algorithms analyze video content, identify key moments, 
-              and create optimized clips that maximize engagement and reach.
+              Our cutting-edge algorithms analyze video content, identify key moments, and create
+              optimized clips that maximize engagement and reach.
             </p>
           </motion.div>
 
@@ -249,8 +248,9 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* CTA Section - No decoration for better performance */}
+      {/* CTA Section - Subtle wave accent */}
       <section className="relative z-20 px-6 py-20 backdrop-blur-sm bg-background/10">
+
         <div className="max-w-4xl mx-auto text-center">
           <motion.div
             {...getAnimationProps(0.7)}
@@ -263,21 +263,35 @@ const Landing = () => {
               </span>
             </h2>
             <p className="text-xl text-subtle mb-8 max-w-2xl mx-auto">
-              Join thousands of creators who are already using OpenClip Pro to transform 
-              their content and grow their audience.
+              Start transforming your content with AI-powered video analysis and automated clip generation.
             </p>
-            <Link 
-              to="/dashboard"
-              className="inline-flex items-center bg-gradient-to-r from-primary to-accent text-white px-10 py-5 rounded-2xl font-bold text-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/25"
-            >
-              Start Creating Now
-              <ArrowRight className="w-6 h-6 ml-3" />
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button
+                onClick={() => setShowBetaSignup(true)}
+                className="inline-flex items-center bg-gradient-to-r from-primary to-accent text-white px-10 py-5 rounded-2xl font-bold text-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/25"
+              >
+                Join Beta Now
+                <ArrowRight className="w-6 h-6 ml-3" />
+              </button>
+              <Link
+                to="/dashboard"
+                className="inline-flex items-center border-2 border-primary/30 text-white px-10 py-5 rounded-2xl font-bold text-xl transition-all duration-300 hover:scale-105 hover:border-primary/60 backdrop-blur-sm"
+              >
+                Demo Access
+                <Play className="w-6 h-6 ml-3" />
+              </Link>
+            </div>
           </motion.div>
         </div>
       </section>
+
+      {/* Beta Signup Modal */}
+      <BetaSignupModal 
+        isOpen={showBetaSignup} 
+        onClose={() => setShowBetaSignup(false)} 
+      />
     </div>
   );
 };
 
-export default Landing; 
+export default Landing;

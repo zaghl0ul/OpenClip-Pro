@@ -18,18 +18,13 @@ import {
   Download,
   Brain,
   Target,
-  Sparkles
+  Sparkles,
 } from 'lucide-react';
 import useProjectStore from '../stores/projectStore';
 import CreateProjectModal from '../components/dashboard/CreateProjectModal';
 
 const Projects = () => {
-  const {
-    projects,
-    isLoading,
-    deleteProject,
-    initialize
-  } = useProjectStore();
+  const { projects, isLoading, deleteProject, initialize } = useProjectStore();
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -56,15 +51,16 @@ const Projects = () => {
   }, [location.search, navigate]);
 
   const filteredProjects = projects
-    .filter(project => {
-      const matchesSearch = (project.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-                           (project.description?.toLowerCase() || '').includes(searchTerm.toLowerCase());
-      
+    .filter((project) => {
+      const matchesSearch =
+        (project.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (project.description?.toLowerCase() || '').includes(searchTerm.toLowerCase());
+
       if (filterBy === 'all') return matchesSearch;
       if (filterBy === 'active') return matchesSearch && project.status === 'active';
       if (filterBy === 'completed') return matchesSearch && project.status === 'completed';
       if (filterBy === 'processing') return matchesSearch && project.status === 'processing';
-      
+
       return matchesSearch;
     })
     .sort((a, b) => {
@@ -75,7 +71,9 @@ const Projects = () => {
     });
 
   const handleDeleteProject = async (projectId) => {
-    if (window.confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
+    if (
+      window.confirm('Are you sure you want to delete this project? This action cannot be undone.')
+    ) {
       try {
         await deleteProject(projectId);
       } catch (error) {
@@ -86,11 +84,16 @@ const Projects = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'active': return 'bg-green-500/20 text-green-300 border-green-500/30';
-      case 'processing': return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30';
-      case 'completed': return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
-      case 'error': return 'bg-red-500/20 text-red-300 border-red-500/30';
-      default: return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
+      case 'active':
+        return 'bg-green-500/20 text-green-300 border-green-500/30';
+      case 'processing':
+        return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30';
+      case 'completed':
+        return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
+      case 'error':
+        return 'bg-red-500/20 text-red-300 border-red-500/30';
+      default:
+        return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
     }
   };
 
@@ -99,7 +102,7 @@ const Projects = () => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
     });
   };
 
@@ -115,7 +118,7 @@ const Projects = () => {
       <div className="relative z-10">
         {/* Project Thumbnail with Glass Enhancement */}
         <div className="aspect-video glass-frosted glass-button relative overflow-hidden">
-          {(project.video_data?.thumbnail_url || project.thumbnail) ? (
+          {project.video_data?.thumbnail_url || project.thumbnail ? (
             <img
               src={project.video_data?.thumbnail_url || project.thumbnail}
               alt={project.name}
@@ -126,29 +129,31 @@ const Projects = () => {
               <Video className="w-12 h-12 text-white/40" />
             </div>
           )}
-          
+
           {/* Enhanced Status Badge with Glass */}
           <div className="absolute top-3 left-3">
-            <motion.span 
+            <motion.span
               className={`px-3 py-1 rounded-full text-xs font-medium glass-frosted glass-button border ${getStatusColor(project.status)}`}
               whileHover={{ scale: 1.05 }}
             >
               {project.status}
             </motion.span>
           </div>
-          
+
           {/* Enhanced Actions Menu */}
           <div className="absolute top-3 right-3">
             <div className="relative">
               <motion.button
-                onClick={() => setSelectedProject(selectedProject === project.id ? null : project.id)}
+                onClick={() =>
+                  setSelectedProject(selectedProject === project.id ? null : project.id)
+                }
                 className="p-2 glass-frosted glass-button text-white rounded-lg hover:bg-white/20 transition-colors"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
                 <MoreVertical className="w-4 h-4" />
               </motion.button>
-              
+
               <AnimatePresence>
                 {selectedProject === project.id && (
                   <motion.div
@@ -178,7 +183,7 @@ const Projects = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Enhanced Project Info with Glass Treatment */}
         <div className="p-6">
           <div className="flex items-start justify-between mb-3">
@@ -186,24 +191,22 @@ const Projects = () => {
               {project.name || 'Untitled Project'}
             </h3>
           </div>
-          
+
           {project.description && (
-            <p className="text-sm text-white/70 mb-4 line-clamp-2">
-              {project.description}
-            </p>
+            <p className="text-sm text-white/70 mb-4 line-clamp-2">{project.description}</p>
           )}
-          
+
           <div className="flex items-center justify-between text-xs text-white/50 mb-4">
-                          <div className="flex items-center gap-1">
-                <Calendar className="w-3 h-3" />
-                <span>{formatDate(project.createdAt || project.created_at)}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                <span>{formatDate(project.updatedAt || project.updated_at)}</span>
-              </div>
+            <div className="flex items-center gap-1">
+              <Calendar className="w-3 h-3" />
+              <span>{formatDate(project.createdAt || project.created_at)}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              <span>{formatDate(project.updatedAt || project.updated_at)}</span>
+            </div>
           </div>
-          
+
           {/* Enhanced Stats with Glass Pills */}
           <div className="flex items-center justify-between text-sm mb-4">
             <div className="flex items-center gap-3">
@@ -215,12 +218,9 @@ const Projects = () => {
               </div>
             </div>
           </div>
-          
+
           {/* Enhanced Action Button */}
-          <Link
-            to={`/projects/${project.id}`}
-            className="w-full"
-          >
+          <Link to={`/projects/${project.id}`} className="w-full">
             <motion.div
               className="w-full glass-frosted glass-button py-3 rounded-xl text-white font-medium hover:bg-white/20 transition-colors flex items-center justify-center gap-2"
               whileHover={{ scale: 1.02 }}
@@ -248,7 +248,7 @@ const Projects = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-6 flex-1">
             <div className="w-20 h-14 glass-frosted glass-button rounded-lg flex items-center justify-center overflow-hidden">
-              {(project.video_data?.thumbnail_url || project.thumbnail) ? (
+              {project.video_data?.thumbnail_url || project.thumbnail ? (
                 <img
                   src={project.video_data?.thumbnail_url || project.thumbnail}
                   alt={project.name}
@@ -258,23 +258,23 @@ const Projects = () => {
                 <Video className="w-8 h-8 text-white/40" />
               )}
             </div>
-            
+
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
                 <h3 className="font-semibold text-white text-lg">
                   {project.name || 'Untitled Project'}
                 </h3>
-                <span className={`px-3 py-1 rounded-full text-xs font-medium glass-frosted glass-button border ${getStatusColor(project.status)}`}>
+                <span
+                  className={`px-3 py-1 rounded-full text-xs font-medium glass-frosted glass-button border ${getStatusColor(project.status)}`}
+                >
                   {project.status}
                 </span>
               </div>
-              
+
               {project.description && (
-                <p className="text-sm text-white/70 mb-3">
-                  {project.description}
-                </p>
+                <p className="text-sm text-white/70 mb-3">{project.description}</p>
               )}
-              
+
               <div className="flex items-center gap-6 text-xs text-white/50">
                 <div className="flex items-center gap-2">
                   <div className="glass-frosted glass-button px-2 py-1 rounded">
@@ -289,7 +289,7 @@ const Projects = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <Link
               to={`/projects/${project.id}`}
@@ -331,7 +331,7 @@ const Projects = () => {
   return (
     <div className="space-y-8">
       {/* Enhanced Header with Glass */}
-      <motion.div 
+      <motion.div
         className="glass-frosted rounded-2xl p-8"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -348,7 +348,7 @@ const Projects = () => {
                 Manage your video analysis projects with AI-powered insights
               </p>
             </div>
-            
+
             <motion.button
               onClick={() => setShowCreateModal(true)}
               className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl font-medium transition-all shadow-lg backdrop-blur-sm"
@@ -359,7 +359,7 @@ const Projects = () => {
               New Project
             </motion.button>
           </div>
-          
+
           {/* Enhanced Filters and Search with Glass */}
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="flex-1 relative">
@@ -372,7 +372,7 @@ const Projects = () => {
                 className="w-full pl-12 pr-4 py-3 glass-frosted glass-button rounded-xl text-white placeholder-white/40 border-0 focus:outline-none focus:ring-2 focus:ring-indigo-400/50 transition-all bg-transparent"
               />
             </div>
-            
+
             <div className="flex gap-3">
               <select
                 value={filterBy}
@@ -384,7 +384,7 @@ const Projects = () => {
                 <option value="processing">Processing</option>
                 <option value="completed">Completed</option>
               </select>
-              
+
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
@@ -394,7 +394,7 @@ const Projects = () => {
                 <option value="created">Date Created</option>
                 <option value="name">Name</option>
               </select>
-              
+
               <div className="flex glass-frosted glass-button rounded-xl overflow-hidden">
                 <motion.button
                   onClick={() => setViewMode('grid')}
@@ -417,10 +417,10 @@ const Projects = () => {
           </div>
         </div>
       </motion.div>
-      
+
       {/* Enhanced Projects Grid/List */}
       {filteredProjects.length === 0 ? (
-        <motion.div 
+        <motion.div
           className="glass-frosted rounded-2xl p-12 text-center"
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -432,10 +432,9 @@ const Projects = () => {
               {searchTerm ? 'No projects found' : 'No projects yet'}
             </h3>
             <p className="text-white/60 mb-8 max-w-md mx-auto">
-              {searchTerm 
-                ? 'Try adjusting your search terms or filters to find what you\'re looking for'
-                : 'Create your first project to get started with AI-powered video analysis and editing'
-              }
+              {searchTerm
+                ? "Try adjusting your search terms or filters to find what you're looking for"
+                : 'Create your first project to get started with AI-powered video analysis and editing'}
             </p>
             {!searchTerm && (
               <motion.button
@@ -453,27 +452,30 @@ const Projects = () => {
       ) : (
         <motion.div
           layout
-          className={viewMode === 'grid' 
-            ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
-            : 'space-y-4'
+          className={
+            viewMode === 'grid'
+              ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
+              : 'space-y-4'
           }
         >
           <AnimatePresence>
-            {filteredProjects.map((project, index) => (
-              viewMode === 'grid' 
-                ? <ProjectCard key={`grid-${project.id}-${index}`} project={project} />
-                : <ProjectListItem key={`list-${project.id}-${index}`} project={project} />
-            ))}
+            {filteredProjects.map((project, index) =>
+              viewMode === 'grid' ? (
+                <ProjectCard key={`grid-${project.id}-${index}`} project={project} />
+              ) : (
+                <ProjectListItem key={`list-${project.id}-${index}`} project={project} />
+              )
+            )}
           </AnimatePresence>
         </motion.div>
       )}
-      
+
       {/* Enhanced Create Project Modal */}
       <CreateProjectModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onProjectCreated={(project) => {
-          console.log('Project created callback called with project:', project)
+          console.log('Project created callback called with project:', project);
           initialize();
         }}
       />

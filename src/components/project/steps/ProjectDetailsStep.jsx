@@ -1,12 +1,12 @@
-import React from 'react'
-import { motion } from 'framer-motion'
+import React from 'react';
+import { motion } from 'framer-motion';
 
 const ProjectDetailsStep = ({ projectName, setProjectName, description, setDescription }) => {
   const stepVariants = {
     hidden: { opacity: 0, x: 20 },
     visible: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: -20 }
-  }
+    exit: { opacity: 0, x: -20 },
+  };
 
   return (
     <motion.div
@@ -17,19 +17,13 @@ const ProjectDetailsStep = ({ projectName, setProjectName, description, setDescr
       className="space-y-6"
     >
       <div>
-        <h3 className="text-lg font-semibold text-gray-100 mb-2">
-          Project Details
-        </h3>
-        <p className="text-gray-400">
-          Give your project a name and description
-        </p>
+        <h3 className="text-lg font-semibold text-gray-100 mb-2">Project Details</h3>
+        <p className="text-gray-400">Give your project a name and description</p>
       </div>
-      
+
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
-            Project Name *
-          </label>
+          <label className="block text-sm font-medium text-gray-300 mb-2">Project Name *</label>
           <input
             type="text"
             value={projectName}
@@ -39,7 +33,7 @@ const ProjectDetailsStep = ({ projectName, setProjectName, description, setDescr
             autoFocus
           />
         </div>
-        
+
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">
             Description (Optional)
@@ -54,7 +48,7 @@ const ProjectDetailsStep = ({ projectName, setProjectName, description, setDescr
         </div>
       </div>
     </motion.div>
-  )
-}
+  );
+};
 
-export default ProjectDetailsStep
+export default ProjectDetailsStep;

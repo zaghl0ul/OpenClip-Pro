@@ -1,20 +1,29 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Brain, Eye, Zap, CheckCircle, XCircle, Clock, 
-  Loader, Play, Pause, RotateCcw, AlertTriangle 
+import {
+  Brain,
+  Eye,
+  Zap,
+  CheckCircle,
+  XCircle,
+  Clock,
+  Loader,
+  Play,
+  Pause,
+  RotateCcw,
+  AlertTriangle,
 } from 'lucide-react';
 
-const AnalysisStatusPanel = ({ 
-  isAnalyzing, 
-  step, 
-  progress, 
-  message, 
-  currentProvider, 
-  getElapsedTime, 
+const AnalysisStatusPanel = ({
+  isAnalyzing,
+  step,
+  progress,
+  message,
+  currentProvider,
+  getElapsedTime,
   getRemainingTime,
   onCancel,
-  onRetry 
+  onRetry,
 }) => {
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -44,7 +53,7 @@ const AnalysisStatusPanel = ({
       analyzing: { icon: Brain, color: 'text-blue-400', label: 'AI Analysis' },
       processing: { icon: Zap, color: 'text-green-400', label: 'Processing Results' },
       completed: { icon: CheckCircle, color: 'text-green-400', label: 'Completed' },
-      error: { icon: XCircle, color: 'text-red-400', label: 'Error' }
+      error: { icon: XCircle, color: 'text-red-400', label: 'Error' },
     };
     return steps[currentStep] || steps.initializing;
   };
@@ -68,12 +77,15 @@ const AnalysisStatusPanel = ({
               {getStatusIcon()}
               <div>
                 <h3 className="text-lg font-semibold text-white">
-                  {step === 'completed' ? 'Analysis Complete' : 
-                   step === 'error' ? 'Analysis Failed' : 
-                   'AI Video Analysis'}
+                  {step === 'completed'
+                    ? 'Analysis Complete'
+                    : step === 'error'
+                      ? 'Analysis Failed'
+                      : 'AI Video Analysis'}
                 </h3>
                 <p className="text-white/60 text-sm">
-                  {currentProvider && `Using ${currentProvider.charAt(0).toUpperCase() + currentProvider.slice(1)}`}
+                  {currentProvider &&
+                    `Using ${currentProvider.charAt(0).toUpperCase() + currentProvider.slice(1)}`}
                 </p>
               </div>
             </div>
@@ -107,22 +119,22 @@ const AnalysisStatusPanel = ({
                 <span className="text-white/80">{message}</span>
                 <span className="text-white/60">{Math.round(progress)}%</span>
               </div>
-              
+
               <div className="relative">
                 <div className="w-full bg-white/10 rounded-full h-3 overflow-hidden">
                   <motion.div
                     className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-cyan-500 rounded-full relative"
                     initial={{ width: 0 }}
                     animate={{ width: `${progress}%` }}
-                    transition={{ duration: 0.5, ease: "easeOut" }}
+                    transition={{ duration: 0.5, ease: 'easeOut' }}
                   >
                     {/* Animated shimmer effect */}
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse" />
                   </motion.div>
                 </div>
-                
+
                 {/* Progress glow effect */}
-                <div 
+                <div
                   className="absolute top-0 left-0 h-3 bg-blue-400/30 rounded-full blur-sm"
                   style={{ width: `${progress}%` }}
                 />
@@ -133,41 +145,62 @@ const AnalysisStatusPanel = ({
           {/* Step Indicators */}
           {isAnalyzing && (
             <div className="flex items-center justify-between">
-              {['initializing', 'extracting', 'preprocessing', 'analyzing', 'processing'].map((stepName, index) => {
-                const stepInfo = getStepDetails(stepName);
-                const Icon = stepInfo.icon;
-                const isActive = step === stepName;
-                const isCompleted = ['initializing', 'extracting', 'preprocessing', 'analyzing', 'processing'].indexOf(step) > index;
-                
-                return (
-                  <div key={stepName} className="flex flex-col items-center gap-2">
-                    <div className={`relative p-2 rounded-full border-2 transition-all duration-300 ${
-                      isActive ? `border-blue-500 bg-blue-500/20` :
-                      isCompleted ? `border-green-500 bg-green-500/20` :
-                      `border-white/20 bg-white/5`
-                    }`}>
-                      <Icon className={`w-4 h-4 transition-colors duration-300 ${
-                        isActive ? 'text-blue-400' :
-                        isCompleted ? 'text-green-400' :
-                        'text-white/40'
-                      }`} />
-                      
-                      {/* Pulse animation for active step */}
-                      {isActive && (
-                        <div className="absolute inset-0 rounded-full border-2 border-blue-500 animate-ping opacity-75" />
-                      )}
+              {['initializing', 'extracting', 'preprocessing', 'analyzing', 'processing'].map(
+                (stepName, index) => {
+                  const stepInfo = getStepDetails(stepName);
+                  const Icon = stepInfo.icon;
+                  const isActive = step === stepName;
+                  const isCompleted =
+                    [
+                      'initializing',
+                      'extracting',
+                      'preprocessing',
+                      'analyzing',
+                      'processing',
+                    ].indexOf(step) > index;
+
+                  return (
+                    <div key={stepName} className="flex flex-col items-center gap-2">
+                      <div
+                        className={`relative p-2 rounded-full border-2 transition-all duration-300 ${
+                          isActive
+                            ? `border-blue-500 bg-blue-500/20`
+                            : isCompleted
+                              ? `border-green-500 bg-green-500/20`
+                              : `border-white/20 bg-white/5`
+                        }`}
+                      >
+                        <Icon
+                          className={`w-4 h-4 transition-colors duration-300 ${
+                            isActive
+                              ? 'text-blue-400'
+                              : isCompleted
+                                ? 'text-green-400'
+                                : 'text-white/40'
+                          }`}
+                        />
+
+                        {/* Pulse animation for active step */}
+                        {isActive && (
+                          <div className="absolute inset-0 rounded-full border-2 border-blue-500 animate-ping opacity-75" />
+                        )}
+                      </div>
+
+                      <span
+                        className={`text-xs font-medium transition-colors duration-300 ${
+                          isActive
+                            ? 'text-blue-400'
+                            : isCompleted
+                              ? 'text-green-400'
+                              : 'text-white/40'
+                        }`}
+                      >
+                        {stepInfo.label}
+                      </span>
                     </div>
-                    
-                    <span className={`text-xs font-medium transition-colors duration-300 ${
-                      isActive ? 'text-blue-400' :
-                      isCompleted ? 'text-green-400' :
-                      'text-white/40'
-                    }`}>
-                      {stepInfo.label}
-                    </span>
-                  </div>
-                );
-              })}
+                  );
+                }
+              )}
             </div>
           )}
 
@@ -181,7 +214,7 @@ const AnalysisStatusPanel = ({
                 </div>
                 <p className="text-white font-mono">{formatTime(getElapsedTime())}</p>
               </div>
-              
+
               {isAnalyzing && getRemainingTime() && (
                 <div className="glass-shine rounded-lg p-3">
                   <div className="flex items-center gap-2 mb-1">
@@ -201,7 +234,9 @@ const AnalysisStatusPanel = ({
                 <CheckCircle className="w-5 h-5 text-green-400" />
                 <div>
                   <p className="text-green-400 font-medium">Analysis Successful!</p>
-                  <p className="text-white/60 text-sm">Your video has been analyzed and clips have been generated.</p>
+                  <p className="text-white/60 text-sm">
+                    Your video has been analyzed and clips have been generated.
+                  </p>
                 </div>
               </div>
             </div>
@@ -225,4 +260,4 @@ const AnalysisStatusPanel = ({
   );
 };
 
-export default AnalysisStatusPanel; 
+export default AnalysisStatusPanel;

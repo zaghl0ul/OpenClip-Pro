@@ -1,45 +1,42 @@
-import React, { useState } from 'react'
-import SettingsSidebar from '../components/settings/SettingsSidebar'
-import SettingsHeader from '../components/settings/SettingsHeader'
-import ApiSettings from '../components/settings/ApiSettings'
-import AppSettings from '../components/settings/AppSettings'
-import PerformanceSettings from '../components/settings/PerformanceSettings'
-import SecuritySettings from '../components/settings/SecuritySettings'
-import { motion } from 'framer-motion'
-import { useSettingsStore } from '../stores/settingsStore'
+import React, { useState } from 'react';
+import SettingsSidebar from '../components/settings/SettingsSidebar';
+import SettingsHeader from '../components/settings/SettingsHeader';
+import ApiSettings from '../components/settings/ApiSettings';
+import AppSettings from '../components/settings/AppSettings';
+import PerformanceSettings from '../components/settings/PerformanceSettings';
+import SecuritySettings from '../components/settings/SecuritySettings';
+import { motion } from 'framer-motion';
+import { useSettingsStore } from '../stores/settingsStore';
 
 const SettingsPage = () => {
-  const [activeSection, setActiveSection] = useState('api')
-  const { initialize, isLoading } = useSettingsStore()
-  
+  const [activeSection, setActiveSection] = useState('api');
+  const { initialize, isLoading } = useSettingsStore();
+
   const renderContent = () => {
     switch (activeSection) {
       case 'api':
-        return <ApiSettings />
+        return <ApiSettings />;
       case 'app':
-        return <AppSettings />
+        return <AppSettings />;
       case 'performance':
-        return <PerformanceSettings />
+        return <PerformanceSettings />;
       case 'security':
-        return <SecuritySettings />
+        return <SecuritySettings />;
       default:
-        return <ApiSettings />
+        return <ApiSettings />;
     }
-  }
-  
+  };
+
   return (
     <div className="flex h-screen bg-background">
       {/* Sidebar */}
-      <SettingsSidebar 
-        activeSection={activeSection}
-        onSectionChange={setActiveSection}
-      />
-      
+      <SettingsSidebar activeSection={activeSection} onSectionChange={setActiveSection} />
+
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
         <SettingsHeader />
-        
+
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto p-6">
           <motion.div
@@ -55,7 +52,7 @@ const SettingsPage = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default SettingsPage
+export default SettingsPage;

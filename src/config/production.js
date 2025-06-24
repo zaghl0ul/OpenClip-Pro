@@ -31,26 +31,26 @@ export const PERFORMANCE_CONFIG = {
   // Lazy loading
   enableLazyLoading: true,
   lazyLoadingThreshold: 0.1,
-  
+
   // Caching
   enableServiceWorker: IS_PRODUCTION,
   cacheTimeout: 5 * 60 * 1000, // 5 minutes
-  
+
   // Chunking
   enableCodeSplitting: IS_PRODUCTION,
   chunkSize: 244 * 1024, // 244KB
-  
+
   // Compression
   enableGzip: IS_PRODUCTION,
   compressionLevel: 6,
-  
+
   // Image optimization
   imageOptimization: {
     quality: 85,
     progressive: true,
     webp: true,
   },
-  
+
   // Video optimization
   videoOptimization: {
     preload: 'metadata',
@@ -63,7 +63,7 @@ export const PERFORMANCE_CONFIG = {
 export const SECURITY_CONFIG = {
   // HTTPS enforcement
   enforceHTTPS: IS_PRODUCTION,
-  
+
   // Content Security Policy
   csp: {
     enabled: IS_PRODUCTION,
@@ -71,24 +71,24 @@ export const SECURITY_CONFIG = {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "wss:", "ws:"],
-      fontSrc: ["'self'", "data:"],
-      mediaSrc: ["'self'", "blob:"],
+      imgSrc: ["'self'", 'data:', 'https:'],
+      connectSrc: ["'self'", 'wss:', 'ws:'],
+      fontSrc: ["'self'", 'data:'],
+      mediaSrc: ["'self'", 'blob:'],
     },
   },
-  
+
   // Rate limiting
   rateLimiting: {
     enabled: IS_PRODUCTION,
     windowMs: 15 * 60 * 1000, // 15 minutes
     maxRequests: 100,
   },
-  
+
   // CORS
   cors: {
     enabled: true,
-    origins: IS_PRODUCTION 
+    origins: IS_PRODUCTION
       ? ['https://openclippro.com', 'https://www.openclippro.com']
       : ['http://localhost:3000', 'http://localhost:5173'],
   },
@@ -101,7 +101,7 @@ export const MONITORING_CONFIG = {
     enabled: IS_PRODUCTION,
     trackingId: import.meta.env.VITE_GA_TRACKING_ID,
   },
-  
+
   // Error tracking
   errorTracking: {
     enabled: IS_PRODUCTION,
@@ -109,14 +109,14 @@ export const MONITORING_CONFIG = {
     environment: ENVIRONMENT,
     release: import.meta.env.VITE_APP_VERSION,
   },
-  
+
   // Performance monitoring
   performance: {
     enabled: true,
     sampleRate: IS_PRODUCTION ? 0.1 : 1.0,
     metrics: ['FCP', 'LCP', 'FID', 'CLS', 'TTFB'],
   },
-  
+
   // User feedback
   feedback: {
     enabled: IS_PRODUCTION,
@@ -131,22 +131,29 @@ export const FEATURE_FLAGS = {
   geminiIntegration: true,
   anthropicIntegration: true,
   localModelSupport: true,
-  
+
   // Video Features
   youtubeIntegration: true,
   videoUpload: true,
   videoStreaming: true,
   thumbnailGeneration: true,
-  
+
   // UI Features
   darkMode: true,
   responsiveDesign: true,
   animations: !IS_PRODUCTION || !window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+
+  // Beta Features - ENABLED for beta launch
+  betaProgram: true,
+  betaSignup: true,
+  feedbackWidget: true,
+  usageTracking: true,
+  onboarding: true,
   
   // Experimental Features
   experimentalFeatures: IS_DEVELOPMENT,
-  betaFeatures: false,
-  
+  betaFeatures: true, // ENABLED for beta launch
+
   // Social Features
   sharing: true,
   collaboration: false,
@@ -158,7 +165,7 @@ export const THEME_CONFIG = {
   defaultTheme: 'dark',
   themes: ['light', 'dark', 'system'],
   customThemes: IS_PRODUCTION,
-  
+
   // Glassmorphism settings
   glassmorphism: {
     enabled: true,
@@ -166,7 +173,7 @@ export const THEME_CONFIG = {
     opacity: 0.8,
     borderRadius: 12,
   },
-  
+
   // Animation settings
   animations: {
     enabled: FEATURE_FLAGS.animations,
@@ -184,7 +191,7 @@ export const OPTIMIZATION_CONFIG = {
     compression: IS_PRODUCTION,
     sourcemaps: IS_DEVELOPMENT,
   },
-  
+
   // Runtime optimization
   runtimeOptimization: {
     memoization: true,
@@ -192,7 +199,7 @@ export const OPTIMIZATION_CONFIG = {
     debouncing: true,
     throttling: true,
   },
-  
+
   // Network optimization
   networkOptimization: {
     http2: IS_PRODUCTION,
@@ -208,11 +215,11 @@ export const DEV_CONFIG = {
   debugMode: IS_DEVELOPMENT,
   verboseLogging: IS_DEVELOPMENT,
   reactDevTools: IS_DEVELOPMENT,
-  
+
   // Testing
   testMode: import.meta.env.VITE_TEST_MODE === 'true',
   mockData: import.meta.env.VITE_USE_MOCK_DATA === 'true',
-  
+
   // Hot reloading
   hotReload: IS_DEVELOPMENT,
   fastRefresh: IS_DEVELOPMENT,
@@ -234,4 +241,4 @@ export const CONFIG = {
   DEV_CONFIG,
 };
 
-export default CONFIG; 
+export default CONFIG;

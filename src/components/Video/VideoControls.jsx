@@ -1,5 +1,5 @@
-import React from 'react'
-import { motion } from 'framer-motion'
+import React from 'react';
+import { motion } from 'framer-motion';
 import {
   PlayIcon,
   PauseIcon,
@@ -7,8 +7,8 @@ import {
   Volume2Icon,
   MaximizeIcon,
   SkipBackIcon,
-  SkipForwardIcon
-} from 'lucide-react'
+  SkipForwardIcon,
+} from 'lucide-react';
 
 const VideoControls = ({
   showControls,
@@ -23,7 +23,7 @@ const VideoControls = ({
   toggleMute,
   handleVolumeChange,
   toggleFullscreen,
-  formatTime
+  formatTime,
 }) => {
   return (
     <motion.div
@@ -40,22 +40,15 @@ const VideoControls = ({
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
         >
-          {isPlaying ? (
-            <PauseIcon className="w-8 h-8" />
-          ) : (
-            <PlayIcon className="w-8 h-8 ml-1" />
-          )}
+          {isPlaying ? <PauseIcon className="w-8 h-8" /> : <PlayIcon className="w-8 h-8 ml-1" />}
         </motion.button>
       </div>
 
       {/* Bottom Controls */}
       <div className="absolute bottom-0 left-0 right-0 p-4 space-y-2">
         {/* Progress Bar */}
-        <div 
-          className="w-full h-2 bg-gray-600 rounded-full cursor-pointer"
-          onClick={handleSeek}
-        >
-          <div 
+        <div className="w-full h-2 bg-gray-600 rounded-full cursor-pointer" onClick={handleSeek}>
+          <div
             className="h-full bg-primary-600 rounded-full transition-all"
             style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}
           />
@@ -70,18 +63,14 @@ const VideoControls = ({
             >
               <SkipBackIcon className="w-5 h-5" />
             </button>
-            
+
             <button
               onClick={togglePlay}
               className="p-2 text-white hover:text-primary-400 transition-colors"
             >
-              {isPlaying ? (
-                <PauseIcon className="w-5 h-5" />
-              ) : (
-                <PlayIcon className="w-5 h-5" />
-              )}
+              {isPlaying ? <PauseIcon className="w-5 h-5" /> : <PlayIcon className="w-5 h-5" />}
             </button>
-            
+
             <button
               onClick={() => skip(10)}
               className="p-2 text-white hover:text-primary-400 transition-colors"
@@ -100,7 +89,7 @@ const VideoControls = ({
                   <Volume2Icon className="w-4 h-4" />
                 )}
               </button>
-              
+
               <input
                 type="range"
                 min="0"
@@ -117,7 +106,7 @@ const VideoControls = ({
             <span className="text-white text-sm">
               {formatTime(currentTime)} / {formatTime(duration)}
             </span>
-            
+
             <button
               onClick={toggleFullscreen}
               className="p-2 text-white hover:text-primary-400 transition-colors"
@@ -128,7 +117,7 @@ const VideoControls = ({
         </div>
       </div>
     </motion.div>
-  )
-}
+  );
+};
 
-export default VideoControls
+export default VideoControls;

@@ -6,8 +6,11 @@ import GlassEffect from './components/Common/GlassEffect';
 import ErrorBoundary from './components/Common/ErrorBoundary';
 import TestingPanel from './components/TestingPanel';
 import LogoDisplayDemo from './components/Common/LogoDisplayDemo';
+import FeedbackWidget from './components/Beta/FeedbackWidget';
+import UsageTracker from './components/Beta/UsageTracker';
 import authService from './services/authService';
 import { startPerformanceMonitoring, detectDevicePerformance } from './utils/performance';
+import { initializeAnalytics } from './utils/analytics';
 import { Loader } from 'lucide-react';
 import './index.css';
 
@@ -18,11 +21,11 @@ const createOptimizedLazy = (importFn, name) => {
     try {
       const module = await importFn();
       const loadTime = performance.now() - startTime;
-      
+
       if (loadTime > 1000) {
         console.warn(`Slow component load: ${name} took ${loadTime.toFixed(2)}ms`);
       }
-      
+
       return module;
     } catch (error) {
       console.error(`Failed to load component ${name}:`, error);
@@ -43,14 +46,14 @@ const SettingsPage = createOptimizedLazy(() => import('./pages/SettingsPage'), '
 // Optimized loading component based on device performance
 const PageLoader = () => {
   const [devicePerformance] = React.useState(() => detectDevicePerformance());
-  
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="text-center">
-        <Loader 
+        <Loader
           className={`w-8 h-8 text-primary mx-auto mb-4 ${
             devicePerformance === 'low' ? '' : 'animate-spin'
-          }`} 
+          }`}
         />
         <p className="text-gray-400">Loading...</p>
         {devicePerformance === 'low' && (
@@ -102,17 +105,20 @@ function App() {
       try {
         // Start performance monitoring early
         startPerformanceMonitoring();
-        
+
+        // Initialize analytics for beta tracking
+        initializeAnalytics();
+
         // Detect device performance
         const devicePerformance = detectDevicePerformance();
         setPerformanceMode(devicePerformance === 'low');
-        
+
         // Log performance info
         console.log(`Device performance: ${devicePerformance}`);
-        
+
         // Minimal delay for initialization
-        await new Promise(resolve => setTimeout(resolve, 50));
-        
+        await new Promise((resolve) => setTimeout(resolve, 50));
+
         setIsInitialized(true);
       } catch (error) {
         console.error('App initialization failed:', error);
@@ -136,82 +142,86 @@ function App() {
               {/* Public routes */}
               <Route path="/" element={<Landing />} />
               <Route path="/logo-demo" element={<LogoDisplayDemo />} />
-              
+
               {/* Protected routes */}
-              <Route 
-                path="/dashboard" 
+              <Route
+                path="/dashboard"
                 element={
                   <ProtectedRoute>
                     <Layout>
                       <Dashboard />
                     </Layout>
                   </ProtectedRoute>
-                } 
+                }
               />
-              <Route 
-                path="/projects" 
+              <Route
+                path="/projects"
                 element={
                   <ProtectedRoute>
                     <Layout>
                       <Projects />
                     </Layout>
                   </ProtectedRoute>
-                } 
+                }
               />
-              <Route 
-                path="/projects/:id" 
+              <Route
+                path="/projects/:id"
                 element={
                   <ProtectedRoute>
                     <Layout>
                       <ProjectDetail />
                     </Layout>
                   </ProtectedRoute>
-                } 
+                }
               />
-              <Route 
-                path="/clips" 
+              <Route
+                path="/clips"
                 element={
                   <ProtectedRoute>
                     <Layout>
                       <Clips />
                     </Layout>
                   </ProtectedRoute>
-                } 
+                }
               />
-              <Route 
-                path="/analytics" 
+              <Route
+                path="/analytics"
                 element={
                   <ProtectedRoute>
                     <Layout>
                       <Analytics />
                     </Layout>
                   </ProtectedRoute>
-                } 
+                }
               />
-              <Route 
-                path="/settings" 
+              <Route
+                path="/settings"
                 element={
                   <ProtectedRoute>
                     <Layout>
                       <SettingsPage />
                     </Layout>
                   </ProtectedRoute>
-                } 
+                }
               />
-              
+
               {/* Catch all route */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>
         </div>
-        
+
         {/* Glass Effect Controller - Disabled in performance mode */}
         {!performanceMode && <GlassEffect />}
-        
+
         {/* Testing Panel - Only in development */}
         {import.meta.env.DEV && <TestingPanel />}
+
+        {/* Beta Components */}
+        <UsageTracker />
+        <FeedbackWidget />
       </Router>
-      
+
       {/* Optimized Toast Notifications */}
       <Toaster
         position="top-right"

@@ -1,9 +1,9 @@
-import React from 'react'
-import { TrendingUp, TrendingDown } from 'lucide-react'
+import React from 'react';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 
 const StatsCard = ({ title, value, change, icon: Icon, trend = 'up' }) => {
-  const isPositive = trend === 'up'
-  
+  const isPositive = trend === 'up';
+
   return (
     <div className="glass-card p-6 hover:scale-[1.02] transition-transform cursor-pointer">
       <div className="flex items-start justify-between">
@@ -30,7 +30,7 @@ const StatsCard = ({ title, value, change, icon: Icon, trend = 'up' }) => {
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default StatsCard
+export default StatsCard;

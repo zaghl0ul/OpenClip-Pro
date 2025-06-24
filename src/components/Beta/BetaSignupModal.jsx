@@ -1,0 +1,201 @@
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { X, Star, Mail, User, Send, CheckCircle } from 'lucide-react';
+
+const BetaSignupModal = ({ isOpen, onClose }) => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    useCase: '',
+    experience: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  const useCases = [
+    'Content Creation & YouTube',
+    'Social Media Management', 
+    'Marketing & Advertising',
+    'Education & Training',
+    'Other'
+  ];
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.name.trim()) newErrors.name = 'Name is required';
+    if (!formData.email.trim()) newErrors.email = 'Email is required';
+    if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Invalid email';
+    if (!formData.useCase) newErrors.useCase = 'Please select use case';
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    setIsSubmitting(true);
+    
+    try {
+      // Track beta signup
+      if (window.gtag) {
+        window.gtag('event', 'beta_signup', {
+          event_category: 'engagement',
+          event_label: formData.useCase
+        });
+      }
+      
+      // Simulate API call - replace with actual endpoint
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setIsSuccess(true);
+    } catch (error) {
+      setErrors({ submit: 'Something went wrong. Please try again.' });
+    }
+    
+    setIsSubmitting(false);
+  };
+
+  if (!isOpen) return null;
+
+  if (isSuccess) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+      >
+        <motion.div
+          initial={{ scale: 0.9 }}
+          animate={{ scale: 1 }}
+          className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-8 w-full max-w-md border border-green-500/20"
+        >
+          <div className="text-center">
+            <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-4" />
+            <h3 className="text-2xl font-bold text-white mb-2">Welcome to Beta!</h3>
+            <p className="text-gray-300 mb-6">We'll send you access within 24-48 hours.</p>
+            <button
+              onClick={onClose}
+              className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-3 rounded-lg font-medium"
+            >
+              Got it!
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+    >
+      <motion.div
+        initial={{ scale: 0.9 }}
+        animate={{ scale: 1 }}
+        className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl w-full max-w-lg border border-primary/20"
+      >
+        <div className="flex items-center justify-between p-6 border-b border-gray-700">
+          <div className="flex items-center gap-3">
+            <Star className="w-8 h-8 text-primary" />
+            <div>
+              <h2 className="text-xl font-bold text-white">Join Beta</h2>
+              <p className="text-gray-400 text-sm">Early access to AI video clipping</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-white">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                <User className="w-4 h-4 inline mr-1" />Name *
+              </label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                className={`w-full px-3 py-2 bg-gray-800 border rounded-lg text-white ${
+                  errors.name ? 'border-red-500' : 'border-gray-600'
+                }`}
+                placeholder="Your name"
+              />
+              {errors.name && <p className="text-red-400 text-xs mt-1">{errors.name}</p>}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                <Mail className="w-4 h-4 inline mr-1" />Email *
+              </label>
+              <input
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                className={`w-full px-3 py-2 bg-gray-800 border rounded-lg text-white ${
+                  errors.email ? 'border-red-500' : 'border-gray-600'
+                }`}
+                placeholder="your@email.com"
+              />
+              {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Use Case *</label>
+            <select
+              value={formData.useCase}
+              onChange={(e) => setFormData(prev => ({ ...prev, useCase: e.target.value }))}
+              className={`w-full px-3 py-2 bg-gray-800 border rounded-lg text-white ${
+                errors.useCase ? 'border-red-500' : 'border-gray-600'
+              }`}
+            >
+              <option value="">Select your use case</option>
+              {useCases.map(useCase => (
+                <option key={useCase} value={useCase}>{useCase}</option>
+              ))}
+            </select>
+            {errors.useCase && <p className="text-red-400 text-xs mt-1">{errors.useCase}</p>}
+          </div>
+
+          {errors.submit && (
+            <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+              <p className="text-red-400 text-sm">{errors.submit}</p>
+            </div>
+          )}
+
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-6 py-3 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700"
+            >
+              Maybe Later
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex-1 bg-gradient-to-r from-primary to-accent text-white px-6 py-3 rounded-lg font-medium disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {isSubmitting ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>
+                  <Send className="w-4 h-4" />
+                  Join Beta
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+export default BetaSignupModal; 

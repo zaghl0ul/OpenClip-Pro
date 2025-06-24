@@ -1,37 +1,37 @@
-import React from 'react'
-import { AlertTriangle, RefreshCw, Home, Bug } from 'lucide-react'
-import { motion } from 'framer-motion'
+import React from 'react';
+import { AlertTriangle, RefreshCw, Home, Bug } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
-    super(props)
-    this.state = { 
-      hasError: false, 
-      error: null, 
+    super(props);
+    this.state = {
+      hasError: false,
+      error: null,
       errorInfo: null,
-      errorId: null
-    }
+      errorId: null,
+    };
   }
 
   static getDerivedStateFromError(error) {
     // Update state so the next render will show the fallback UI
-    return { 
+    return {
       hasError: true,
-      errorId: Date.now().toString()
-    }
+      errorId: Date.now().toString(),
+    };
   }
 
   componentDidCatch(error, errorInfo) {
     // Log the error to console and potentially to a logging service
-    console.error('ErrorBoundary caught an error:', error, errorInfo)
-    
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
+
     this.setState({
       error,
-      errorInfo
-    })
+      errorInfo,
+    });
 
     // Report to error tracking service (if available)
-    this.reportError(error, errorInfo)
+    this.reportError(error, errorInfo);
   }
 
   reportError = (error, errorInfo) => {
@@ -43,30 +43,30 @@ class ErrorBoundary extends React.Component {
       timestamp: new Date().toISOString(),
       userAgent: navigator.userAgent,
       url: window.location.href,
-      errorId: this.state.errorId
-    }
+      errorId: this.state.errorId,
+    };
 
     // For now, just log it
-    console.error('Error Report:', errorReport)
+    console.error('Error Report:', errorReport);
 
     // TODO: Send to error tracking service
     // Example: Sentry, LogRocket, etc.
     // Sentry.captureException(error, { extra: errorReport })
-  }
+  };
 
   handleReload = () => {
-    window.location.reload()
-  }
+    window.location.reload();
+  };
 
   handleGoHome = () => {
-    window.location.href = '/'
-  }
+    window.location.href = '/';
+  };
 
   handleToggleDetails = () => {
-    this.setState(prevState => ({
-      showDetails: !prevState.showDetails
-    }))
-  }
+    this.setState((prevState) => ({
+      showDetails: !prevState.showDetails,
+    }));
+  };
 
   render() {
     if (this.state.hasError) {
@@ -94,9 +94,7 @@ class ErrorBoundary extends React.Component {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.3 }}
               >
-                <h1 className="text-2xl font-bold text-white mb-2">
-                  Oops! Something went wrong
-                </h1>
+                <h1 className="text-2xl font-bold text-white mb-2">Oops! Something went wrong</h1>
                 <p className="text-gray-400 mb-6">
                   We encountered an unexpected error. Don't worry, our team has been notified.
                 </p>
@@ -116,7 +114,7 @@ class ErrorBoundary extends React.Component {
                   <RefreshCw className="w-4 h-4" />
                   Try Again
                 </button>
-                
+
                 <button
                   onClick={this.handleGoHome}
                   className="btn btn-secondary flex items-center gap-2"
@@ -153,7 +151,7 @@ class ErrorBoundary extends React.Component {
                           {this.state.error && this.state.error.toString()}
                         </p>
                       </div>
-                      
+
                       {this.state.errorInfo && (
                         <div>
                           <h3 className="text-error font-semibold mb-2">Component Stack:</h3>
@@ -162,14 +160,10 @@ class ErrorBoundary extends React.Component {
                           </p>
                         </div>
                       )}
-                      
+
                       <div className="mt-4 pt-4 border-t border-gray-700">
-                        <p className="text-gray-500">
-                          Error ID: {this.state.errorId}
-                        </p>
-                        <p className="text-gray-500">
-                          Time: {new Date().toLocaleString()}
-                        </p>
+                        <p className="text-gray-500">Error ID: {this.state.errorId}</p>
+                        <p className="text-gray-500">Time: {new Date().toLocaleString()}</p>
                       </div>
                     </motion.div>
                   )}
@@ -184,17 +178,18 @@ class ErrorBoundary extends React.Component {
                 className="text-xs text-gray-500 mt-6"
               >
                 <p>
-                  If this problem persists, please contact support with Error ID: {this.state.errorId}
+                  If this problem persists, please contact support with Error ID:{' '}
+                  {this.state.errorId}
                 </p>
               </motion.div>
             </div>
           </motion.div>
         </div>
-      )
+      );
     }
 
-    return this.props.children
+    return this.props.children;
   }
 }
 
-export default ErrorBoundary
+export default ErrorBoundary;

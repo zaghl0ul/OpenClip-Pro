@@ -50,6 +50,13 @@ class APIManager:
                 "base_url": "https://api.anthropic.com",
                 "models_endpoint": "/v1/models",
                 "models": []
+            },
+            "lmstudio": {
+                "name": "LM Studio",
+                "base_url": "http://localhost:1234",
+                "models_endpoint": "/v1/models",
+                "models": [],
+                "configurable_url": True
             }
         }
         
@@ -93,6 +100,8 @@ class APIManager:
             return ["gemini-pro", "gemini-pro-vision"]
         elif provider == "anthropic":
             return ["claude-3-opus", "claude-3-sonnet", "claude-3-haiku"]
+        elif provider == "lmstudio":
+            return ["local-model", "llama-2-7b", "mistral-7b"]  # Common local models
         else:
             return []
     
@@ -110,6 +119,8 @@ class APIManager:
                 return await self._get_gemini_models(api_key)
             elif provider == "anthropic":
                 return await self._get_anthropic_models(api_key)
+            elif provider == "lmstudio":
+                return await self._get_lmstudio_models(api_key, db_session, security_manager, settings_repo)
             else:
                 return []
         except Exception as e:
@@ -142,6 +153,60 @@ class APIManager:
             {"id": "claude-3-haiku", "name": "Claude 3 Haiku", "description": "Fastest Anthropic model", "supports_vision": True}
         ]
     
+    async def _get_lmstudio_models(self, api_key: str, db_session=None, security_manager=None, settings_repo=None) -> List[Dict[str, Any]]:
+        """Get LM Studio models by querying the local server"""
+        try:
+            # Get LM Studio base URL from settings or use default
+            base_url = "http://localhost:1234"
+            if settings_repo and db_session:
+                try:
+                    url_setting = settings_repo.get_setting(db_session, "lmstudio_settings", "base_url")
+                    if url_setting:
+                        base_url = url_setting.value
+                except:
+                    pass  # Use default if settings not found
+            
+            # Query LM Studio for available models
+            url = f"{base_url}/v1/models"
+            async with self.http_client as client:
+                response = await client.get(url, timeout=5.0)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    models = []
+                    
+                    for model in data.get('data', []):
+                        models.append({
+                            "id": model.get('id', 'unknown'),
+                            "name": model.get('id', 'Unknown Model'),
+                            "description": f"Local model: {model.get('id', 'Unknown')}",
+                            "supports_vision": False,  # Most local models don't support vision yet
+                            "context_length": model.get('context_length', 4096),
+                            "local": True
+                        })
+                    
+                    if models:
+                        return models
+                    else:
+                        # Return default if no models found
+                        return [
+                            {"id": "local-model", "name": "Local Model", "description": "Default local model", "supports_vision": False, "local": True}
+                        ]
+                else:
+                    # Return default models if server not reachable
+                    return [
+                        {"id": "local-model", "name": "Local Model", "description": "Default local model", "supports_vision": False, "local": True},
+                        {"id": "llama-2-7b", "name": "Llama 2 7B", "description": "Meta's Llama 2 7B model", "supports_vision": False, "local": True},
+                        {"id": "mistral-7b", "name": "Mistral 7B", "description": "Mistral 7B Instruct model", "supports_vision": False, "local": True}
+                    ]
+                    
+        except Exception as e:
+            logger.warning(f"Failed to get LM Studio models: {e}")
+            # Return default models if connection fails
+            return [
+                {"id": "local-model", "name": "Local Model", "description": "Default local model (LM Studio offline)", "supports_vision": False, "local": True}
+            ]
+    
     async def test_connection(self, provider: str, api_key: str) -> Dict[str, Any]:
         """Test the connection to an AI provider"""
         if provider not in self.providers:
@@ -156,6 +221,8 @@ class APIManager:
                 return await self._test_gemini(api_key)
             elif provider == "anthropic":
                 return await self._test_anthropic(api_key)
+            elif provider == "lmstudio":
+                return await self._test_lmstudio(api_key)
             else:
                 return {"success": False, "message": f"No test implementation for {provider}"}
         except Exception as e:
@@ -208,6 +275,45 @@ class APIManager:
             else:
                 error_msg = response.json().get("error", {}).get("message", "Unknown error")
                 return {"success": False, "message": f"Anthropic API error: {error_msg}"}
+    
+    async def _test_lmstudio(self, api_key: str) -> Dict[str, Any]:
+        """Test LM Studio connection"""
+        try:
+            # Get LM Studio base URL (configurable)
+            base_url = self.providers['lmstudio']['base_url']
+            
+            # Test connection to LM Studio server
+            url = f"{base_url}/v1/models"
+            
+            async with self.http_client as client:
+                response = await client.get(url, timeout=5.0)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    models = data.get('data', [])
+                    
+                    if models:
+                        model_names = [model.get('id', 'unknown') for model in models]
+                        return {
+                            "success": True, 
+                            "message": f"LM Studio connection successful. Found {len(models)} models: {', '.join(model_names[:3])}{'...' if len(models) > 3 else ''}"
+                        }
+                    else:
+                        return {
+                            "success": True, 
+                            "message": "LM Studio connected but no models loaded. Please load a model in LM Studio."
+                        }
+                else:
+                    return {
+                        "success": False, 
+                        "message": f"LM Studio server responded with status {response.status_code}. Make sure LM Studio is running."
+                    }
+                    
+        except Exception as e:
+            return {
+                "success": False, 
+                "message": f"LM Studio connection failed: {str(e)}. Make sure LM Studio is running on {base_url}"
+            }
     
     async def close(self):
         """Close the HTTP client"""

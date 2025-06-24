@@ -13,7 +13,7 @@ class AuthService {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password }),
       });
 
       if (response.ok) {
@@ -24,14 +24,14 @@ class AuthService {
           return { success: true, user: data.user };
         }
       }
-      
+
       const errorData = await response.json();
       return { success: false, error: errorData.detail || 'Login failed' };
     } catch (error) {
       console.error('Login error:', error);
-      return { 
-        success: false, 
-        error: error.message || 'Failed to login' 
+      return {
+        success: false,
+        error: error.message || 'Failed to login',
       };
     }
   }
@@ -39,11 +39,11 @@ class AuthService {
   async register(userData) {
     try {
       const response = await apiClient.register({
-        email: userData.email, 
-        password: userData.password, 
-        full_name: userData.full_name
+        email: userData.email,
+        password: userData.password,
+        full_name: userData.full_name,
       });
-      
+
       if (response && response.access_token) {
         localStorage.setItem(this.tokenKey, response.access_token);
         localStorage.setItem(this.userKey, JSON.stringify(response.user || {}));
@@ -52,9 +52,9 @@ class AuthService {
       return { success: false, error: 'Invalid response from server' };
     } catch (error) {
       console.error('Registration error:', error);
-      return { 
-        success: false, 
-        error: error.message || 'Failed to register' 
+      return {
+        success: false,
+        error: error.message || 'Failed to register',
       };
     }
   }
@@ -110,9 +110,9 @@ class AuthService {
       // Auto-login with default admin credentials for development
       const result = await this.login({
         email: 'admin@openclippro.com',
-        password: 'admin123!'
+        password: 'admin123!',
       });
-      
+
       if (result.success) {
         console.log('Auto-logged in for development');
         return true;
@@ -129,11 +129,11 @@ class AuthService {
     if (this.isAuthenticated()) {
       return true;
     }
-    
+
     // Try auto-login for development
     return await this.autoLoginForDevelopment();
   }
 }
 
 const authService = new AuthService();
-export default authService; 
+export default authService;

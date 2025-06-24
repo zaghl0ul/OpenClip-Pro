@@ -69,7 +69,7 @@ const AnalysisModal = ({ isOpen, onClose, onStartAnalysis, defaultPrompt = '' })
               isAnalyzing={isAnalyzing}
               initialPrompt={defaultPrompt}
             />
-            
+
             {/* Info Box */}
             <div className="bg-white/5 rounded-lg p-4 border border-white/10">
               <div className="flex items-start gap-3">
@@ -78,9 +78,7 @@ const AnalysisModal = ({ isOpen, onClose, onStartAnalysis, defaultPrompt = '' })
                   <p className="mb-2">
                     The AI will analyze your video and identify key moments based on your prompt.
                   </p>
-                  <p>
-                    For best results, be specific about what you're looking for in your video.
-                  </p>
+                  <p>For best results, be specific about what you're looking for in your video.</p>
                 </div>
               </div>
             </div>
@@ -98,4 +96,4 @@ const AnalysisModal = ({ isOpen, onClose, onStartAnalysis, defaultPrompt = '' })
   );
 };
 
-export default AnalysisModal; 
+export default AnalysisModal;

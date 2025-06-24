@@ -8,7 +8,7 @@ function getSpiralPositions(count, width, height, radiusStep = 200) {
   let angle = 0;
   let radius = 320;
   for (let i = 0; i < count; i++) {
-    angle = i * (Math.PI * 2) / Math.max(4, count);
+    angle = (i * (Math.PI * 2)) / Math.max(4, count);
     positions.push({
       x: width / 2 + Math.cos(angle) * radius,
       y: height / 2 + Math.sin(angle) * radius,
@@ -22,14 +22,14 @@ function getSpiralPositions(count, width, height, radiusStep = 200) {
 
 // Force simulation with stronger collision and repulsion
 const useForceLayout = (nodes, width, height) => {
-  const nodeRadii = nodes.map(n => n.type === 'project' ? 60 : n.type === 'stat' ? 50 : 45);
+  const nodeRadii = nodes.map((n) => (n.type === 'project' ? 60 : n.type === 'stat' ? 50 : 45));
   const [positions, setPositions] = useState(() => getSpiralPositions(nodes.length, width, height));
 
   useEffect(() => {
     let animation;
     const alpha = 0.13;
     const repulsion = 40000;
-    const centering = 0.10;
+    const centering = 0.1;
     const attraction = 0.07;
     const collisionPadding = 30;
     const center = { x: width / 2, y: height / 2 };
@@ -143,4 +143,4 @@ const NodeCanvas = ({ nodes }) => {
   );
 };
 
-export default NodeCanvas; 
+export default NodeCanvas;

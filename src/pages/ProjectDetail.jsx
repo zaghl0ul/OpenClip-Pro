@@ -1,10 +1,29 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Video, Upload, Download, Trash2, ChevronLeft, Clock, Film, Settings, 
-  AlertOctagon, Sparkles, Play, Pause, RotateCcw, CheckCircle, Zap,
-  FileVideo, Youtube, Brain, Eye, Loader, ArrowRight, HelpCircle
+import {
+  Video,
+  Upload,
+  Download,
+  Trash2,
+  ChevronLeft,
+  Clock,
+  Film,
+  Settings,
+  AlertOctagon,
+  Sparkles,
+  Play,
+  Pause,
+  RotateCcw,
+  CheckCircle,
+  Zap,
+  FileVideo,
+  Youtube,
+  Brain,
+  Eye,
+  Loader,
+  ArrowRight,
+  HelpCircle,
 } from 'lucide-react';
 import useProjectStore from '../stores/projectStore';
 import toast from 'react-hot-toast';
@@ -54,36 +73,39 @@ const ProjectDetail = () => {
     }
   }, [id, getProjectById, navigate]);
 
-  const handleStartAnalysis = useCallback(async ({ prompt, provider }) => {
-    if (!project || (!project.video && !project.video_data)) {
-      toast.error('Please upload a video first');
-      return;
-    }
+  const handleStartAnalysis = useCallback(
+    async ({ prompt, provider }) => {
+      if (!project || (!project.video && !project.video_data)) {
+        toast.error('Please upload a video first');
+        return;
+      }
 
-    analysisStatus.startAnalysis(provider, prompt);
-    
-    try {
-      const response = await apiService.analyzeVideo(project.id, prompt, provider);
-      
-      if (response?.project) {
-        updateProject(project.id, response.project);
-        setProject(response.project);
-        analysisStatus.completeAnalysis(true, 'Analysis completed successfully!');
-        toast.success('Analysis completed successfully!');
+      analysisStatus.startAnalysis(provider, prompt);
+
+      try {
+        const response = await apiService.analyzeVideo(project.id, prompt, provider);
+
+        if (response?.project) {
+          updateProject(project.id, response.project);
+          setProject(response.project);
+          analysisStatus.completeAnalysis(true, 'Analysis completed successfully!');
+          toast.success('Analysis completed successfully!');
+        }
+      } catch (error) {
+        console.error('Analysis error:', error);
+
+        if (error.message.includes('API key')) {
+          toast.error('Please configure your API key in Settings');
+        } else {
+          toast.error(`Analysis failed: ${error.message}`);
+        }
+        analysisStatus.completeAnalysis(false, error.message);
+      } finally {
+        setShowAnalysisModal(false);
       }
-    } catch (error) {
-      console.error('Analysis error:', error);
-      
-      if (error.message.includes('API key')) {
-        toast.error('Please configure your API key in Settings');
-      } else {
-        toast.error(`Analysis failed: ${error.message}`);
-      }
-      analysisStatus.completeAnalysis(false, error.message);
-    } finally {
-      setShowAnalysisModal(false);
-    }
-  }, [project, updateProject, analysisStatus]);
+    },
+    [project, updateProject, analysisStatus]
+  );
 
   const handleSeekTo = useCallback((seconds) => {
     if (videoPlayerRef.current) {
@@ -91,15 +113,42 @@ const ProjectDetail = () => {
     }
   }, []);
 
-  const handleFileUpload = useCallback(async (file) => {
-    // Implementation will be in VideoUploadModal
+  const handleFileUpload = useCallback(async (updatedProject) => {
+    // This gets called from VideoUploadModal when upload is complete
+    if (updatedProject) {
+      setProject(updatedProject);
+      toast.success('Video uploaded successfully!');
+    }
     setShowUploadModal(false);
   }, []);
 
   const handleYouTubeSubmit = useCallback(async (url) => {
-    // Implementation will be in YouTubeModal
-    setShowYouTubeModal(false);
-  }, []);
+    if (!project?.id) {
+      toast.error('Project not found');
+      return;
+    }
+
+    try {
+      const { processYouTubeForProject } = useProjectStore.getState();
+      const result = await processYouTubeForProject(project.id, url);
+      
+      if (result.success && result.project) {
+        setProject(result.project);
+        toast.success(result.message || 'YouTube video processed successfully!');
+      } else if (result.project) {
+        setProject(result.project);
+        toast.success('YouTube video processed successfully!');
+      } else {
+        throw new Error('Failed to process YouTube URL');
+      }
+    } catch (error) {
+      console.error('YouTube processing error:', error);
+      toast.error(`Failed to process YouTube URL: ${error.message}`);
+      throw error;
+    } finally {
+      setShowYouTubeModal(false);
+    }
+  }, [project?.id]);
 
   if (!project) {
     return (
@@ -115,8 +164,8 @@ const ProjectDetail = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <ProjectHeader 
-        project={project} 
+      <ProjectHeader
+        project={project}
         isAnalyzing={analysisStatus.isAnalyzing}
         onBack={() => navigate('/projects')}
         onDelete={() => {
@@ -136,7 +185,7 @@ const ProjectDetail = () => {
               onYouTubeClick={() => setShowYouTubeModal(true)}
             />
           )}
-          
+
           {projectState === 'uploaded' && (
             <UploadedProjectState
               key="uploaded"
@@ -152,7 +201,7 @@ const ProjectDetail = () => {
               setDuration={setDuration}
             />
           )}
-          
+
           {projectState === 'analyzing' && (
             <AnalyzingProjectState
               key="analyzing"
@@ -161,7 +210,7 @@ const ProjectDetail = () => {
               onCancel={() => analysisStatus.cancelAnalysis()}
             />
           )}
-          
+
           {projectState === 'completed' && (
             <CompletedProjectState
               key="completed"
@@ -177,7 +226,7 @@ const ProjectDetail = () => {
               setDuration={setDuration}
             />
           )}
-          
+
           {projectState === 'error' && (
             <ErrorProjectState
               key="error"
@@ -194,20 +243,19 @@ const ProjectDetail = () => {
         isOpen={showAnalysisModal}
         onClose={() => setShowAnalysisModal(false)}
         onAnalyze={handleStartAnalysis}
-        defaultPrompt={project.analysis_prompt || "Analyze this video and identify key moments, highlights, and segments that would make compelling clips. Focus on engaging content, important topics, and natural break points."}
+        defaultPrompt={
+          project.analysis_prompt ||
+          'Analyze this video and identify key moments, highlights, and segments that would make compelling clips. Focus on engaging content, important topics, and natural break points.'
+        }
       />
-      
+
       <VideoUploadModal
         isOpen={showUploadModal}
         onClose={() => setShowUploadModal(false)}
         projectId={project.id}
-        onUploadComplete={(updatedProject) => {
-          setProject(updatedProject);
-          setShowUploadModal(false);
-          toast.success('Video uploaded successfully!');
-        }}
+        onUploadComplete={handleFileUpload}
       />
-      
+
       <YouTubeModal
         isOpen={showYouTubeModal}
         onClose={() => setShowYouTubeModal(false)}
@@ -231,12 +279,10 @@ const ProjectHeader = ({ project, isAnalyzing, onBack, onDelete }) => (
           </button>
           <div>
             <h1 className="text-2xl font-bold text-white">{project.name}</h1>
-            {project.description && (
-              <p className="text-white/60 mt-1">{project.description}</p>
-            )}
+            {project.description && <p className="text-white/60 mt-1">{project.description}</p>}
           </div>
         </div>
-        
+
         <div className="flex items-center gap-3">
           <ProjectStatusBadge project={project} isAnalyzing={isAnalyzing} />
           <button
@@ -254,12 +300,31 @@ const ProjectHeader = ({ project, isAnalyzing, onBack, onDelete }) => (
 // Helper function for project state (moved outside component to be reusable)
 const getProjectState = (project, isAnalyzing = false) => {
   if (!project) return 'loading';
-  if (!project.video_data && !project.youtube_url) return 'empty';
-  if (project.video_data && !project.clips) return 'uploaded';
+  
+  // Check if project has actual video data (not just metadata)
+  const hasActualVideoData = project.video_data && 
+                             Object.keys(project.video_data).length > 0 &&
+                             project.status !== 'created';
+  
+  // Empty state: no video data and either no YouTube URL or project status is still 'created'
+  if (!hasActualVideoData && (!project.youtube_url || project.status === 'created')) {
+    return 'empty';
+  }
+  
+  // Uploaded state: has video data but no analysis results
+  if (hasActualVideoData && !project.clips) return 'uploaded';
+  
+  // Analyzing state: currently being analyzed
   if (isAnalyzing) return 'analyzing';
+  
+  // Completed state: has clips from analysis
   if (project.clips && project.clips.length > 0) return 'completed';
+  
+  // Error state: explicitly marked as error
   if (project.status === 'error') return 'error';
-  return 'uploaded';
+  
+  // Default to empty if we can't determine state (likely no video content yet)
+  return 'empty';
 };
 
 // Status Badge Component
@@ -269,15 +334,21 @@ const ProjectStatusBadge = ({ project, isAnalyzing = false }) => {
     empty: { icon: FileVideo, text: 'No Content', className: 'bg-gray-500/20 text-gray-400' },
     uploaded: { icon: Video, text: 'Ready to Analyze', className: 'bg-blue-500/20 text-blue-400' },
     analyzing: { icon: Brain, text: 'Analyzing...', className: 'bg-yellow-500/20 text-yellow-400' },
-    completed: { icon: CheckCircle, text: 'Analysis Complete', className: 'bg-green-500/20 text-green-400' },
-    error: { icon: AlertOctagon, text: 'Error', className: 'bg-red-500/20 text-red-400' }
+    completed: {
+      icon: CheckCircle,
+      text: 'Analysis Complete',
+      className: 'bg-green-500/20 text-green-400',
+    },
+    error: { icon: AlertOctagon, text: 'Error', className: 'bg-red-500/20 text-red-400' },
   };
-  
+
   const config = configs[state] || configs.empty;
   const Icon = config.icon;
-  
+
   return (
-    <div className={`flex items-center gap-2 px-3 py-1 rounded-full glass-shine ${config.className}`}>
+    <div
+      className={`flex items-center gap-2 px-3 py-1 rounded-full glass-shine ${config.className}`}
+    >
       <Icon className="w-4 h-4" />
       <span className="text-sm font-medium">{config.text}</span>
     </div>
@@ -298,7 +369,8 @@ const EmptyProjectState = ({ project, onUploadClick, onYouTubeClick }) => (
       </div>
       <h2 className="text-3xl font-bold text-white mb-4">Get Started</h2>
       <p className="text-white/60 text-lg max-w-2xl mx-auto">
-        Upload a video or provide a YouTube URL to begin AI-powered video analysis and clip generation.
+        Upload a video or provide a YouTube URL to begin AI-powered video analysis and clip
+        generation.
       </p>
     </div>
 
@@ -337,9 +409,13 @@ const UploadOption = ({ icon: Icon, title, description, onClick, primary = false
       primary ? 'ring-2 ring-primary/50' : ''
     }`}
   >
-    <div className={`w-12 h-12 rounded-xl mb-4 flex items-center justify-center transition-colors ${
-      primary ? 'bg-primary/20 text-primary' : 'bg-white/10 text-white/60 group-hover:bg-primary/20 group-hover:text-primary'
-    }`}>
+    <div
+      className={`w-12 h-12 rounded-xl mb-4 flex items-center justify-center transition-colors ${
+        primary
+          ? 'bg-primary/20 text-primary'
+          : 'bg-white/10 text-white/60 group-hover:bg-primary/20 group-hover:text-primary'
+      }`}
+    >
       <Icon className="w-6 h-6" />
     </div>
     <h3 className="text-xl font-semibold text-white mb-2">{title}</h3>
@@ -352,9 +428,17 @@ const UploadOption = ({ icon: Icon, title, description, onClick, primary = false
 );
 
 // Uploaded Project State
-const UploadedProjectState = ({ 
-  project, onAnalyzeClick, onSeekTo, videoPlayerRef, 
-  playing, setPlaying, currentTime, setCurrentTime, duration, setDuration 
+const UploadedProjectState = ({
+  project,
+  onAnalyzeClick,
+  onSeekTo,
+  videoPlayerRef,
+  playing,
+  setPlaying,
+  currentTime,
+  setCurrentTime,
+  duration,
+  setDuration,
 }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
@@ -420,9 +504,17 @@ const AnalyzingProjectState = ({ project, analysisStatus, onCancel }) => (
 );
 
 // Completed Project State
-const CompletedProjectState = ({ 
-  project, onSeekTo, onReanalyze, videoPlayerRef,
-  playing, setPlaying, currentTime, setCurrentTime, duration, setDuration 
+const CompletedProjectState = ({
+  project,
+  onSeekTo,
+  onReanalyze,
+  videoPlayerRef,
+  playing,
+  setPlaying,
+  currentTime,
+  setCurrentTime,
+  duration,
+  setDuration,
 }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
@@ -467,10 +559,7 @@ const CompletedProjectState = ({
     {/* Analysis Results */}
     <div className="glass-prism rounded-2xl p-6">
       <h3 className="text-xl font-semibold text-white mb-6">Generated Clips</h3>
-      <AnalysisResultsPanel
-        project={project}
-        onSeekTo={onSeekTo}
-      />
+      <AnalysisResultsPanel project={project} onSeekTo={onSeekTo} />
     </div>
   </motion.div>
 );
@@ -488,7 +577,8 @@ const ErrorProjectState = ({ project, onRetry, onUploadNew }) => (
     </div>
     <h2 className="text-2xl font-bold text-white mb-4">Something went wrong</h2>
     <p className="text-white/60 mb-8">
-      We encountered an error while processing your video. You can try again or upload a different video.
+      We encountered an error while processing your video. You can try again or upload a different
+      video.
     </p>
     <div className="flex gap-4 justify-center">
       <button
@@ -529,37 +619,19 @@ const VideoUploadModal = ({ isOpen, onClose, projectId, onUploadComplete }) => {
     setProgress(0);
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      // Create XMLHttpRequest to track upload progress
-      const xhr = new XMLHttpRequest();
-      
-      xhr.upload.addEventListener('progress', (e) => {
-        if (e.lengthComputable) {
-          const percentComplete = Math.round((e.loaded / e.total) * 100);
-          setProgress(percentComplete);
-        }
+      const { uploadVideoToProject } = useProjectStore.getState();
+      const result = await uploadVideoToProject(projectId, file, (uploadProgress) => {
+        setProgress(uploadProgress);
       });
 
-      const uploadPromise = new Promise((resolve, reject) => {
-        xhr.onload = () => {
-          if (xhr.status === 200) {
-            const result = JSON.parse(xhr.responseText);
-            resolve(result);
-          } else {
-            reject(new Error('Upload failed'));
-          }
-        };
-        xhr.onerror = () => reject(new Error('Upload failed'));
-        
-        xhr.open('POST', `http://localhost:8001/api/projects/${projectId}/upload`);
-        xhr.send(formData);
-      });
-
-      const result = await uploadPromise;
-      onUploadComplete(result.project);
+      if (result.project) {
+        onUploadComplete(result.project);
+        toast.success('Video uploaded successfully!');
+      } else {
+        throw new Error('Upload completed but no project data returned');
+      }
     } catch (error) {
+      console.error('Upload error:', error);
       toast.error(`Upload failed: ${error.message}`);
     } finally {
       setUploading(false);
@@ -596,7 +668,7 @@ const VideoUploadModal = ({ isOpen, onClose, projectId, onUploadComplete }) => {
         {uploading ? (
           <div className="text-center">
             <div className="w-full bg-white/10 rounded-full h-2 mb-4">
-              <div 
+              <div
                 className="bg-gradient-to-r from-primary to-accent h-2 rounded-full transition-all duration-300"
                 style={{ width: `${progress}%` }}
               />
@@ -693,4 +765,4 @@ const YouTubeModal = ({ isOpen, onClose, onSubmit }) => {
   );
 };
 
-export default ProjectDetail; 
+export default ProjectDetail;

@@ -5,7 +5,7 @@ class DebugUtils {
   constructor() {
     this.logs = [];
     this.errors = [];
-    
+
     // Expose to window in development
     if (DEBUG && typeof window !== 'undefined') {
       window._debug = this;
@@ -14,14 +14,14 @@ class DebugUtils {
 
   log(category, message, data = null) {
     if (!DEBUG) return;
-    
+
     const entry = {
       timestamp: new Date().toISOString(),
       category,
       message,
-      data
+      data,
     };
-    
+
     this.logs.push(entry);
     console.log(`[${category}]`, message, data || '');
   }
@@ -32,9 +32,9 @@ class DebugUtils {
       category,
       error: error.message || error,
       stack: error.stack,
-      context
+      context,
     };
-    
+
     this.errors.push(entry);
     console.error(`[${category} ERROR]`, error, context || '');
   }
@@ -85,7 +85,7 @@ class DebugUtils {
     return {
       logs: this.logs,
       errors: this.errors,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   }
 
@@ -94,7 +94,7 @@ class DebugUtils {
     return {
       name: `Test Project ${Date.now()}`,
       description: 'This is a test project for debugging',
-      type: 'upload'
+      type: 'upload',
     };
   }
 
@@ -104,7 +104,7 @@ class DebugUtils {
       'Identify key highlights and transitions',
       'Extract scenes with text on screen',
       'Find all action sequences',
-      'Identify emotional moments'
+      'Identify emotional moments',
     ];
     return prompts[Math.floor(Math.random() * prompts.length)];
   }
@@ -116,23 +116,25 @@ class DebugUtils {
         react: typeof React !== 'undefined',
         router: typeof window !== 'undefined' && window.location,
         localStorage: typeof localStorage !== 'undefined',
-        indexedDB: 'indexedDB' in window
+        indexedDB: 'indexedDB' in window,
       },
       performance: {
-        memory: performance.memory ? {
-          used: Math.round(performance.memory.usedJSHeapSize / 1048576) + 'MB',
-          total: Math.round(performance.memory.totalJSHeapSize / 1048576) + 'MB',
-          limit: Math.round(performance.memory.jsHeapSizeLimit / 1048576) + 'MB'
-        } : 'Not available'
+        memory: performance.memory
+          ? {
+              used: Math.round(performance.memory.usedJSHeapSize / 1048576) + 'MB',
+              total: Math.round(performance.memory.totalJSHeapSize / 1048576) + 'MB',
+              limit: Math.round(performance.memory.jsHeapSizeLimit / 1048576) + 'MB',
+            }
+          : 'Not available',
       },
       network: navigator.onLine,
       screen: {
         width: window.screen.width,
         height: window.screen.height,
-        colorDepth: window.screen.colorDepth
-      }
+        colorDepth: window.screen.colorDepth,
+      },
     };
-    
+
     this.log('SYSTEM', 'System status check', status);
     return status;
   }
@@ -155,4 +157,4 @@ class DebugUtils {
 const debug = new DebugUtils();
 
 export default debug;
-export { DEBUG }; 
+export { DEBUG };

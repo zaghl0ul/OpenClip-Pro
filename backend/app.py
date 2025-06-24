@@ -26,6 +26,11 @@ import numpy as np
 from PIL import Image
 import ffmpeg
 
+# Add these new imports at the top with other imports
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
 # Initialize FastAPI app
 app = FastAPI(title="OpenClip Pro API", version="1.0.0")
 
@@ -111,6 +116,25 @@ class ProjectUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     status: Optional[str] = None
+
+# Add these new Pydantic models after the existing ones
+class BetaSignup(BaseModel):
+    name: str
+    email: str
+    company: Optional[str] = None
+    useCase: str
+    experience: Optional[str] = None
+    interests: Optional[List[str]] = []
+    signupDate: str
+    source: str
+
+class Feedback(BaseModel):
+    type: str
+    rating: int
+    message: str
+    page: str
+    userAgent: Optional[str] = None
+    timestamp: Optional[str] = None
 
 # In-memory storage (for demo purposes, backed by database)
 def get_db_connection():
@@ -902,6 +926,41 @@ async def test_api_key(request: APIKeyStorage):
             return {"success": True, "message": "Anthropic API key is valid"}
             
         elif request.provider == "lmstudio":
+            # Test LM Studio connection
+            import httpx
+            base_url = request.api_key if request.api_key else "http://localhost:1234"
+            
+            try:
+                async with httpx.AsyncClient() as client:
+                    response = await client.get(f"{base_url}/v1/models", timeout=5.0)
+                    
+                    if response.status_code == 200:
+                        data = response.json()
+                        models = data.get('data', [])
+                        
+                        if models:
+                            model_names = [model.get('id', 'unknown') for model in models]
+                            return {
+                                "success": True, 
+                                "message": f"LM Studio connected. Found {len(models)} models: {', '.join(model_names[:3])}{'...' if len(models) > 3 else ''}"
+                            }
+                        else:
+                            return {
+                                "success": True, 
+                                "message": "LM Studio connected but no models loaded. Please load a model in LM Studio."
+                            }
+                    else:
+                        return {
+                            "success": False, 
+                            "message": f"LM Studio server responded with status {response.status_code}"
+                        }
+            except Exception as e:
+                return {
+                    "success": False, 
+                    "message": f"LM Studio connection failed: {str(e)}. Make sure LM Studio is running on {base_url}"
+                }
+            
+        elif request.provider == "lmstudio":
             # For LM Studio, test connection to local endpoint
             import requests
             try:
@@ -1573,6 +1632,195 @@ async def process_youtube_url(project_id: str, request: YouTubeURLRequest):
         conn.close()
         print(f"YouTube processing error: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to process YouTube URL: {str(e)}")
+
+@app.post("/api/beta/signup")
+async def beta_signup(request: BetaSignup):
+    """Handle beta program signups"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Create beta_signups table if it doesn't exist
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS beta_signups (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            email TEXT NOT NULL,
+            company TEXT,
+            use_case TEXT NOT NULL,
+            experience TEXT,
+            interests TEXT,
+            signup_date TEXT,
+            source TEXT,
+            status TEXT DEFAULT 'pending',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        ''')
+        
+        signup_id = str(uuid.uuid4())
+        
+        # Insert signup data
+        cursor.execute('''
+        INSERT INTO beta_signups 
+        (id, name, email, company, use_case, experience, interests, signup_date, source) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            signup_id,
+            request.name,
+            request.email,
+            request.company,
+            request.useCase,
+            request.experience,
+            json.dumps(request.interests) if request.interests else None,
+            request.signupDate,
+            request.source
+        ))
+        
+        conn.commit()
+        conn.close()
+        
+        # Send welcome email (optional - implement based on your email setup)
+        try:
+            await send_beta_welcome_email(request.email, request.name)
+        except Exception as e:
+            print(f"Failed to send welcome email: {e}")
+        
+        return {
+            "success": True,
+            "message": "Beta signup successful",
+            "signup_id": signup_id
+        }
+        
+    except Exception as e:
+        print(f"Beta signup error: {e}")
+        raise HTTPException(status_code=500, detail=f"Signup failed: {str(e)}")
+
+@app.post("/api/feedback")
+async def submit_feedback(request: Feedback):
+    """Handle user feedback submissions"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Create feedback table if it doesn't exist
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS feedback (
+            id TEXT PRIMARY KEY,
+            type TEXT NOT NULL,
+            rating INTEGER,
+            message TEXT NOT NULL,
+            page TEXT,
+            user_agent TEXT,
+            timestamp TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        ''')
+        
+        feedback_id = str(uuid.uuid4())
+        
+        # Insert feedback
+        cursor.execute('''
+        INSERT INTO feedback 
+        (id, type, rating, message, page, user_agent, timestamp) 
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            feedback_id,
+            request.type,
+            request.rating,
+            request.message,
+            request.page,
+            request.userAgent,
+            request.timestamp or datetime.now().isoformat()
+        ))
+        
+        conn.commit()
+        conn.close()
+        
+        # Send notification email to team (optional)
+        try:
+            await send_feedback_notification(request)
+        except Exception as e:
+            print(f"Failed to send feedback notification: {e}")
+        
+        return {
+            "success": True,
+            "message": "Feedback submitted successfully",
+            "feedback_id": feedback_id
+        }
+        
+    except Exception as e:
+        print(f"Feedback submission error: {e}")
+        raise HTTPException(status_code=500, detail=f"Feedback submission failed: {str(e)}")
+
+@app.get("/api/beta/signups")
+async def get_beta_signups():
+    """Get beta signups (admin only - implement authentication)"""
+    try:
+        conn = get_db_connection()
+        conn.row_factory = dict_factory
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+        SELECT * FROM beta_signups 
+        ORDER BY created_at DESC
+        ''')
+        
+        signups = cursor.fetchall()
+        
+        # Parse interests JSON
+        for signup in signups:
+            if signup['interests']:
+                try:
+                    signup['interests'] = json.loads(signup['interests'])
+                except:
+                    signup['interests'] = []
+        
+        conn.close()
+        
+        return {
+            "signups": signups,
+            "total": len(signups)
+        }
+        
+    except Exception as e:
+        print(f"Get beta signups error: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get signups: {str(e)}")
+
+@app.get("/api/feedback")
+async def get_feedback():
+    """Get feedback submissions (admin only - implement authentication)"""
+    try:
+        conn = get_db_connection()
+        conn.row_factory = dict_factory
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+        SELECT * FROM feedback 
+        ORDER BY created_at DESC
+        ''')
+        
+        feedback = cursor.fetchall()
+        conn.close()
+        
+        return {
+            "feedback": feedback,
+            "total": len(feedback)
+        }
+        
+    except Exception as e:
+        print(f"Get feedback error: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get feedback: {str(e)}")
+
+# Helper functions for email notifications (implement based on your email service)
+async def send_beta_welcome_email(email: str, name: str):
+    """Send welcome email to beta user"""
+    # Implement with your email service (SendGrid, AWS SES, etc.)
+    pass
+
+async def send_feedback_notification(feedback: Feedback):
+    """Send feedback notification to team"""
+    # Implement to notify your team of new feedback
+    pass
 
 if __name__ == "__main__":
     import uvicorn

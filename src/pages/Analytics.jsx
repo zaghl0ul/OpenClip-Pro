@@ -14,7 +14,7 @@ import {
   RefreshCw,
   ArrowUp,
   ArrowDown,
-  Minus
+  Minus,
 } from 'lucide-react';
 import useProjectStore from '../stores/projectStore';
 
@@ -32,19 +32,23 @@ const Analytics = () => {
       totalClips: projects.reduce((sum, p) => sum + (p.clips?.length || 0), 0),
       totalViews: 0, // Requires backend analytics
       totalWatchTime: 0, // Requires backend analytics
-      avgEngagement: 0 // Requires backend analytics
+      avgEngagement: 0, // Requires backend analytics
     },
     trends: {
       views: { value: 0, change: 0, trend: 'neutral' },
       watchTime: { value: 0, change: 0, trend: 'neutral' },
       engagement: { value: 0, change: 0, trend: 'neutral' },
-      clips: { value: projects.reduce((sum, p) => sum + (p.clips?.length || 0), 0), change: 0, trend: 'neutral' }
+      clips: {
+        value: projects.reduce((sum, p) => sum + (p.clips?.length || 0), 0),
+        change: 0,
+        trend: 'neutral',
+      },
     },
     chartData: {
       views: [],
-      watchTime: []
+      watchTime: [],
     },
-    topPerformers: []
+    topPerformers: [],
   };
 
   const formatNumber = (num) => {
@@ -64,24 +68,30 @@ const Analytics = () => {
 
   const getTrendIcon = (trend) => {
     switch (trend) {
-      case 'up': return <ArrowUp className="w-4 h-4 text-green-500" />;
-      case 'down': return <ArrowDown className="w-4 h-4 text-red-500" />;
-      default: return <Minus className="w-4 h-4 text-gray-500" />;
+      case 'up':
+        return <ArrowUp className="w-4 h-4 text-green-500" />;
+      case 'down':
+        return <ArrowDown className="w-4 h-4 text-red-500" />;
+      default:
+        return <Minus className="w-4 h-4 text-gray-500" />;
     }
   };
 
   const getTrendColor = (trend) => {
     switch (trend) {
-      case 'up': return 'text-green-500';
-      case 'down': return 'text-red-500';
-      default: return 'text-gray-500';
+      case 'up':
+        return 'text-green-500';
+      case 'down':
+        return 'text-red-500';
+      default:
+        return 'text-gray-500';
     }
   };
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
     // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     setIsRefreshing(false);
   };
 
@@ -98,11 +108,12 @@ const Analytics = () => {
         <div className="flex items-center gap-1">
           {getTrendIcon(trend)}
           <span className={`text-sm font-medium ${getTrendColor(trend)}`}>
-            {change > 0 ? '+' : ''}{change}%
+            {change > 0 ? '+' : ''}
+            {change}%
           </span>
         </div>
       </div>
-      
+
       <div>
         <h3 className="text-2xl font-bold text-white mb-1">
           {format === 'duration' ? formatDuration(value) : formatNumber(value)}
@@ -113,8 +124,8 @@ const Analytics = () => {
   );
 
   const SimpleChart = ({ data, color = 'blue' }) => {
-    const maxValue = Math.max(...data.map(d => d.value));
-    
+    const maxValue = Math.max(...data.map((d) => d.value));
+
     return (
       <div className="flex items-end gap-1 h-20">
         {data.map((point, index) => (
@@ -146,14 +157,12 @@ const Analytics = () => {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              Analytics
-            </h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Analytics</h1>
             <p className="text-gray-600 dark:text-gray-400">
               Track performance and insights for your video content
             </p>
           </div>
-          
+
           <div className="flex items-center gap-4">
             <select
               value={timeRange}
@@ -165,7 +174,7 @@ const Analytics = () => {
               <option value="30d">Last 30 days</option>
               <option value="90d">Last 90 days</option>
             </select>
-            
+
             <button
               onClick={handleRefresh}
               disabled={isRefreshing}
@@ -176,7 +185,7 @@ const Analytics = () => {
             </button>
           </div>
         </div>
-        
+
         {/* Overview Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <MetricCard
@@ -209,7 +218,7 @@ const Analytics = () => {
             icon={Video}
           />
         </div>
-        
+
         {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Views Chart */}
@@ -229,7 +238,7 @@ const Analytics = () => {
             </div>
             <SimpleChart data={analyticsData.chartData.views} color="blue" />
           </motion.div>
-          
+
           {/* Watch Time Chart */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -238,9 +247,7 @@ const Analytics = () => {
             className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6"
           >
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Watch Time
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Watch Time</h3>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                 <span className="text-sm text-gray-600 dark:text-gray-400">Minutes</span>
@@ -249,7 +256,7 @@ const Analytics = () => {
             <SimpleChart data={analyticsData.chartData.watchTime} color="green" />
           </motion.div>
         </div>
-        
+
         {/* Top Performers */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -260,7 +267,7 @@ const Analytics = () => {
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
             Top Performing Content
           </h3>
-          
+
           <div className="space-y-4">
             {analyticsData.topPerformers.map((item, index) => (
               <div
@@ -273,11 +280,9 @@ const Analytics = () => {
                       {index + 1}
                     </span>
                   </div>
-                  
+
                   <div>
-                    <h4 className="font-medium text-gray-900 dark:text-white">
-                      {item.name}
-                    </h4>
+                    <h4 className="font-medium text-gray-900 dark:text-white">{item.name}</h4>
                     <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
                       <span className="flex items-center gap-1">
                         <Eye className="w-3 h-3" />
@@ -287,17 +292,19 @@ const Analytics = () => {
                         <TrendingUp className="w-3 h-3" />
                         {item.engagement}% engagement
                       </span>
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${
-                        item.type === 'video' 
-                          ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                          : 'bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400'
-                      }`}>
+                      <span
+                        className={`px-2 py-1 rounded text-xs font-medium ${
+                          item.type === 'video'
+                            ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                            : 'bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400'
+                        }`}
+                      >
                         {item.type}
                       </span>
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-2">
                   <button className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-600 rounded transition-colors">
                     <Share2 className="w-4 h-4" />
@@ -310,7 +317,7 @@ const Analytics = () => {
             ))}
           </div>
         </motion.div>
-        
+
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <motion.div
@@ -327,7 +334,7 @@ const Analytics = () => {
             </h3>
             <p className="text-gray-600 dark:text-gray-400">Total Projects</p>
           </motion.div>
-          
+
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -342,7 +349,7 @@ const Analytics = () => {
             </h3>
             <p className="text-gray-600 dark:text-gray-400">Total Videos</p>
           </motion.div>
-          
+
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

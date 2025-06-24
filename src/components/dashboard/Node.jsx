@@ -9,18 +9,18 @@ const nodeStyles = {
   stat: {
     glow: '#4287f5',
     glass: 'from-blue-500/40 to-blue-700/40',
-    border: 'border-blue-400/50'
+    border: 'border-blue-400/50',
   },
   project: {
     glow: '#10b981',
     glass: 'from-green-500/40 to-green-700/40',
-    border: 'border-green-400/50'
+    border: 'border-green-400/50',
   },
   action: {
     glow: '#06b6d4',
     glass: 'from-cyan-500/40 to-cyan-700/40',
-    border: 'border-cyan-400/50'
-  }
+    border: 'border-cyan-400/50',
+  },
 };
 
 const icons = {
@@ -42,7 +42,7 @@ const Node = ({ node, pos }) => {
 
   // Node style based on type
   const style = nodeStyles[node.type] || nodeStyles.project;
-  
+
   // Icon
   let Icon = icons[node.type] || FolderOpen;
   if (node.label?.toLowerCase().includes('settings')) Icon = Settings;
@@ -69,9 +69,9 @@ const Node = ({ node, pos }) => {
   };
 
   // Get display text for tooltip
-  let title = node.label || '';
+  const title = node.label || '';
   let subtitle = '';
-  
+
   if (node.type === 'stat') {
     subtitle = String(node.value);
   } else if (node.type === 'project' && node.project) {
@@ -93,14 +93,14 @@ const Node = ({ node, pos }) => {
           node.type === 'action'
             ? node.onClick
             : node.type === 'project'
-            ? () => (window.location.href = `/projects/${node.project.id}`)
-            : undefined
+              ? () => (window.location.href = `/projects/${node.project.id}`)
+              : undefined
         }
         transition={{ type: 'spring', stiffness: 200, damping: 20 }}
       >
         {/* Glass Circle - Outer Layer with Border */}
         <div className={`absolute w-full h-full rounded-full bg-gray-900/40 shadow-lg`} />
-        
+
         {/* Inner Glow - More Prominent */}
         <motion.div
           className="absolute rounded-full"
@@ -112,7 +112,7 @@ const Node = ({ node, pos }) => {
           }}
           animate={glowControls}
         />
-        
+
         {/* Glass Circle - Inner Layer with Gradient */}
         <motion.div
           className={`absolute w-[97%] h-[97%] rounded-full bg-gradient-to-br ${style.glass} flex items-center justify-center shadow-inner border ${style.border}`}
@@ -138,7 +138,7 @@ const Node = ({ node, pos }) => {
             className="absolute rounded-lg bg-gray-900/90 shadow-xl border border-white/20 px-4 py-2 z-50 pointer-events-none"
             style={{
               left: pos?.x,
-              top: pos?.y + size/2 + 15,
+              top: pos?.y + size / 2 + 15,
               transform: 'translateX(-50%)',
               maxWidth: 220,
               backdropFilter: 'blur(8px)',
@@ -150,7 +150,7 @@ const Node = ({ node, pos }) => {
             <div className="text-center">
               <div className="font-bold text-white">{title}</div>
               {subtitle && <div className="text-sm text-gray-300 mt-1">{subtitle}</div>}
-              
+
               {/* Show action buttons for projects */}
               {node.type === 'project' && (
                 <div className="flex gap-2 mt-2 justify-center">
@@ -166,7 +166,7 @@ const Node = ({ node, pos }) => {
                 </div>
               )}
             </div>
-            
+
             {/* Tooltip Arrow */}
             <div
               className="absolute w-3 h-3 bg-gray-900/90 border-t border-l border-white/20 transform rotate-45"
@@ -183,4 +183,4 @@ const Node = ({ node, pos }) => {
   );
 };
 
-export default Node; 
+export default Node;

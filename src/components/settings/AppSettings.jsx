@@ -1,7 +1,7 @@
-import React, { useState } from 'react'
-import { useSettingsStore } from '../../stores/settingsStore'
-import ThemeSelector from '../Common/ThemeSelector'
-import { Moon, Sun, Monitor, Palette, Eye } from 'lucide-react'
+import React, { useState } from 'react';
+import { useSettingsStore } from '../../stores/settingsStore';
+import ThemeSelector from '../Common/ThemeSelector';
+import { Moon, Sun, Monitor, Palette, Eye } from 'lucide-react';
 
 const AppSettings = () => {
   const {
@@ -10,17 +10,17 @@ const AppSettings = () => {
     performance,
     updatePerformanceSetting,
     export: exportSettings,
-    updateExportSetting
-  } = useSettingsStore()
-  const [showGlassDemo, setShowGlassDemo] = useState(false)
-  
+    updateExportSetting,
+  } = useSettingsStore();
+  const [showGlassDemo, setShowGlassDemo] = useState(false);
+
   return (
     <div className="space-y-6">
       {/* Theme Selection */}
       <div className="card p-6">
         <ThemeSelector />
       </div>
-      
+
       {/* Glass Effects Demo */}
       <div className="glass-panel p-4 rounded-lg">
         <div className="flex items-center justify-between">
@@ -29,15 +29,13 @@ const AppSettings = () => {
               <Palette className="w-4 h-4 text-primary" />
               Glass Effects Showcase
             </h4>
-            <p className="text-sm text-subtle mt-1">
-              Explore all available glass effect styles
-            </p>
+            <p className="text-sm text-subtle mt-1">Explore all available glass effect styles</p>
           </div>
           <button
             onClick={() => {
               // Remove the 'seen' flag and reload to show the demo
-              localStorage.removeItem('glass-effect-demo-seen')
-              window.location.reload()
+              localStorage.removeItem('glass-effect-demo-seen');
+              window.location.reload();
             }}
             className="btn btn-primary flex items-center gap-2"
           >
@@ -46,7 +44,7 @@ const AppSettings = () => {
           </button>
         </div>
       </div>
-      
+
       {/* Performance Mode */}
       <div className="glass-panel p-4 rounded-lg">
         <div className="flex items-center justify-between">
@@ -67,17 +65,13 @@ const AppSettings = () => {
           </label>
         </div>
       </div>
-      
+
       {/* Application Preferences */}
       <div className="card p-6">
-        <h3 className="text-lg font-semibold text-gray-100 mb-4">
-          Application Preferences
-        </h3>
+        <h3 className="text-lg font-semibold text-gray-100 mb-4">Application Preferences</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Language
-            </label>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Language</label>
             <select
               value={app?.language || 'en'}
               onChange={(e) => updateAppSetting('language', e.target.value)}
@@ -89,7 +83,7 @@ const AppSettings = () => {
               <option value="de">Deutsch</option>
             </select>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
               Auto Save Interval (seconds)
@@ -103,7 +97,7 @@ const AppSettings = () => {
               max="300"
             />
           </div>
-          
+
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-gray-300">Auto Save</span>
             <input
@@ -113,7 +107,7 @@ const AppSettings = () => {
               className="rounded"
             />
           </div>
-          
+
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-gray-300">Enable Notifications</span>
             <input
@@ -125,17 +119,13 @@ const AppSettings = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Export Settings */}
       <div className="card p-6">
-        <h3 className="text-lg font-semibold text-gray-100 mb-4">
-          Export Preferences
-        </h3>
+        <h3 className="text-lg font-semibold text-gray-100 mb-4">Export Preferences</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Default Format
-            </label>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Default Format</label>
             <select
               value={exportSettings?.defaultFormat || 'mp4'}
               onChange={(e) => updateExportSetting('defaultFormat', e.target.value)}
@@ -147,11 +137,9 @@ const AppSettings = () => {
               <option value="webm">WebM</option>
             </select>
           </div>
-          
+
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Default Quality
-            </label>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Default Quality</label>
             <select
               value={exportSettings?.defaultQuality || '1080p'}
               onChange={(e) => updateExportSetting('defaultQuality', e.target.value)}
@@ -163,7 +151,7 @@ const AppSettings = () => {
               <option value="4k">4K</option>
             </select>
           </div>
-          
+
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-gray-300">Include Watermark</span>
             <input
@@ -173,7 +161,7 @@ const AppSettings = () => {
               className="rounded"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
               Default Frame Rate
@@ -191,7 +179,7 @@ const AppSettings = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default AppSettings
+export default AppSettings;

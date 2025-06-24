@@ -1,6 +1,6 @@
-import React from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { LoaderIcon, SparklesIcon } from 'lucide-react'
+import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { LoaderIcon, SparklesIcon } from 'lucide-react';
 
 const ProcessingOverlay = ({ isVisible, progress = 0, status = 'Processing...' }) => {
   return (
@@ -39,12 +39,8 @@ const ProcessingOverlay = ({ isVisible, progress = 0, status = 'Processing...' }
 
               {/* Status Text */}
               <div>
-                <h3 className="text-xl font-bold text-gray-100 mb-2">
-                  AI Analysis in Progress
-                </h3>
-                <p className="text-gray-400">
-                  {status}
-                </p>
+                <h3 className="text-xl font-bold text-gray-100 mb-2">AI Analysis in Progress</h3>
+                <p className="text-gray-400">{status}</p>
               </div>
 
               {/* Progress Bar */}
@@ -65,48 +61,98 @@ const ProcessingOverlay = ({ isVisible, progress = 0, status = 'Processing...' }
 
               {/* Processing Steps */}
               <div className="text-left space-y-2">
-                <div className="text-sm font-medium text-gray-300 mb-3">
-                  Processing Steps:
-                </div>
+                <div className="text-sm font-medium text-gray-300 mb-3">Processing Steps:</div>
                 <div className="space-y-2 text-sm">
-                  <div className={`flex items-center gap-2 ${
-                    progress >= 20 ? 'text-green-400' : 'text-gray-400'
-                  }`}>
-                    <div className={`w-2 h-2 rounded-full ${
-                      progress >= 20 ? 'bg-green-400' : 'bg-gray-600'
-                    }`} />
+                  <div
+                    className={`flex items-center gap-2 ${
+                      progress >= 20 ? 'text-green-400' : 'text-gray-400'
+                    }`}
+                  >
+                    <div
+                      className={`w-2 h-2 rounded-full ${
+                        progress >= 20 ? 'bg-green-400' : 'bg-gray-600'
+                      }`}
+                    />
                     Video upload and validation
                   </div>
-                  <div className={`flex items-center gap-2 ${
-                    progress >= 40 ? 'text-green-400' : progress >= 20 ? 'text-blue-400' : 'text-gray-400'
-                  }`}>
-                    <div className={`w-2 h-2 rounded-full ${
-                      progress >= 40 ? 'bg-green-400' : progress >= 20 ? 'bg-blue-400' : 'bg-gray-600'
-                    }`} />
+                  <div
+                    className={`flex items-center gap-2 ${
+                      progress >= 40
+                        ? 'text-green-400'
+                        : progress >= 20
+                          ? 'text-blue-400'
+                          : 'text-gray-400'
+                    }`}
+                  >
+                    <div
+                      className={`w-2 h-2 rounded-full ${
+                        progress >= 40
+                          ? 'bg-green-400'
+                          : progress >= 20
+                            ? 'bg-blue-400'
+                            : 'bg-gray-600'
+                      }`}
+                    />
                     Audio extraction and transcription
                   </div>
-                  <div className={`flex items-center gap-2 ${
-                    progress >= 70 ? 'text-green-400' : progress >= 40 ? 'text-blue-400' : 'text-gray-400'
-                  }`}>
-                    <div className={`w-2 h-2 rounded-full ${
-                      progress >= 70 ? 'bg-green-400' : progress >= 40 ? 'bg-blue-400' : 'bg-gray-600'
-                    }`} />
+                  <div
+                    className={`flex items-center gap-2 ${
+                      progress >= 70
+                        ? 'text-green-400'
+                        : progress >= 40
+                          ? 'text-blue-400'
+                          : 'text-gray-400'
+                    }`}
+                  >
+                    <div
+                      className={`w-2 h-2 rounded-full ${
+                        progress >= 70
+                          ? 'bg-green-400'
+                          : progress >= 40
+                            ? 'bg-blue-400'
+                            : 'bg-gray-600'
+                      }`}
+                    />
                     AI content analysis
                   </div>
-                  <div className={`flex items-center gap-2 ${
-                    progress >= 90 ? 'text-green-400' : progress >= 70 ? 'text-blue-400' : 'text-gray-400'
-                  }`}>
-                    <div className={`w-2 h-2 rounded-full ${
-                      progress >= 90 ? 'bg-green-400' : progress >= 70 ? 'bg-blue-400' : 'bg-gray-600'
-                    }`} />
+                  <div
+                    className={`flex items-center gap-2 ${
+                      progress >= 90
+                        ? 'text-green-400'
+                        : progress >= 70
+                          ? 'text-blue-400'
+                          : 'text-gray-400'
+                    }`}
+                  >
+                    <div
+                      className={`w-2 h-2 rounded-full ${
+                        progress >= 90
+                          ? 'bg-green-400'
+                          : progress >= 70
+                            ? 'bg-blue-400'
+                            : 'bg-gray-600'
+                      }`}
+                    />
                     Clip generation and scoring
                   </div>
-                  <div className={`flex items-center gap-2 ${
-                    progress >= 100 ? 'text-green-400' : progress >= 90 ? 'text-blue-400' : 'text-gray-400'
-                  }`}>
-                    <div className={`w-2 h-2 rounded-full ${
-                      progress >= 100 ? 'bg-green-400' : progress >= 90 ? 'bg-blue-400' : 'bg-gray-600'
-                    }`} />
+                  <div
+                    className={`flex items-center gap-2 ${
+                      progress >= 100
+                        ? 'text-green-400'
+                        : progress >= 90
+                          ? 'text-blue-400'
+                          : 'text-gray-400'
+                    }`}
+                  >
+                    <div
+                      className={`w-2 h-2 rounded-full ${
+                        progress >= 100
+                          ? 'bg-green-400'
+                          : progress >= 90
+                            ? 'bg-blue-400'
+                            : 'bg-gray-600'
+                      }`}
+                    />
                     Finalizing results
                   </div>
                 </div>
@@ -117,10 +163,13 @@ const ProcessingOverlay = ({ isVisible, progress = 0, status = 'Processing...' }
                 <div className="text-sm text-gray-400">
                   <span className="font-medium">Estimated time remaining:</span>
                   <span className="ml-2">
-                    {progress < 20 ? '3-4 minutes' :
-                     progress < 50 ? '2-3 minutes' :
-                     progress < 80 ? '1-2 minutes' :
-                     'Less than 1 minute'}
+                    {progress < 20
+                      ? '3-4 minutes'
+                      : progress < 50
+                        ? '2-3 minutes'
+                        : progress < 80
+                          ? '1-2 minutes'
+                          : 'Less than 1 minute'}
                   </span>
                 </div>
               )}
@@ -130,8 +179,8 @@ const ProcessingOverlay = ({ isVisible, progress = 0, status = 'Processing...' }
                 <div className="text-sm text-blue-400">
                   <div className="font-medium mb-1">💡 Pro Tip:</div>
                   <div className="text-blue-300">
-                    The AI is analyzing your video content to find the most engaging moments. 
-                    This process ensures high-quality clips that match your analysis prompt.
+                    The AI is analyzing your video content to find the most engaging moments. This
+                    process ensures high-quality clips that match your analysis prompt.
                   </div>
                 </div>
               </div>
@@ -140,7 +189,7 @@ const ProcessingOverlay = ({ isVisible, progress = 0, status = 'Processing...' }
         </motion.div>
       )}
     </AnimatePresence>
-  )
-}
+  );
+};
 
-export default ProcessingOverlay
+export default ProcessingOverlay;

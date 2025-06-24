@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import {
   Send,
   Sparkles,
@@ -9,37 +9,42 @@ import {
   Users,
   MessageSquare,
   BarChart3,
-  Brain
-} from 'lucide-react'
+  Brain,
+} from 'lucide-react';
 
 const AnalysisPrompt = ({ onAnalyze, isAnalyzing = false, className = '', initialPrompt = '' }) => {
-  const [prompt, setPrompt] = useState(initialPrompt || '')
-  const [selectedTemplate, setSelectedTemplate] = useState(null)
-  const [selectedProvider, setSelectedProvider] = useState('openai')
+  const [prompt, setPrompt] = useState(initialPrompt || '');
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [selectedProvider, setSelectedProvider] = useState('openai');
 
   useEffect(() => {
     if (initialPrompt && initialPrompt !== prompt) {
-      setPrompt(initialPrompt)
+      setPrompt(initialPrompt);
     }
-  }, [initialPrompt])
+  }, [initialPrompt]);
 
   const aiProviders = [
     {
       id: 'openai',
       name: 'OpenAI GPT-4 Vision',
-      description: 'Best for detailed content analysis'
+      description: 'Best for detailed content analysis',
     },
     {
       id: 'anthropic',
       name: 'Anthropic Claude',
-      description: 'Best for nuanced understanding'
+      description: 'Best for nuanced understanding',
     },
     {
       id: 'gemini',
       name: 'Google Gemini',
-      description: 'Best for visual elements'
-    }
-  ]
+      description: 'Best for visual elements',
+    },
+    {
+      id: 'lmstudio',
+      name: 'LM Studio (Local)',
+      description: 'Privacy-focused local AI models',
+    },
+  ];
 
   const analysisTemplates = [
     {
@@ -47,61 +52,67 @@ const AnalysisPrompt = ({ onAnalyze, isAnalyzing = false, className = '', initia
       title: 'Engagement Analysis',
       description: 'Analyze viewer engagement and retention patterns',
       icon: TrendingUp,
-      prompt: 'Analyze the engagement patterns in this video. Focus on moments where viewers are most engaged, drop-off points, and suggest improvements for better retention.'
+      prompt:
+        'Analyze the engagement patterns in this video. Focus on moments where viewers are most engaged, drop-off points, and suggest improvements for better retention.',
     },
     {
       id: 'content',
       title: 'Content Quality',
       description: 'Evaluate content structure and delivery',
       icon: Target,
-      prompt: 'Evaluate the content quality of this video. Analyze the structure, pacing, clarity of message, and provide suggestions for improvement.'
+      prompt:
+        'Evaluate the content quality of this video. Analyze the structure, pacing, clarity of message, and provide suggestions for improvement.',
     },
     {
       id: 'audience',
       title: 'Audience Insights',
       description: 'Understand your target audience better',
       icon: Users,
-      prompt: 'Provide insights about the target audience for this video. Analyze who would be most interested in this content and suggest ways to better reach them.'
+      prompt:
+        'Provide insights about the target audience for this video. Analyze who would be most interested in this content and suggest ways to better reach them.',
     },
     {
       id: 'performance',
       title: 'Performance Metrics',
       description: 'Comprehensive performance analysis',
       icon: BarChart3,
-      prompt: 'Analyze the overall performance of this video. Include metrics interpretation, comparison with similar content, and actionable recommendations.'
+      prompt:
+        'Analyze the overall performance of this video. Include metrics interpretation, comparison with similar content, and actionable recommendations.',
     },
     {
       id: 'storytelling',
       title: 'Storytelling Analysis',
       description: 'Evaluate narrative structure and flow',
       icon: MessageSquare,
-      prompt: 'Analyze the storytelling elements in this video. Evaluate the narrative structure, emotional arc, and suggest improvements for better storytelling.'
+      prompt:
+        'Analyze the storytelling elements in this video. Evaluate the narrative structure, emotional arc, and suggest improvements for better storytelling.',
     },
     {
       id: 'timing',
       title: 'Timing & Pacing',
       description: 'Optimize video timing and pacing',
       icon: Clock,
-      prompt: 'Analyze the timing and pacing of this video. Identify segments that are too fast or slow, and suggest optimal pacing for better viewer experience.'
-    }
-  ]
+      prompt:
+        'Analyze the timing and pacing of this video. Identify segments that are too fast or slow, and suggest optimal pacing for better viewer experience.',
+    },
+  ];
 
   const handleTemplateSelect = (template) => {
-    setSelectedTemplate(template)
-    setPrompt(template.prompt)
-  }
+    setSelectedTemplate(template);
+    setPrompt(template.prompt);
+  };
 
   const handleSubmit = (e) => {
-    e.preventDefault()
+    e.preventDefault();
     if (prompt.trim() && onAnalyze) {
-      onAnalyze(prompt.trim(), selectedProvider)
+      onAnalyze(prompt.trim(), selectedProvider);
     }
-  }
+  };
 
   const handleCustomPrompt = () => {
-    setSelectedTemplate(null)
-    setPrompt('')
-  }
+    setSelectedTemplate(null);
+    setPrompt('');
+  };
 
   return (
     <div className={`glass-shine rounded-lg p-6 ${className}`}>
@@ -128,9 +139,11 @@ const AnalysisPrompt = ({ onAnalyze, isAnalyzing = false, className = '', initia
               whileTap={{ scale: 0.98 }}
             >
               <div className="flex items-start gap-2">
-                <Brain className={`w-4 h-4 mt-0.5 ${
-                  selectedProvider === provider.id ? 'text-blue-400' : 'text-white/60'
-                }`} />
+                <Brain
+                  className={`w-4 h-4 mt-0.5 ${
+                    selectedProvider === provider.id ? 'text-blue-400' : 'text-white/60'
+                  }`}
+                />
                 <div className="flex-1 min-w-0">
                   <div className="font-medium text-sm">{provider.name}</div>
                   <div className="text-xs opacity-75 mt-1">{provider.description}</div>
@@ -146,7 +159,7 @@ const AnalysisPrompt = ({ onAnalyze, isAnalyzing = false, className = '', initia
         <h4 className="text-sm font-medium text-white/80 mb-3">Quick Analysis Templates</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {analysisTemplates.map((template) => {
-            const IconComponent = template.icon
+            const IconComponent = template.icon;
             return (
               <motion.button
                 key={template.id}
@@ -161,16 +174,18 @@ const AnalysisPrompt = ({ onAnalyze, isAnalyzing = false, className = '', initia
                 whileTap={{ scale: 0.98 }}
               >
                 <div className="flex items-start gap-2">
-                  <IconComponent className={`w-4 h-4 mt-0.5 ${
-                    selectedTemplate?.id === template.id ? 'text-green-400' : 'text-white/60'
-                  }`} />
+                  <IconComponent
+                    className={`w-4 h-4 mt-0.5 ${
+                      selectedTemplate?.id === template.id ? 'text-green-400' : 'text-white/60'
+                    }`}
+                  />
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-sm">{template.title}</div>
                     <div className="text-xs opacity-75 mt-1">{template.description}</div>
                   </div>
                 </div>
               </motion.button>
-            )
+            );
           })}
         </div>
       </div>
@@ -192,7 +207,7 @@ const AnalysisPrompt = ({ onAnalyze, isAnalyzing = false, className = '', initia
               </button>
             )}
           </div>
-          
+
           <textarea
             id="analysis-prompt"
             value={prompt}
@@ -215,9 +230,7 @@ const AnalysisPrompt = ({ onAnalyze, isAnalyzing = false, className = '', initia
                 <div className="text-sm font-medium text-green-300">
                   Using template: {selectedTemplate.title}
                 </div>
-                <div className="text-xs text-green-400/80 mt-1">
-                  {selectedTemplate.description}
-                </div>
+                <div className="text-xs text-green-400/80 mt-1">{selectedTemplate.description}</div>
               </div>
             </div>
           </motion.div>
@@ -225,9 +238,12 @@ const AnalysisPrompt = ({ onAnalyze, isAnalyzing = false, className = '', initia
 
         <div className="flex items-center justify-between">
           <div className="text-xs text-white/50">
-            Using: <span className="text-blue-400">{aiProviders.find(p => p.id === selectedProvider)?.name}</span>
+            Using:{' '}
+            <span className="text-blue-400">
+              {aiProviders.find((p) => p.id === selectedProvider)?.name}
+            </span>
           </div>
-          
+
           <motion.button
             type="submit"
             disabled={!prompt.trim() || isAnalyzing}
@@ -262,7 +278,7 @@ const AnalysisPrompt = ({ onAnalyze, isAnalyzing = false, className = '', initia
         </ul>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default AnalysisPrompt
+export default AnalysisPrompt;

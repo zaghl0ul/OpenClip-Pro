@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
   Video,
   Upload,
@@ -17,99 +17,101 @@ import {
   BarChart3,
   Calendar,
   AlertCircle,
-  Loader
-} from 'lucide-react'
-import useProjectStore from '../stores/projectStore'
-import authService from '../services/authService'
-import toast from 'react-hot-toast'
+  Loader,
+} from 'lucide-react';
+import useProjectStore from '../stores/projectStore';
+import authService from '../services/authService';
+import toast from 'react-hot-toast';
 
 const Dashboard = () => {
-  const navigate = useNavigate()
-  const { projects, getProjectStats, loadProjects, isLoading, error } = useProjectStore()
-  const [timeGreeting, setTimeGreeting] = useState('')
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [authLoading, setAuthLoading] = useState(true)
-  const [dashboardLoading, setDashboardLoading] = useState(true)
-  
-  const stats = getProjectStats ? getProjectStats() : {
-    totalProjects: 0,
-    totalClips: 0,
-    completedProjects: 0,
-    processingProjects: 0
-  }
-  
+  const navigate = useNavigate();
+  const { projects, getProjectStats, loadProjects, isLoading, error } = useProjectStore();
+  const [timeGreeting, setTimeGreeting] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [dashboardLoading, setDashboardLoading] = useState(true);
+
+  const stats = getProjectStats
+    ? getProjectStats()
+    : {
+        totalProjects: 0,
+        totalClips: 0,
+        completedProjects: 0,
+        processingProjects: 0,
+      };
+
   useEffect(() => {
-    const hour = new Date().getHours()
-    if (hour < 12) setTimeGreeting('Good morning')
-    else if (hour < 18) setTimeGreeting('Good afternoon')
-    else setTimeGreeting('Good evening')
-  }, [])
+    const hour = new Date().getHours();
+    if (hour < 12) setTimeGreeting('Good morning');
+    else if (hour < 18) setTimeGreeting('Good afternoon');
+    else setTimeGreeting('Good evening');
+  }, []);
 
   // Proper authentication check
   useEffect(() => {
     let isMounted = true;
-    
+
     const checkAuthentication = async () => {
       try {
-        const isAuth = authService.isAuthenticated()
-        
+        const isAuth = authService.isAuthenticated();
+
         if (isMounted) {
-          setIsAuthenticated(isAuth)
-          
+          setIsAuthenticated(isAuth);
+
           if (!isAuth) {
-            toast.error('Please log in to access the dashboard')
-            navigate('/login')
+            toast.error('Please log in to access the dashboard');
+            navigate('/login');
           }
         }
       } catch (error) {
-        console.error('Authentication check failed:', error)
+        console.error('Authentication check failed:', error);
         if (isMounted) {
-          setIsAuthenticated(false)
-          toast.error('Authentication error. Please try logging in again.')
-          navigate('/login')
+          setIsAuthenticated(false);
+          toast.error('Authentication error. Please try logging in again.');
+          navigate('/login');
         }
       } finally {
         if (isMounted) {
-          setAuthLoading(false)
+          setAuthLoading(false);
         }
       }
-    }
-    
-    checkAuthentication()
-    
+    };
+
+    checkAuthentication();
+
     return () => {
       isMounted = false;
     };
-  }, [navigate])
+  }, [navigate]);
 
   // Load dashboard data
   useEffect(() => {
     let isMounted = true;
-    
+
     const loadDashboardData = async () => {
       if (!isAuthenticated) return;
-      
+
       try {
-        setDashboardLoading(true)
-        await loadProjects()
+        setDashboardLoading(true);
+        await loadProjects();
       } catch (error) {
-        console.error('Failed to load dashboard data:', error)
+        console.error('Failed to load dashboard data:', error);
         if (isMounted) {
-          toast.error('Failed to load dashboard data. Please refresh the page.')
+          toast.error('Failed to load dashboard data. Please refresh the page.');
         }
       } finally {
         if (isMounted) {
-          setDashboardLoading(false)
+          setDashboardLoading(false);
         }
       }
-    }
-    
-    loadDashboardData()
-    
+    };
+
+    loadDashboardData();
+
     return () => {
       isMounted = false;
     };
-  }, [isAuthenticated, loadProjects])
+  }, [isAuthenticated, loadProjects]);
 
   // Show loading state during authentication
   if (authLoading) {
@@ -120,7 +122,7 @@ const Dashboard = () => {
           <p className="text-gray-400">Checking authentication...</p>
         </div>
       </div>
-    )
+    );
   }
 
   // Show error state if not authenticated
@@ -131,15 +133,12 @@ const Dashboard = () => {
           <AlertCircle className="w-12 h-12 text-error mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-white mb-2">Authentication Required</h2>
           <p className="text-gray-400 mb-4">Please log in to access the dashboard</p>
-          <button
-            onClick={() => navigate('/login')}
-            className="btn btn-primary"
-          >
+          <button onClick={() => navigate('/login')} className="btn btn-primary">
             Go to Login
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   // Show loading state for dashboard data
@@ -152,7 +151,7 @@ const Dashboard = () => {
             <div className="h-8 bg-gray-700 rounded w-64 mb-2 animate-pulse"></div>
             <div className="h-6 bg-gray-800 rounded w-96 animate-pulse"></div>
           </div>
-          
+
           {/* Stats skeleton */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {[...Array(4)].map((_, i) => (
@@ -162,7 +161,7 @@ const Dashboard = () => {
               </div>
             ))}
           </div>
-          
+
           {/* Content skeleton */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="glass-card p-6">
@@ -184,7 +183,7 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   // Show error state
@@ -195,15 +194,12 @@ const Dashboard = () => {
           <AlertCircle className="w-12 h-12 text-error mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-white mb-2">Error Loading Dashboard</h2>
           <p className="text-gray-400 mb-4">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="btn btn-primary"
-          >
+          <button onClick={() => window.location.reload()} className="btn btn-primary">
             Retry
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   const quickActions = [
@@ -212,44 +208,36 @@ const Dashboard = () => {
       label: 'Upload Video',
       description: 'Start a new project',
       action: () => navigate('/projects?create=true'),
-      color: 'from-blue-500 to-blue-600'
+      color: 'from-blue-500 to-blue-600',
     },
     {
       icon: Brain,
       label: 'AI Analysis',
       description: 'Analyze existing videos',
       action: () => navigate('/projects?filter=unanalyzed'),
-      color: 'from-purple-500 to-purple-600'
+      color: 'from-purple-500 to-purple-600',
     },
     {
       icon: Target,
       label: 'Create Clips',
       description: 'Generate viral clips',
       action: () => navigate('/clips'),
-      color: 'from-green-500 to-green-600'
-    }
-  ]
+      color: 'from-green-500 to-green-600',
+    },
+  ];
 
   const recentProjects = projects
-    .filter(p => p.updated_at)
+    .filter((p) => p.updated_at)
     .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
-    .slice(0, 5)
+    .slice(0, 5);
 
   return (
     <div className="min-h-screen p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <h1 className="text-3xl font-bold text-white mb-2">
-            {timeGreeting}! 👋
-          </h1>
-          <p className="text-gray-400">
-            Ready to create some viral content today?
-          </p>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
+          <h1 className="text-3xl font-bold text-white mb-2">{timeGreeting}! 👋</h1>
+          <p className="text-gray-400">Ready to create some viral content today?</p>
         </motion.div>
 
         {/* Stats Grid */}
@@ -321,7 +309,9 @@ const Dashboard = () => {
                   whileTap={{ scale: 0.98 }}
                   className="w-full p-4 rounded-lg bg-gradient-to-r hover:shadow-lg transition-all duration-200 text-left group"
                   style={{
-                    background: action.color ? `linear-gradient(135deg, ${action.color.split(' ')[0]?.replace('from-', '') || 'blue-500'}20, ${action.color.split(' ')[2]?.replace('to-', '') || 'blue-600'}20)` : 'rgba(59, 130, 246, 0.2)'
+                    background: action.color
+                      ? `linear-gradient(135deg, ${action.color.split(' ')[0]?.replace('from-', '') || 'blue-500'}20, ${action.color.split(' ')[2]?.replace('to-', '') || 'blue-600'}20)`
+                      : 'rgba(59, 130, 246, 0.2)',
                   }}
                 >
                   <div className="flex items-center gap-3">
@@ -385,7 +375,7 @@ const Dashboard = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Dashboard
+export default Dashboard;

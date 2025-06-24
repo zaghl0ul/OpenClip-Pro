@@ -1,18 +1,13 @@
-import React from 'react'
-import { useSettingsStore } from '../../stores/settingsStore'
+import React from 'react';
+import { useSettingsStore } from '../../stores/settingsStore';
 
 const PerformanceSettings = () => {
-  const {
-    performance,
-    updatePerformanceSetting
-  } = useSettingsStore()
-  
+  const { performance, updatePerformanceSetting } = useSettingsStore();
+
   return (
     <div className="space-y-6">
       <div className="card p-6">
-        <h3 className="text-lg font-semibold text-gray-100 mb-4">
-          Performance Settings
-        </h3>
+        <h3 className="text-lg font-semibold text-gray-100 mb-4">Performance Settings</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -28,7 +23,7 @@ const PerformanceSettings = () => {
               <option value="high">High (Better Quality)</option>
             </select>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
               Concurrent Processing
@@ -36,13 +31,15 @@ const PerformanceSettings = () => {
             <input
               type="number"
               value={performance?.maxConcurrentJobs || 2}
-              onChange={(e) => updatePerformanceSetting('maxConcurrentJobs', parseInt(e.target.value))}
+              onChange={(e) =>
+                updatePerformanceSetting('maxConcurrentJobs', parseInt(e.target.value))
+              }
               className="input"
               min="1"
               max="8"
             />
           </div>
-          
+
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-gray-300">Hardware Acceleration</span>
             <input
@@ -52,7 +49,7 @@ const PerformanceSettings = () => {
               className="rounded"
             />
           </div>
-          
+
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-gray-300">Cache Previews</span>
             <input
@@ -64,16 +61,12 @@ const PerformanceSettings = () => {
           </div>
         </div>
       </div>
-      
+
       <div className="card p-6">
-        <h3 className="text-lg font-semibold text-gray-100 mb-4">
-          Memory Management
-        </h3>
+        <h3 className="text-lg font-semibold text-gray-100 mb-4">Memory Management</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Cache Size (MB)
-            </label>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Cache Size (MB)</label>
             <input
               type="number"
               value={performance?.cacheSize || 512}
@@ -84,7 +77,7 @@ const PerformanceSettings = () => {
               step="128"
             />
           </div>
-          
+
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-gray-300">Auto Clear Cache</span>
             <input
@@ -97,7 +90,7 @@ const PerformanceSettings = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default PerformanceSettings
+export default PerformanceSettings;

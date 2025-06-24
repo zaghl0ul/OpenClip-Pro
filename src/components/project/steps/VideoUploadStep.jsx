@@ -1,35 +1,35 @@
-import React from 'react'
-import { motion } from 'framer-motion'
-import { Upload as UploadIcon, FileText as FileTextIcon, CheckCircle } from 'lucide-react'
+import React from 'react';
+import { motion } from 'framer-motion';
+import { Upload as UploadIcon, FileText as FileTextIcon, CheckCircle } from 'lucide-react';
 
-const VideoUploadStep = ({ 
-  selectedFile, 
-  handleFileSelect, 
-  dragActive, 
-  handleDrag, 
-  handleDrop, 
+const VideoUploadStep = ({
+  selectedFile,
+  handleFileSelect,
+  dragActive,
+  handleDrag,
+  handleDrop,
   fileInputRef,
   error,
   uploadProgress = 0,
-  isUploading = false
+  isUploading = false,
 }) => {
   const stepVariants = {
     hidden: { opacity: 0, x: 20 },
     visible: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: -20 }
-  }
+    exit: { opacity: 0, x: -20 },
+  };
 
   // Ensure we're handling file selection correctly
   const onFileChange = (e) => {
     if (e.target.files?.[0]) {
       // Pass the actual File object, not an array
       handleFileSelect(e.target.files[0]);
-      
+
       // Log file details for debugging
       console.log('File selected:', {
         name: e.target.files[0].name,
         type: e.target.files[0].type,
-        size: e.target.files[0].size
+        size: e.target.files[0].size,
       });
     }
   };
@@ -43,14 +43,10 @@ const VideoUploadStep = ({
       className="space-y-6"
     >
       <div>
-        <h3 className="text-lg font-semibold text-gray-100 mb-2">
-          Upload Video
-        </h3>
-        <p className="text-gray-400">
-          Select a video file from your device
-        </p>
+        <h3 className="text-lg font-semibold text-gray-100 mb-2">Upload Video</h3>
+        <p className="text-gray-400">Select a video file from your device</p>
       </div>
-      
+
       {selectedFile ? (
         <div className="p-6 border border-gray-700 bg-gray-800/50 rounded-lg">
           <div className="flex items-center gap-4">
@@ -68,7 +64,7 @@ const VideoUploadStep = ({
               <p className="text-sm text-gray-400">
                 {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
               </p>
-              
+
               {/* Upload Progress */}
               {isUploading && (
                 <div className="mt-2">
@@ -79,7 +75,7 @@ const VideoUploadStep = ({
                     <span className="text-xs text-gray-400">{uploadProgress}%</span>
                   </div>
                   <div className="w-full bg-gray-700 rounded-full h-1.5">
-                    <motion.div 
+                    <motion.div
                       className="bg-primary-500 h-1.5 rounded-full"
                       initial={{ width: 0 }}
                       animate={{ width: `${uploadProgress}%` }}
@@ -112,14 +108,14 @@ const VideoUploadStep = ({
           onDrop={handleDrop}
         >
           <div className="flex flex-col items-center justify-center gap-4">
-            <div className={`p-4 rounded-full ${
-              dragActive ? 'bg-primary-500/20' : 'bg-gray-700/50'
-            }`}>
-              <UploadIcon className={`w-8 h-8 ${
-                dragActive ? 'text-primary-400' : 'text-gray-400'
-              }`} />
+            <div
+              className={`p-4 rounded-full ${dragActive ? 'bg-primary-500/20' : 'bg-gray-700/50'}`}
+            >
+              <UploadIcon
+                className={`w-8 h-8 ${dragActive ? 'text-primary-400' : 'text-gray-400'}`}
+              />
             </div>
-            
+
             <div>
               <p className="text-gray-300 mb-2">
                 {dragActive ? 'Drop your file here' : 'Drag & drop your video file here'}
@@ -127,7 +123,7 @@ const VideoUploadStep = ({
               <p className="text-gray-500 text-sm mb-4">
                 Supports MP4, MOV, AVI, and other common formats (max 500MB)
               </p>
-              
+
               <button
                 onClick={() => fileInputRef.current?.click()}
                 className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
@@ -145,7 +141,7 @@ const VideoUploadStep = ({
           </div>
         </div>
       )}
-      
+
       {/* Error Display */}
       {error && (
         <div className="p-3 bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg text-sm">
@@ -153,7 +149,7 @@ const VideoUploadStep = ({
         </div>
       )}
     </motion.div>
-  )
-}
+  );
+};
 
-export default VideoUploadStep
+export default VideoUploadStep;

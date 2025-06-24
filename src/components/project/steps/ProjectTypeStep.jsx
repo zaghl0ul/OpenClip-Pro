@@ -1,17 +1,13 @@
-import React from 'react'
-import { motion } from 'framer-motion'
-import {
-  Upload as UploadIcon,
-  Link as LinkIcon,
-  Check as CheckIcon
-} from 'lucide-react'
+import React from 'react';
+import { motion } from 'framer-motion';
+import { Upload as UploadIcon, Link as LinkIcon, Check as CheckIcon } from 'lucide-react';
 
 const ProjectTypeStep = ({ projectType, setProjectType }) => {
   const stepVariants = {
     hidden: { opacity: 0, x: 20 },
     visible: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: -20 }
-  }
+    exit: { opacity: 0, x: -20 },
+  };
 
   return (
     <motion.div
@@ -22,18 +18,14 @@ const ProjectTypeStep = ({ projectType, setProjectType }) => {
       className="space-y-6"
     >
       <div>
-        <h3 className="text-lg font-semibold text-gray-100 mb-2">
-          Choose Project Type
-        </h3>
-        <p className="text-gray-400">
-          How would you like to add your video?
-        </p>
+        <h3 className="text-lg font-semibold text-gray-100 mb-2">Choose Project Type</h3>
+        <p className="text-gray-400">How would you like to add your video?</p>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <button
           onClick={() => {
-            setProjectType('upload')
+            setProjectType('upload');
           }}
           className={`p-6 rounded-lg border-2 transition-all duration-200 text-left ${
             projectType === 'upload'
@@ -42,11 +34,11 @@ const ProjectTypeStep = ({ projectType, setProjectType }) => {
           }`}
         >
           <div className="flex items-center gap-4">
-            <div className={`p-3 rounded-lg ${
-              projectType === 'upload'
-                ? 'bg-primary-500 text-white'
-                : 'bg-gray-700 text-gray-400'
-            }`}>
+            <div
+              className={`p-3 rounded-lg ${
+                projectType === 'upload' ? 'bg-primary-500 text-white' : 'bg-gray-700 text-gray-400'
+              }`}
+            >
               <UploadIcon className="w-6 h-6" />
             </div>
             <div>
@@ -61,10 +53,10 @@ const ProjectTypeStep = ({ projectType, setProjectType }) => {
             </div>
           )}
         </button>
-        
+
         <button
           onClick={() => {
-            setProjectType('youtube')
+            setProjectType('youtube');
           }}
           className={`p-6 rounded-lg border-2 transition-all duration-200 text-left ${
             projectType === 'youtube'
@@ -73,11 +65,13 @@ const ProjectTypeStep = ({ projectType, setProjectType }) => {
           }`}
         >
           <div className="flex items-center gap-4">
-            <div className={`p-3 rounded-lg ${
-              projectType === 'youtube'
-                ? 'bg-primary-500 text-white'
-                : 'bg-gray-700 text-gray-400'
-            }`}>
+            <div
+              className={`p-3 rounded-lg ${
+                projectType === 'youtube'
+                  ? 'bg-primary-500 text-white'
+                  : 'bg-gray-700 text-gray-400'
+              }`}
+            >
               <LinkIcon className="w-6 h-6" />
             </div>
             <div>
@@ -94,7 +88,7 @@ const ProjectTypeStep = ({ projectType, setProjectType }) => {
         </button>
       </div>
     </motion.div>
-  )
-}
+  );
+};
 
-export default ProjectTypeStep
+export default ProjectTypeStep;

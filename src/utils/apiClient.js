@@ -42,7 +42,8 @@ apiClient.interceptors.response.use(
     if (error.response) {
       // Server responded with non-2xx status
       console.error('API Error:', error.response.data);
-      const errorMessage = error.response.data.detail || error.response.data.message || 'API request failed';
+      const errorMessage =
+        error.response.data.detail || error.response.data.message || 'API request failed';
       return Promise.reject(new APIError(errorMessage, error.response.status, error.response));
     } else if (error.request) {
       // Request was made but no response received
@@ -62,7 +63,7 @@ apiClient.getProject = (id) => apiClient.get(`/api/projects/${id}`);
 apiClient.createProject = (data) => {
   if (data instanceof FormData) {
     return apiClient.post('/api/projects', data, {
-      headers: { 'Content-Type': 'multipart/form-data' }
+      headers: { 'Content-Type': 'multipart/form-data' },
     });
   }
   return apiClient.post('/api/projects', data);
@@ -74,7 +75,7 @@ apiClient.deleteProject = (id) => apiClient.delete(`/api/projects/${id}`);
 apiClient.uploadVideo = async (projectId, file, onProgress) => {
   const formData = new FormData();
   formData.append('file', file);
-  
+
   return apiClient.post(`/api/projects/${projectId}/upload`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
     onUploadProgress: (progressEvent) => {
@@ -82,7 +83,7 @@ apiClient.uploadVideo = async (projectId, file, onProgress) => {
         const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
         onProgress(percentCompleted);
       }
-    }
+    },
   });
 };
 
@@ -99,15 +100,17 @@ apiClient.analyzeVideo = (projectId, prompt, provider = 'openai', model = null) 
   return apiClient.post(`/api/projects/${projectId}/analyze`, {
     prompt,
     provider,
-    model
+    model,
   });
 };
 
 // Clip methods
 apiClient.updateClip = (clipId, updates) => apiClient.put(`/api/clips/${clipId}`, updates);
 apiClient.deleteClip = (clipId) => apiClient.delete(`/api/clips/${clipId}`);
-apiClient.exportClips = (projectId, settings) => apiClient.post(`/api/projects/${projectId}/export`, settings);
-apiClient.exportClip = (clipId, settings) => apiClient.post(`/api/clips/${clipId}/export`, settings);
+apiClient.exportClips = (projectId, settings) =>
+  apiClient.post(`/api/projects/${projectId}/export`, settings);
+apiClient.exportClip = (clipId, settings) =>
+  apiClient.post(`/api/clips/${clipId}/export`, settings);
 
 // Search methods
 apiClient.searchProjects = (query, filters = {}) => {
@@ -135,4 +138,4 @@ apiClient.deleteApiKey = (provider) => {
   return apiClient.delete(`/api/settings/api-keys/${provider}`);
 };
 
-export default apiClient; 
+export default apiClient;

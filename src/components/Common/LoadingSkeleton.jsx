@@ -1,12 +1,12 @@
-import React from 'react'
-import { motion } from 'framer-motion'
+import React from 'react';
+import { motion } from 'framer-motion';
 
 // Base skeleton component
 const SkeletonBase = ({ className = '', children, animate = true }) => {
-  const baseClasses = "bg-gray-700 rounded animate-pulse"
-  
+  const baseClasses = 'bg-gray-700 rounded animate-pulse';
+
   if (!animate) {
-    return <div className={`${baseClasses} ${className}`}>{children}</div>
+    return <div className={`${baseClasses} ${className}`}>{children}</div>;
   }
 
   return (
@@ -18,34 +18,31 @@ const SkeletonBase = ({ className = '', children, animate = true }) => {
       transition={{
         duration: 1.5,
         repeat: Infinity,
-        ease: "easeInOut"
+        ease: 'easeInOut',
       }}
     >
       {children}
     </motion.div>
-  )
-}
+  );
+};
 
 // Text skeleton
-export const TextSkeleton = ({ lines = 1, className = "" }) => {
+export const TextSkeleton = ({ lines = 1, className = '' }) => {
   if (lines === 1) {
-    return <SkeletonBase className={`h-4 ${className}`} />
+    return <SkeletonBase className={`h-4 ${className}`} />;
   }
 
   return (
     <div className={`space-y-2 ${className}`}>
       {[...Array(lines)].map((_, i) => (
-        <SkeletonBase 
-          key={i} 
-          className={`h-4 ${i === lines - 1 ? 'w-3/4' : 'w-full'}`} 
-        />
+        <SkeletonBase key={i} className={`h-4 ${i === lines - 1 ? 'w-3/4' : 'w-full'}`} />
       ))}
     </div>
-  )
-}
+  );
+};
 
 // Card skeleton
-export const CardSkeleton = ({ className = "" }) => (
+export const CardSkeleton = ({ className = '' }) => (
   <div className={`glass-card p-6 ${className}`}>
     <div className="space-y-4">
       <SkeletonBase className="h-6 w-3/4" />
@@ -56,14 +53,14 @@ export const CardSkeleton = ({ className = "" }) => (
       </div>
     </div>
   </div>
-)
+);
 
 // Project card skeleton
-export const ProjectCardSkeleton = ({ className = "" }) => (
+export const ProjectCardSkeleton = ({ className = '' }) => (
   <div className={`glass-card overflow-hidden ${className}`}>
     {/* Thumbnail */}
     <SkeletonBase className="h-48 w-full rounded-none" />
-    
+
     {/* Content */}
     <div className="p-4 space-y-3">
       <SkeletonBase className="h-6 w-4/5" />
@@ -74,10 +71,10 @@ export const ProjectCardSkeleton = ({ className = "" }) => (
       </div>
     </div>
   </div>
-)
+);
 
 // Stats card skeleton
-export const StatsCardSkeleton = ({ className = "" }) => (
+export const StatsCardSkeleton = ({ className = '' }) => (
   <div className={`glass-card p-6 ${className}`}>
     <div className="flex items-center justify-between">
       <div className="space-y-2">
@@ -87,13 +84,13 @@ export const StatsCardSkeleton = ({ className = "" }) => (
       <SkeletonBase className="h-8 w-8 rounded-full" />
     </div>
   </div>
-)
+);
 
 // Video player skeleton
-export const VideoPlayerSkeleton = ({ className = "" }) => (
+export const VideoPlayerSkeleton = ({ className = '' }) => (
   <div className={`relative bg-black rounded-lg overflow-hidden ${className}`}>
     <SkeletonBase className="w-full aspect-video rounded-none" />
-    
+
     {/* Controls overlay */}
     <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50">
       <div className="flex items-center space-x-4">
@@ -103,10 +100,10 @@ export const VideoPlayerSkeleton = ({ className = "" }) => (
       </div>
     </div>
   </div>
-)
+);
 
 // Table skeleton
-export const TableSkeleton = ({ rows = 5, columns = 4, className = "" }) => (
+export const TableSkeleton = ({ rows = 5, columns = 4, className = '' }) => (
   <div className={`space-y-4 ${className}`}>
     {/* Header */}
     <div className="flex space-x-4">
@@ -114,7 +111,7 @@ export const TableSkeleton = ({ rows = 5, columns = 4, className = "" }) => (
         <SkeletonBase key={i} className="h-6 flex-1" />
       ))}
     </div>
-    
+
     {/* Rows */}
     {[...Array(rows)].map((_, rowIndex) => (
       <div key={rowIndex} className="flex space-x-4">
@@ -124,10 +121,10 @@ export const TableSkeleton = ({ rows = 5, columns = 4, className = "" }) => (
       </div>
     ))}
   </div>
-)
+);
 
 // List skeleton
-export const ListSkeleton = ({ items = 5, className = "" }) => (
+export const ListSkeleton = ({ items = 5, className = '' }) => (
   <div className={`space-y-3 ${className}`}>
     {[...Array(items)].map((_, i) => (
       <div key={i} className="flex items-center space-x-3">
@@ -140,7 +137,7 @@ export const ListSkeleton = ({ items = 5, className = "" }) => (
       </div>
     ))}
   </div>
-)
+);
 
 // Dashboard skeleton
 export const DashboardSkeleton = () => (
@@ -151,14 +148,14 @@ export const DashboardSkeleton = () => (
         <SkeletonBase className="h-8 w-64 mb-2" />
         <SkeletonBase className="h-6 w-96" />
       </div>
-      
+
       {/* Stats skeleton */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {[...Array(4)].map((_, i) => (
           <StatsCardSkeleton key={i} />
         ))}
       </div>
-      
+
       {/* Content skeleton */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <CardSkeleton />
@@ -166,7 +163,7 @@ export const DashboardSkeleton = () => (
       </div>
     </div>
   </div>
-)
+);
 
 // Projects grid skeleton
 export const ProjectsGridSkeleton = ({ count = 6 }) => (
@@ -175,21 +172,17 @@ export const ProjectsGridSkeleton = ({ count = 6 }) => (
       <ProjectCardSkeleton key={i} />
     ))}
   </div>
-)
+);
 
 // Page skeleton wrapper
 export const PageSkeleton = ({ children, loading = true }) => {
-  if (!loading) return children
-  
-  return (
-    <div className="min-h-screen bg-background">
-      {children}
-    </div>
-  )
-}
+  if (!loading) return children;
+
+  return <div className="min-h-screen bg-background">{children}</div>;
+};
 
 // Form skeleton
-export const FormSkeleton = ({ fields = 3, className = "" }) => (
+export const FormSkeleton = ({ fields = 3, className = '' }) => (
   <div className={`space-y-6 ${className}`}>
     {[...Array(fields)].map((_, i) => (
       <div key={i} className="space-y-2">
@@ -202,10 +195,10 @@ export const FormSkeleton = ({ fields = 3, className = "" }) => (
       <SkeletonBase className="h-10 w-20" />
     </div>
   </div>
-)
+);
 
 // Modal skeleton
-export const ModalSkeleton = ({ className = "" }) => (
+export const ModalSkeleton = ({ className = '' }) => (
   <div className={`fixed inset-0 bg-black/50 flex items-center justify-center p-4 ${className}`}>
     <div className="glass-card p-6 w-full max-w-md">
       <div className="space-y-4">
@@ -214,7 +207,7 @@ export const ModalSkeleton = ({ className = "" }) => (
       </div>
     </div>
   </div>
-)
+);
 
 export default {
   TextSkeleton,
@@ -228,5 +221,5 @@ export default {
   ProjectsGridSkeleton,
   PageSkeleton,
   FormSkeleton,
-  ModalSkeleton
-} 
+  ModalSkeleton,
+};

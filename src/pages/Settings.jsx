@@ -13,7 +13,7 @@ import {
   Eye,
   EyeOff,
   RefreshCw,
-  Bug
+  Bug,
 } from 'lucide-react';
 import { useSettingsStore } from '../stores/settingsStore';
 import TestingPanel from '../components/TestingPanel';
@@ -34,7 +34,7 @@ const Settings = () => {
     setBackendUrl,
     loadProviders,
     testApiConnection,
-    initialize
+    initialize,
   } = useSettingsStore();
 
   const [activeTab, setActiveTab] = useState('api');
@@ -50,9 +50,9 @@ const Settings = () => {
   }, [initialize]);
 
   const toggleApiKeyVisibility = (provider) => {
-    setShowApiKeys(prev => ({
+    setShowApiKeys((prev) => ({
       ...prev,
-      [provider]: !prev[provider]
+      [provider]: !prev[provider],
     }));
   };
 
@@ -64,14 +64,14 @@ const Settings = () => {
     setTestingConnection(provider);
     try {
       const result = await testApiConnection(provider);
-      setTestResults(prev => ({
+      setTestResults((prev) => ({
         ...prev,
-        [provider]: { success: true, message: 'Connection successful!' }
+        [provider]: { success: true, message: 'Connection successful!' },
       }));
     } catch (error) {
-      setTestResults(prev => ({
+      setTestResults((prev) => ({
         ...prev,
-        [provider]: { success: false, message: error.message }
+        [provider]: { success: false, message: error.message },
       }));
     } finally {
       setTestingConnection(null);
@@ -94,7 +94,7 @@ const Settings = () => {
     { id: 'api', label: 'API Keys', icon: Key },
     { id: 'backend', label: 'Backend', icon: Server },
     { id: 'security', label: 'Security', icon: Shield },
-    { id: 'app', label: 'Application', icon: Monitor }
+    { id: 'app', label: 'Application', icon: Monitor },
   ];
 
   const renderApiKeysTab = () => (
@@ -113,28 +113,29 @@ const Settings = () => {
           openai: 'OpenAI',
           anthropic: 'Anthropic',
           google: 'Google',
-          cohere: 'Cohere'
+          cohere: 'Cohere',
         }).map(([provider, label]) => {
           const isVisible = showApiKeys[provider];
           const isConnected = testResults[provider]?.success;
           const isTesting = testingConnection === provider;
-          
+
           return (
-            <div key={provider} className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+            <div
+              key={provider}
+              className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700"
+            >
               <div className="flex items-center justify-between mb-3">
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   {label} API Key
                 </label>
                 <div className="flex items-center gap-2">
-                  {isConnected && (
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                  )}
+                  {isConnected && <CheckCircle className="w-4 h-4 text-green-500" />}
                   {testResults[provider] && !testResults[provider].success && (
                     <AlertCircle className="w-4 h-4 text-red-500" />
                   )}
                 </div>
               </div>
-              
+
               <div className="flex gap-2">
                 <div className="relative flex-1">
                   <input
@@ -152,7 +153,7 @@ const Settings = () => {
                     {isVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
-                
+
                 <button
                   onClick={() => handleTestConnection(provider)}
                   disabled={!apiKeys[provider] || isTesting}
@@ -166,13 +167,15 @@ const Settings = () => {
                   Test
                 </button>
               </div>
-              
+
               {testResults[provider] && (
-                <div className={`mt-2 p-2 rounded text-sm ${
-                  testResults[provider].success 
-                    ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
-                    : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
-                }`}>
+                <div
+                  className={`mt-2 p-2 rounded text-sm ${
+                    testResults[provider].success
+                      ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+                      : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
+                  }`}
+                >
                   {testResults[provider].message}
                 </div>
               )}
@@ -183,11 +186,9 @@ const Settings = () => {
 
       {availableProviders.length > 0 && (
         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-          <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
-            Available Providers
-          </h4>
+          <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">Available Providers</h4>
           <div className="space-y-2">
-            {availableProviders.map(provider => (
+            {availableProviders.map((provider) => (
               <div key={provider.name} className="text-sm text-blue-800 dark:text-blue-200">
                 <span className="font-medium">{provider.name}</span>
                 {provider.models && (
@@ -245,16 +246,22 @@ const Settings = () => {
 
           <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${
-                isBackendConnected ? 'bg-green-500' : 'bg-red-500'
-              }`} />
+              <div
+                className={`w-2 h-2 rounded-full ${
+                  isBackendConnected ? 'bg-green-500' : 'bg-red-500'
+                }`}
+              />
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Connection Status
               </span>
             </div>
-            <span className={`text-sm font-medium ${
-              isBackendConnected ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-            }`}>
+            <span
+              className={`text-sm font-medium ${
+                isBackendConnected
+                  ? 'text-green-600 dark:text-green-400'
+                  : 'text-red-600 dark:text-red-400'
+              }`}
+            >
               {isBackendConnected ? 'Connected' : 'Disconnected'}
             </span>
           </div>
@@ -293,7 +300,9 @@ const Settings = () => {
           <div className="flex items-center justify-between">
             <div>
               <h4 className="font-medium text-gray-900 dark:text-white">Encrypt API Keys</h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Store API keys with encryption</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Store API keys with encryption
+              </p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
@@ -310,8 +319,12 @@ const Settings = () => {
         <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="font-medium text-gray-900 dark:text-white">Auto-clear Sensitive Data</h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Clear sensitive data on app close</p>
+              <h4 className="font-medium text-gray-900 dark:text-white">
+                Auto-clear Sensitive Data
+              </h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Clear sensitive data on app close
+              </p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
@@ -379,7 +392,9 @@ const Settings = () => {
           <div className="flex items-center justify-between">
             <div>
               <h4 className="font-medium text-gray-900 dark:text-white">Auto-save Projects</h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Automatically save project changes</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Automatically save project changes
+              </p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
@@ -397,7 +412,9 @@ const Settings = () => {
           <div className="flex items-center justify-between">
             <div>
               <h4 className="font-medium text-gray-900 dark:text-white">Show Notifications</h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Display system notifications</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Display system notifications
+              </p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
@@ -436,9 +453,7 @@ const Settings = () => {
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <SettingsIcon className="w-8 h-8 text-blue-500" />
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              Settings
-            </h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Settings</h1>
           </div>
           <p className="text-gray-600 dark:text-gray-400">
             Configure your application settings, API keys, and preferences.
@@ -484,10 +499,7 @@ const Settings = () => {
       </div>
 
       {/* Testing Panel */}
-      <TestingPanel
-        isOpen={showTestingPanel}
-        onClose={() => setShowTestingPanel(false)}
-      />
+      <TestingPanel isOpen={showTestingPanel} onClose={() => setShowTestingPanel(false)} />
     </div>
   );
 };

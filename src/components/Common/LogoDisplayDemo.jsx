@@ -11,38 +11,38 @@ const LogoDisplayDemo = () => {
     accentColor: '#10B981',
     particleCount: 240,
     animationSpeed: 0.8,
-    glowIntensity: 1.2
+    glowIntensity: 1.2,
   });
 
   const presets = [
     {
       name: 'Ocean Blue',
-      colors: { primaryColor: '#1E40AF', secondaryColor: '#0EA5E9', accentColor: '#06B6D4' }
+      colors: { primaryColor: '#1E40AF', secondaryColor: '#0EA5E9', accentColor: '#06B6D4' },
     },
     {
       name: 'Neon Pink',
-      colors: { primaryColor: '#EC4899', secondaryColor: '#F97316', accentColor: '#EF4444' }
+      colors: { primaryColor: '#EC4899', secondaryColor: '#F97316', accentColor: '#EF4444' },
     },
     {
       name: 'Forest Green',
-      colors: { primaryColor: '#059669', secondaryColor: '#10B981', accentColor: '#34D399' }
+      colors: { primaryColor: '#059669', secondaryColor: '#10B981', accentColor: '#34D399' },
     },
     {
       name: 'Purple Magic',
-      colors: { primaryColor: '#7C3AED', secondaryColor: '#A855F7', accentColor: '#C084FC' }
+      colors: { primaryColor: '#7C3AED', secondaryColor: '#A855F7', accentColor: '#C084FC' },
     },
     {
       name: 'Solar Orange',
-      colors: { primaryColor: '#EA580C', secondaryColor: '#F97316', accentColor: '#FB923C' }
-    }
+      colors: { primaryColor: '#EA580C', secondaryColor: '#F97316', accentColor: '#FB923C' },
+    },
   ];
 
   const updateConfig = (key, value) => {
-    setConfig(prev => ({ ...prev, [key]: value }));
+    setConfig((prev) => ({ ...prev, [key]: value }));
   };
 
   const applyPreset = (preset) => {
-    setConfig(prev => ({ ...prev, ...preset.colors }));
+    setConfig((prev) => ({ ...prev, ...preset.colors }));
   };
 
   return (
@@ -53,7 +53,8 @@ const LogoDisplayDemo = () => {
             LogoDisplay Customization Demo
           </h1>
           <p className="text-subtle text-lg">
-            Explore all the customization options for the animated OPENCLIP PRO logo with 24 flowing gradient lines and multi-layered 3D depth
+            Explore all the customization options for the animated OPENCLIP PRO logo with 24 flowing
+            gradient lines and multi-layered 3D depth
           </p>
         </div>
 
@@ -64,7 +65,7 @@ const LogoDisplayDemo = () => {
               <div className="flex items-center justify-center">
                 <LogoDisplay {...config} />
               </div>
-              
+
               {/* Size Controls */}
               <div className="mt-6 space-y-4">
                 <h3 className="text-lg font-semibold flex items-center">
@@ -73,7 +74,9 @@ const LogoDisplayDemo = () => {
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Width: {config.width}px</label>
+                    <label className="block text-sm font-medium mb-2">
+                      Width: {config.width}px
+                    </label>
                     <input
                       type="range"
                       min="500"
@@ -84,7 +87,9 @@ const LogoDisplayDemo = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Height: {config.height}px</label>
+                    <label className="block text-sm font-medium mb-2">
+                      Height: {config.height}px
+                    </label>
                     <input
                       type="range"
                       min="400"
@@ -200,7 +205,8 @@ const LogoDisplayDemo = () => {
                     Particle Count: {config.particleCount}
                   </label>
                   <p className="text-xs text-subtle mb-2">
-                    Particles across 5 depth layers: Background, Deep, Middle, Additional & Prominent white
+                    Particles across 5 depth layers: Background, Deep, Middle, Additional &
+                    Prominent white
                   </p>
                   <input
                     type="range"
@@ -237,7 +243,7 @@ const LogoDisplayDemo = () => {
               </h3>
               <div className="bg-black/50 p-4 rounded-lg font-mono text-sm overflow-x-auto">
                 <pre className="text-green-400">
-{`<LogoDisplay
+                  {`<LogoDisplay
   width={${config.width}}
   height={${config.height}}
   primaryColor="${config.primaryColor}"
@@ -275,4 +281,4 @@ const LogoDisplayDemo = () => {
   );
 };
 
-export default LogoDisplayDemo; 
+export default LogoDisplayDemo;

@@ -1,9 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Play, Pause, SkipForward, Eye, Terminal, Code, 
-  Clock, Zap, Activity, CheckCircle, AlertTriangle,
-  Copy, Download, Maximize2
+import {
+  Play,
+  Pause,
+  SkipForward,
+  Eye,
+  Terminal,
+  Code,
+  Clock,
+  Zap,
+  Activity,
+  CheckCircle,
+  AlertTriangle,
+  Copy,
+  Download,
+  Maximize2,
 } from 'lucide-react';
 
 const AnalysisResultsPanel = ({ project, onSeekTo }) => {
@@ -20,11 +31,31 @@ const AnalysisResultsPanel = ({ project, onSeekTo }) => {
     if (hasAnalysis) {
       // Simulate console output for the analysis
       const lines = [
-        { timestamp: new Date().toISOString(), level: 'info', message: 'Analysis completed successfully' },
-        { timestamp: new Date().toISOString(), level: 'success', message: `Found ${clips.length} clips` },
-        { timestamp: new Date().toISOString(), level: 'info', message: `Provider: ${analysisData.provider_used}` },
-        { timestamp: new Date().toISOString(), level: 'info', message: `Frames analyzed: ${analysisData.frames_analyzed}` },
-        { timestamp: new Date().toISOString(), level: 'data', message: 'Raw response available in console' }
+        {
+          timestamp: new Date().toISOString(),
+          level: 'info',
+          message: 'Analysis completed successfully',
+        },
+        {
+          timestamp: new Date().toISOString(),
+          level: 'success',
+          message: `Found ${clips.length} clips`,
+        },
+        {
+          timestamp: new Date().toISOString(),
+          level: 'info',
+          message: `Provider: ${analysisData.provider_used}`,
+        },
+        {
+          timestamp: new Date().toISOString(),
+          level: 'info',
+          message: `Frames analyzed: ${analysisData.frames_analyzed}`,
+        },
+        {
+          timestamp: new Date().toISOString(),
+          level: 'data',
+          message: 'Raw response available in console',
+        },
       ];
       setConsoleLines(lines);
     }
@@ -50,9 +81,7 @@ const AnalysisResultsPanel = ({ project, onSeekTo }) => {
         <div className="text-center py-8">
           <Activity className="w-12 h-12 text-white/40 mx-auto mb-3" />
           <p className="text-white/60">No analysis completed yet</p>
-          <p className="text-white/40 text-sm mt-2">
-            Run AI analysis to see detailed results here
-          </p>
+          <p className="text-white/40 text-sm mt-2">Run AI analysis to see detailed results here</p>
         </div>
       </div>
     );
@@ -95,7 +124,7 @@ const AnalysisResultsPanel = ({ project, onSeekTo }) => {
             </div>
             <p className="text-white font-medium">Completed</p>
           </div>
-          
+
           <div className="glass-shine rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <Play className="w-5 h-5 text-blue-400" />
@@ -103,7 +132,7 @@ const AnalysisResultsPanel = ({ project, onSeekTo }) => {
             </div>
             <p className="text-white font-medium">{clips.length}</p>
           </div>
-          
+
           <div className="glass-shine rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <Eye className="w-5 h-5 text-purple-400" />
@@ -111,7 +140,7 @@ const AnalysisResultsPanel = ({ project, onSeekTo }) => {
             </div>
             <p className="text-white font-medium">{analysisData.frames_analyzed || 0}</p>
           </div>
-          
+
           <div className="glass-shine rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <Zap className="w-5 h-5 text-yellow-400" />
@@ -151,12 +180,17 @@ const AnalysisResultsPanel = ({ project, onSeekTo }) => {
                   <span className="text-white/40 text-xs">
                     {new Date(line.timestamp).toLocaleTimeString()}
                   </span>
-                  <span className={`text-xs px-2 py-0.5 rounded ${
-                    line.level === 'success' ? 'bg-green-500/20 text-green-400' :
-                    line.level === 'error' ? 'bg-red-500/20 text-red-400' :
-                    line.level === 'data' ? 'bg-purple-500/20 text-purple-400' :
-                    'bg-blue-500/20 text-blue-400'
-                  }`}>
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded ${
+                      line.level === 'success'
+                        ? 'bg-green-500/20 text-green-400'
+                        : line.level === 'error'
+                          ? 'bg-red-500/20 text-red-400'
+                          : line.level === 'data'
+                            ? 'bg-purple-500/20 text-purple-400'
+                            : 'bg-blue-500/20 text-blue-400'
+                    }`}
+                  >
                     {line.level.toUpperCase()}
                   </span>
                   <span className="text-white/80">{line.message}</span>
@@ -202,20 +236,24 @@ const AnalysisResultsPanel = ({ project, onSeekTo }) => {
       {/* Clips Grid */}
       <div className="glass-prism rounded-2xl p-6">
         <h3 className="text-lg font-semibold text-white mb-4">Generated Clips</h3>
-        
+
         {clips.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {clips.map((clip, index) => (
-              <motion.div 
+              <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
                 className="glass-shine rounded-lg p-4 hover:bg-white/5 transition-colors group cursor-pointer"
                 onClick={() => {
-                  if (onSeekTo && typeof clip.start_time === 'number' && 
-                      !isNaN(clip.start_time) && isFinite(clip.start_time) && 
-                      clip.start_time >= 0) {
+                  if (
+                    onSeekTo &&
+                    typeof clip.start_time === 'number' &&
+                    !isNaN(clip.start_time) &&
+                    isFinite(clip.start_time) &&
+                    clip.start_time >= 0
+                  ) {
                     onSeekTo(clip.start_time);
                   } else {
                     console.warn('Invalid clip start time:', clip.start_time);
@@ -228,7 +266,7 @@ const AnalysisResultsPanel = ({ project, onSeekTo }) => {
                   </h4>
                   <Play className="w-4 h-4 text-white/60 group-hover:text-cyan-400 transition-colors opacity-0 group-hover:opacity-100" />
                 </div>
-                
+
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-white/60">Time Range</span>
@@ -236,10 +274,12 @@ const AnalysisResultsPanel = ({ project, onSeekTo }) => {
                       {formatTime(clip.start_time)} - {formatTime(clip.end_time)}
                     </span>
                   </div>
-                  
+
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-white/60">Duration</span>
-                    <span className="text-white">{formatTime(clip.end_time - clip.start_time)}</span>
+                    <span className="text-white">
+                      {formatTime(clip.end_time - clip.start_time)}
+                    </span>
                   </div>
 
                   {clip.score && (
@@ -249,7 +289,7 @@ const AnalysisResultsPanel = ({ project, onSeekTo }) => {
                         <span className="text-white">{Math.round(clip.score * 100)}%</span>
                       </div>
                       <div className="w-full bg-white/10 rounded-full h-2">
-                        <div 
+                        <div
                           className="bg-gradient-to-r from-cyan-500 to-blue-500 h-2 rounded-full transition-all duration-500"
                           style={{ width: `${clip.score * 100}%` }}
                         />
@@ -299,4 +339,4 @@ const AnalysisResultsPanel = ({ project, onSeekTo }) => {
   );
 };
 
-export default AnalysisResultsPanel; 
+export default AnalysisResultsPanel;

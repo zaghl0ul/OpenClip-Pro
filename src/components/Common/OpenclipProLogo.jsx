@@ -1,15 +1,28 @@
 import React, { useRef, useEffect, useState } from 'react';
 
 // Utility to generate smooth vortex lines
-function generateVortexPath(cx, cy, rStart, rEnd, angleStart, angleEnd, turns, offset = 0, noise = 0, tAnim = 0) {
+function generateVortexPath(
+  cx,
+  cy,
+  rStart,
+  rEnd,
+  angleStart,
+  angleEnd,
+  turns,
+  offset = 0,
+  noise = 0,
+  tAnim = 0
+) {
   const points = [];
   const steps = 120;
   for (let i = 0; i <= steps; i++) {
     const t = i / steps;
     // Animate the angle and radius for undulation
     const anim = Math.sin(t * Math.PI * 2 + offset + tAnim) * noise * 0.7;
-    const angle = angleStart + (angleEnd - angleStart) * t + turns * 2 * Math.PI * t + offset + anim * 0.04;
-    const radius = rStart + (rEnd - rStart) * t + Math.sin(angle * 2 + offset + tAnim) * noise + anim;
+    const angle =
+      angleStart + (angleEnd - angleStart) * t + turns * 2 * Math.PI * t + offset + anim * 0.04;
+    const radius =
+      rStart + (rEnd - rStart) * t + Math.sin(angle * 2 + offset + tAnim) * noise + anim;
     const x = cx + Math.cos(angle) * radius;
     const y = cy + Math.sin(angle) * radius;
     points.push(`${i === 0 ? 'M' : 'L'}${x},${y}`);
@@ -43,7 +56,7 @@ const OpenclipProLogo = ({
   textColor = '#6ed6ff',
   starColor = '#b3e6ff',
   lineCount = 18,
-  starCount = 60
+  starCount = 60,
 }) => {
   const [tAnim, setTAnim] = useState(0);
   const requestRef = useRef();
@@ -51,7 +64,7 @@ const OpenclipProLogo = ({
   useEffect(() => {
     let running = true;
     const animate = () => {
-      setTAnim(t => t + 0.018);
+      setTAnim((t) => t + 0.018);
       if (running) requestRef.current = requestAnimationFrame(animate);
     };
     requestRef.current = requestAnimationFrame(animate);
@@ -73,7 +86,18 @@ const OpenclipProLogo = ({
     const turns = 1.1 + t * 0.2;
     const offset = t * 1.2;
     const noise = width * 0.01 + t * width * 0.01;
-    return generateVortexPath(cx, cy, rStart, rEnd, angleStart, angleEnd, turns, offset, noise, tAnim * (0.7 + t * 0.5));
+    return generateVortexPath(
+      cx,
+      cy,
+      rStart,
+      rEnd,
+      angleStart,
+      angleEnd,
+      turns,
+      offset,
+      noise,
+      tAnim * (0.7 + t * 0.5)
+    );
   });
   // Animated stars
   const stars = generateStars(cx, cy, width, height, starCount, tAnim);
@@ -89,7 +113,7 @@ const OpenclipProLogo = ({
         background: 'none',
         borderRadius: '16px',
         mixBlendMode: 'screen',
-        filter: 'drop-shadow(0 0 32px #3ec6ff44) drop-shadow(0 0 64px #0a101a88)'
+        filter: 'drop-shadow(0 0 32px #3ec6ff44) drop-shadow(0 0 64px #0a101a88)',
       }}
     >
       {/* Radial gradient for blending */}
@@ -169,4 +193,4 @@ const OpenclipProLogo = ({
   );
 };
 
-export default OpenclipProLogo; 
+export default OpenclipProLogo;

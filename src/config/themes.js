@@ -294,20 +294,20 @@ export const glassPresets = {
 export const applyTheme = (themeName) => {
   const theme = themes[themeName] || themes.dark;
   const root = document.documentElement;
-  
+
   // Apply color variables
   Object.entries(theme.colors).forEach(([key, value]) => {
     root.style.setProperty(`--color-${key}`, value);
   });
-  
+
   // Apply glass effect variables
   Object.entries(theme.glass).forEach(([key, value]) => {
     root.style.setProperty(`--glass-${key}`, value);
   });
-  
+
   // Apply theme class for specific styling
   document.body.className = `theme-${themeName}`;
-  
+
   // Store theme preference
   localStorage.setItem('theme', themeName);
 };
@@ -321,4 +321,4 @@ export const getCurrentTheme = () => {
 export const initializeTheme = () => {
   const savedTheme = getCurrentTheme();
   applyTheme(savedTheme);
-}; 
+};

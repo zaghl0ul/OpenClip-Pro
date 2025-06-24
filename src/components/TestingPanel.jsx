@@ -18,7 +18,7 @@ const TestingPanel = ({ isOpen, onClose }) => {
       test: async () => {
         const response = await apiClient.healthCheck();
         return response;
-      }
+      },
     },
     {
       id: 'auth-test',
@@ -35,7 +35,7 @@ const TestingPanel = ({ isOpen, onClose }) => {
           }
           throw error;
         }
-      }
+      },
     },
     {
       id: 'openai-connection',
@@ -50,7 +50,7 @@ const TestingPanel = ({ isOpen, onClose }) => {
           throw new Error(result.message);
         }
         return result;
-      }
+      },
     },
     {
       id: 'gemini-connection',
@@ -65,7 +65,7 @@ const TestingPanel = ({ isOpen, onClose }) => {
           throw new Error(result.message);
         }
         return result;
-      }
+      },
     },
     {
       id: 'anthropic-connection',
@@ -80,7 +80,7 @@ const TestingPanel = ({ isOpen, onClose }) => {
           throw new Error(result.message);
         }
         return result;
-      }
+      },
     },
     {
       id: 'lmstudio-connection',
@@ -92,7 +92,7 @@ const TestingPanel = ({ isOpen, onClose }) => {
           throw new Error(result.message);
         }
         return result;
-      }
+      },
     },
     {
       id: 'database-connection',
@@ -101,12 +101,12 @@ const TestingPanel = ({ isOpen, onClose }) => {
       test: async () => {
         // Test by trying to fetch projects
         const projects = await apiClient.getProjects();
-        return { 
-          connected: true, 
+        return {
+          connected: true,
           projectCount: projects.length,
-          message: `Database accessible, ${projects.length} projects found`
+          message: `Database accessible, ${projects.length} projects found`,
         };
-      }
+      },
     },
     {
       id: 'file-upload',
@@ -116,7 +116,7 @@ const TestingPanel = ({ isOpen, onClose }) => {
         // Create a small test blob
         const testBlob = new Blob(['test'], { type: 'text/plain' });
         const testFile = new File([testBlob], 'test.txt', { type: 'text/plain' });
-        
+
         try {
           const result = await apiClient.uploadFile(testFile);
           // Clean up test file
@@ -127,7 +127,7 @@ const TestingPanel = ({ isOpen, onClose }) => {
         } catch (error) {
           throw new Error(`Upload failed: ${error.message}`);
         }
-      }
+      },
     },
     {
       id: 'system-status',
@@ -136,24 +136,24 @@ const TestingPanel = ({ isOpen, onClose }) => {
       test: async () => {
         const status = await apiClient.getSystemStatus();
         return status;
-      }
-    }
+      },
+    },
   ];
 
   const runSingleTest = async (test) => {
     setCurrentTest(test.id);
-    
+
     try {
       const startTime = Date.now();
       const result = await test.test();
       const duration = Date.now() - startTime;
-      
+
       return {
         id: test.id,
         name: test.name,
         status: 'passed',
         duration,
-        result
+        result,
       };
     } catch (error) {
       return {
@@ -161,7 +161,7 @@ const TestingPanel = ({ isOpen, onClose }) => {
         name: test.name,
         status: 'failed',
         error: error.message,
-        duration: Date.now() - Date.now()
+        duration: Date.now() - Date.now(),
       };
     }
   };
@@ -170,9 +170,9 @@ const TestingPanel = ({ isOpen, onClose }) => {
     setIsRunning(true);
     setTests([]);
     setCurrentTest(null);
-    
+
     const results = [];
-    
+
     for (const test of testSuite) {
       try {
         const result = await runSingleTest(test);
@@ -184,49 +184,49 @@ const TestingPanel = ({ isOpen, onClose }) => {
           name: test.name,
           status: 'failed',
           error: error.message,
-          duration: 0
+          duration: 0,
         });
         setTests([...results]);
       }
     }
-    
+
     setIsRunning(false);
     setCurrentTest(null);
   };
 
   const runSpecificTest = async (testId) => {
-    const test = testSuite.find(t => t.id === testId);
+    const test = testSuite.find((t) => t.id === testId);
     if (!test) return;
-    
+
     setIsRunning(true);
-    
+
     try {
       const result = await runSingleTest(test);
-      setTests(prevTests => {
-        const newTests = prevTests.filter(t => t.id !== testId);
+      setTests((prevTests) => {
+        const newTests = prevTests.filter((t) => t.id !== testId);
         return [...newTests, result];
       });
     } catch (error) {
       console.error('Test failed:', error);
     }
-    
+
     setIsRunning(false);
     setCurrentTest(null);
   };
 
   const getTestStatus = (testId) => {
-    const test = tests.find(t => t.id === testId);
+    const test = tests.find((t) => t.id === testId);
     if (!test) return 'pending';
     return test.status;
   };
 
   const getTestResult = (testId) => {
-    return tests.find(t => t.id === testId);
+    return tests.find((t) => t.id === testId);
   };
 
   const getStatusIcon = (status, isRunning = false) => {
     if (isRunning) return <Loader className="w-5 h-5 animate-spin text-blue-400" />;
-    
+
     switch (status) {
       case 'passed':
         return <CheckCircle className="w-5 h-5 text-green-400" />;
@@ -284,10 +284,7 @@ const TestingPanel = ({ isOpen, onClose }) => {
               )}
               {isRunning ? 'Running Tests...' : 'Run All Tests'}
             </button>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-white transition-colors"
-            >
+            <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
               ✕
             </button>
           </div>
@@ -314,12 +311,10 @@ const TestingPanel = ({ isOpen, onClose }) => {
                         <p className="text-sm text-gray-400">{test.description}</p>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-3">
                       {result && result.duration && (
-                        <span className="text-xs text-gray-500">
-                          {result.duration}ms
-                        </span>
+                        <span className="text-xs text-gray-500">{result.duration}ms</span>
                       )}
                       <button
                         onClick={() => runSpecificTest(test.id)}
@@ -337,13 +332,11 @@ const TestingPanel = ({ isOpen, onClose }) => {
                       <div className={`text-sm ${getStatusColor(result.status)}`}>
                         Status: {result.status.toUpperCase()}
                       </div>
-                      
+
                       {result.error && (
-                        <div className="text-sm text-red-400 mt-1">
-                          Error: {result.error}
-                        </div>
+                        <div className="text-sm text-red-400 mt-1">Error: {result.error}</div>
                       )}
-                      
+
                       {result.result && typeof result.result === 'object' && (
                         <div className="text-sm text-gray-300 mt-2">
                           <pre className="bg-gray-800 p-2 rounded text-xs overflow-x-auto">
@@ -365,11 +358,15 @@ const TestingPanel = ({ isOpen, onClose }) => {
               <div className="grid grid-cols-3 gap-4 text-sm">
                 <div>
                   <span className="text-green-400">Passed: </span>
-                  <span className="text-white">{tests.filter(t => t.status === 'passed').length}</span>
+                  <span className="text-white">
+                    {tests.filter((t) => t.status === 'passed').length}
+                  </span>
                 </div>
                 <div>
                   <span className="text-red-400">Failed: </span>
-                  <span className="text-white">{tests.filter(t => t.status === 'failed').length}</span>
+                  <span className="text-white">
+                    {tests.filter((t) => t.status === 'failed').length}
+                  </span>
                 </div>
                 <div>
                   <span className="text-gray-400">Total: </span>
