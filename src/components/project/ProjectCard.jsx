@@ -13,7 +13,6 @@ import {
   FileVideo,
   Activity
 } from 'lucide-react'
-import { debugThumbnail } from '../../utils/thumbnailDebug'
 
 const ProjectCard = React.memo(({ project, onDelete, index = 0 }) => {
   const navigate = useNavigate()
@@ -91,11 +90,21 @@ const ProjectCard = React.memo(({ project, onDelete, index = 0 }) => {
     }
   }), [index])
   
-  // Memoize thumbnail URL with debugging
+  // Get thumbnail URL from project data
   const thumbnailUrl = React.useMemo(() => {
-    const url = debugThumbnail(project, 'ProjectCard');
-    return url;
-  }, [project.video_data?.thumbnail_url, project.thumbnail, project.id])
+    // Check for the new thumbnail_url field first
+    if (project.thumbnail_url) {
+      return `http://localhost:8001${project.thumbnail_url}`;
+    }
+    
+    // Fallback to video_data.thumbnail_url if available
+    if (project.video_data?.thumbnail_url) {
+      return `http://localhost:8001${project.video_data.thumbnail_url}`;
+    }
+    
+    // No thumbnail available
+    return null;
+  }, [project.thumbnail_url, project.video_data?.thumbnail_url])
   
   const hasThumbnail = thumbnailUrl && !imageError
   
@@ -119,7 +128,7 @@ const ProjectCard = React.memo(({ project, onDelete, index = 0 }) => {
       </div>
       
       {/* Thumbnail */}
-      <div className="relative h-48 bg-gradient-to-br from-primary/20 to-accent/20 overflow-hidden">
+      <div className="relative h-48 bg-gradient-to-br from-primary/20 to-accent/20 overflow-hidden cursor-pointer group/thumb">
         {hasThumbnail ? (
           <>
             {/* Loading placeholder */}
@@ -135,9 +144,9 @@ const ProjectCard = React.memo(({ project, onDelete, index = 0 }) => {
             <img 
               src={thumbnailUrl} 
               alt={project.name}
-              className={`w-full h-full object-cover transition-opacity duration-300 ${
+              className={`w-full h-full object-cover transition-all duration-300 ${
                 imageLoaded ? 'opacity-100' : 'opacity-0'
-              }`}
+              } group-hover/thumb:scale-105`}
               onLoad={handleImageLoad}
               onError={handleImageError}
               loading="lazy"
@@ -145,21 +154,35 @@ const ProjectCard = React.memo(({ project, onDelete, index = 0 }) => {
           </>
         ) : (
           /* Fallback Video Icon */
-          <div className="w-full h-full flex items-center justify-center">
-            <FileVideo className="w-16 h-16 text-primary/50" />
+          <div className="w-full h-full flex items-center justify-center group-hover/thumb:scale-105 transition-transform duration-300">
+            <FileVideo className="w-16 h-16 text-primary/50 group-hover/thumb:text-primary/70 transition-colors duration-300" />
           </div>
         )}
+        
+        {/* Play Button Overlay */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 transition-opacity duration-300">
+          <div className="w-16 h-16 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center group-hover/thumb:scale-110 transition-transform duration-300">
+            <div className="w-0 h-0 border-l-[12px] border-l-white border-t-[8px] border-t-transparent border-b-[8px] border-b-transparent ml-1" />
+          </div>
+        </div>
         
         {/* Video Status Badge */}
         {project.video_data && (
           <div className="absolute bottom-2 left-2 flex items-center gap-2 px-2 py-1 bg-black/50 backdrop-blur-sm rounded-full text-xs text-white">
             <Video className="w-3 h-3" />
-            <span>{project.video_data.has_thumbnail ? 'Has Video' : 'Video Uploaded'}</span>
+            <span>Video Uploaded</span>
           </div>
         )}
         
         {/* Overlay Gradient */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        
+        {/* Click to Open Hint */}
+        <div className="absolute top-2 left-2 opacity-0 group-hover/thumb:opacity-100 transition-opacity duration-300">
+          <div className="px-2 py-1 bg-black/50 backdrop-blur-sm rounded-full text-xs text-white">
+            <span>Click to open</span>
+          </div>
+        </div>
         
         {/* Quick Actions */}
         <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">

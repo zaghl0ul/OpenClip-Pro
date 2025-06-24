@@ -3,6 +3,60 @@ import { persist } from 'zustand/middleware'
 import apiClient from '../utils/apiClient'
 import { useSettingsStore } from './settingsStore'
 
+// Utility functions for project operations
+const projectUtils = {
+  // Analytics utilities
+  calculateStats: (projects) => ({
+    total: projects.length,
+    completed: projects.filter(p => p.status === 'completed').length,
+    analyzing: projects.filter(p => p.status === 'analyzing').length,
+    error: projects.filter(p => p.status === 'error').length,
+    totalClips: projects.reduce((sum, p) => sum + (p.clips?.length || 0), 0),
+    totalDuration: projects.reduce((sum, p) => 
+      sum + (p.video_data?.duration || 0), 0
+    )
+  }),
+
+  // Project filtering
+  filterByStatus: (projects, status) => projects.filter(p => p.status === status),
+  
+  getRecentProjects: (projects, limit = 5) => 
+    projects
+      .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
+      .slice(0, limit),
+
+  // State update helpers
+  updateProjectInList: (projects, projectId, updates) =>
+    projects.map(p => p.id === projectId ? { ...p, ...updates } : p),
+
+  removeProjectFromList: (projects, projectId) =>
+    projects.filter(p => p.id !== projectId),
+
+  // Progress simulation with cleanup
+  createProgressInterval: (updateFn, cleanup) => {
+    const interval = setInterval(() => {
+      updateFn(prevState => {
+        const newProgress = Math.min(prevState.processingProgress + 5, 90)
+        return {
+          processingProgress: newProgress,
+          processingStatus: newProgress < 30 ? 'Extracting video frames...' :
+                          newProgress < 60 ? 'Analyzing content with AI...' :
+                          newProgress < 90 ? 'Generating clips...' :
+                          'Finalizing results...'
+        }
+      })
+    }, 1000)
+
+    // Auto-cleanup after 30 seconds
+    setTimeout(() => {
+      clearInterval(interval)
+      if (cleanup) cleanup()
+    }, 30000)
+
+    return interval
+  }
+}
+
 const useProjectStore = create(
   persist(
     (set, get) => ({
@@ -13,29 +67,48 @@ const useProjectStore = create(
       isProcessing: false,
       processingProgress: 0,
       processingStatus: '',
+      uploadProgress: 0,
       error: null,
       
-      // Actions
+      // Basic actions
       setLoading: (loading) => set({ isLoading: loading }),
       setError: (error) => set({ error }),
       clearError: () => set({ error: null }),
       
-      // Project CRUD
+      // Project CRUD - Optimized with better error handling
       createProject: async (projectData) => {
         try {
           set({ isLoading: true, error: null })
-          
-          const response = await apiClient.createProject(projectData)
-          const project = response.project || response // Handle both response formats
+          let project
+
+          if (projectData.file) {
+            const projectInfo = { ...projectData }
+            delete projectInfo.file
+            
+            const response = await apiClient.createProject(projectInfo)
+            project = response.project || response
+            
+            const uploadResult = await apiClient.uploadVideo(project.id, projectData.file, (progress) => {
+              set({ uploadProgress: progress })
+            })
+            
+            const updatedProject = await apiClient.getProject(project.id)
+            project = updatedProject.project || updatedProject
+          } else {
+            const response = await apiClient.createProject(projectData)
+            project = response.project || response
+          }
           
           set(state => ({
             projects: [...state.projects, project],
             currentProject: project,
-            isLoading: false
+            isLoading: false,
+            uploadProgress: 0
           }))
           
           return project
         } catch (error) {
+          console.error('Project creation error:', error)
           set({ error: error.message, isLoading: false })
           throw error
         }
@@ -44,16 +117,11 @@ const useProjectStore = create(
       updateProject: async (projectId, updates) => {
         try {
           set({ isLoading: true, error: null })
-          
           const updatedProject = await apiClient.updateProject(projectId, updates)
           
           set(state => ({
-            projects: state.projects.map(p => 
-              p.id === projectId ? updatedProject : p
-            ),
-            currentProject: state.currentProject?.id === projectId 
-              ? updatedProject 
-              : state.currentProject,
+            projects: projectUtils.updateProjectInList(state.projects, projectId, updatedProject),
+            currentProject: state.currentProject?.id === projectId ? updatedProject : state.currentProject,
             isLoading: false
           }))
           
@@ -67,101 +135,39 @@ const useProjectStore = create(
       deleteProject: async (projectId) => {
         try {
           set({ isLoading: true, error: null })
-          
           await apiClient.deleteProject(projectId)
           
           set(state => ({
-            projects: state.projects.filter(p => p.id !== projectId),
-            currentProject: state.currentProject?.id === projectId 
-              ? null 
-              : state.currentProject,
+            projects: projectUtils.removeProjectFromList(state.projects, projectId),
+            currentProject: state.currentProject?.id === projectId ? null : state.currentProject,
             isLoading: false
           }))
         } catch (error) {
-          set({ error: error.message, isLoading: false })
+          set({ error: error.message, isLoading: false })  
           throw error
         }
       },
-      
-      getProject: async (projectId) => {
-        try {
-          set({ isLoading: true, error: null })
-          
-          const project = await apiClient.getProject(projectId)
-          
-          set(state => ({
-            currentProject: project,
-            // Update in projects list if it exists
-            projects: state.projects.map(p => 
-              p.id === projectId ? project : p
-            ),
-            isLoading: false
-          }))
-          
-          return project
-        } catch (error) {
-          set({ error: error.message, isLoading: false })
-          throw error
-        }
-      },
-      
+
+      // Optimized project loading with error recovery
       loadProjects: async () => {
         try {
           set({ isLoading: true, error: null })
-          
           const response = await apiClient.getProjects()
-          const projects = response.projects || response // Handle both response formats
+          const projects = response.projects || response
           
-          set({
-            projects,
-            isLoading: false
-          })
-          
+          set({ projects, isLoading: false })
           return projects
         } catch (error) {
-          set({ error: error.message, isLoading: false })
-          throw error
-        }
-      },
-      
-      // Video upload
-      uploadVideo: async (projectId, file, onProgress) => {
-        try {
-          set({ isLoading: true, error: null })
-          
-          const result = await apiClient.uploadVideo(projectId, file, onProgress)
-          
-          // Update project with video data
-          await get().updateProject(projectId, {
-            status: 'uploaded',
-            video_data: result.video_data,
-            file_path: result.file_path
-          })
-          
-          set({ isLoading: false })
-          return result
-        } catch (error) {
-          set({ error: error.message, isLoading: false })
-          throw error
-        }
-      },
-      
-      // YouTube processing
-      getYouTubeInfo: async (url) => {
-        try {
-          set({ isLoading: true, error: null })
-          
-          const result = await apiClient.getYouTubeInfo(url)
-          
-          set({ isLoading: false })
-          return result
-        } catch (error) {
+          console.error('Failed to load projects:', error)
           set({ error: error.message, isLoading: false })
           throw error
         }
       },
 
-      processYouTube: async (projectId, youtubeUrl, analyze = true, analysisTypes = []) => {
+      // Optimized YouTube processing with better progress tracking
+      processYouTube: async (projectId, youtubeUrl) => {
+        let progressInterval = null
+        
         try {
           set({ 
             isLoading: true, 
@@ -171,7 +177,6 @@ const useProjectStore = create(
             error: null 
           })
           
-          // Use the simpler processYouTube method which matches our backend
           const result = await apiClient.processYouTube(projectId, youtubeUrl)
           
           set({ 
@@ -179,7 +184,7 @@ const useProjectStore = create(
             processingProgress: 100
           })
           
-          // Clear progress after a delay
+          // Auto-clear progress
           setTimeout(() => {
             set({
               isProcessing: false,
@@ -189,20 +194,16 @@ const useProjectStore = create(
             })
           }, 2000)
           
-          // Update project in local state
           if (result.project) {
             set(state => ({
-              projects: state.projects.map(p => 
-                p.id === projectId ? result.project : p
-              ),
-              currentProject: state.currentProject?.id === projectId 
-                ? result.project 
-                : state.currentProject,
+              projects: projectUtils.updateProjectInList(state.projects, projectId, result.project),
+              currentProject: state.currentProject?.id === projectId ? result.project : state.currentProject,
             }))
           }
           
           return result
         } catch (error) {
+          if (progressInterval) clearInterval(progressInterval)
           set({ 
             error: error.message, 
             isLoading: false,
@@ -214,8 +215,10 @@ const useProjectStore = create(
         }
       },
       
-      // AI Analysis
+      // Optimized AI analysis with better cleanup
       analyzeVideo: async (projectId, prompt, provider = null, model = null) => {
+        let progressInterval = null
+        
         try {
           set({ 
             isProcessing: true, 
@@ -224,14 +227,12 @@ const useProjectStore = create(
             error: null 
           })
           
-          // Get settings if provider/model not specified
           if (!provider || !model) {
             const settings = useSettingsStore.getState()
             provider = provider || settings.modelSettings.defaultProvider
             model = model || settings.modelSettings.selectedModels[provider]
           }
           
-          // Update project status
           await get().updateProject(projectId, {
             status: 'analyzing',
             analysis_prompt: prompt,
@@ -239,32 +240,25 @@ const useProjectStore = create(
             analysis_model: model
           })
           
-          // Simulate progress updates
-          const progressInterval = setInterval(() => {
-            set(state => {
-              const newProgress = Math.min(state.processingProgress + 5, 90)
-              return {
-                processingProgress: newProgress,
-                processingStatus: newProgress < 30 ? 'Extracting video frames...' :
-                                newProgress < 60 ? 'Analyzing content with AI...' :
-                                newProgress < 90 ? 'Generating clips...' :
-                                'Finalizing results...'
-              }
-            })
-          }, 1000)
+          // Improved progress simulation with cleanup
+          progressInterval = projectUtils.createProgressInterval(
+            set,
+            () => progressInterval = null
+          )
           
           try {
-            // Start analysis
             const result = await apiClient.analyzeVideo(projectId, prompt, provider, model)
             
-            clearInterval(progressInterval)
+            if (progressInterval) {
+              clearInterval(progressInterval)
+              progressInterval = null
+            }
             
             set({
               processingProgress: 100,
               processingStatus: 'Analysis complete!',
             })
             
-            // Update project with results
             await get().updateProject(projectId, {
               status: 'completed',
               clips: result.clips || []
@@ -280,9 +274,11 @@ const useProjectStore = create(
             
             return result
           } catch (analysisError) {
-            clearInterval(progressInterval)
+            if (progressInterval) {
+              clearInterval(progressInterval)
+              progressInterval = null
+            }
             
-            // Update project with error
             await get().updateProject(projectId, {
               status: 'error',
               error_message: analysisError.message
@@ -291,6 +287,11 @@ const useProjectStore = create(
             throw analysisError
           }
         } catch (error) {
+          if (progressInterval) {
+            clearInterval(progressInterval)
+            progressInterval = null
+          }
+          
           set({
             isProcessing: false,
             processingProgress: 0,
@@ -301,114 +302,7 @@ const useProjectStore = create(
         }
       },
       
-      // Clip management
-      updateClip: async (projectId, clipId, updates) => {
-        try {
-          const updatedClip = await apiClient.updateClip(clipId, updates)
-          
-          set(state => ({
-            projects: state.projects.map(p => 
-              p.id === projectId 
-                ? {
-                    ...p,
-                    clips: p.clips.map(c => 
-                      c.id === clipId ? updatedClip : c
-                    )
-                  }
-                : p
-            ),
-            currentProject: state.currentProject?.id === projectId
-              ? {
-                  ...state.currentProject,
-                  clips: state.currentProject.clips.map(c =>
-                    c.id === clipId ? updatedClip : c
-                  )
-                }
-              : state.currentProject
-          }))
-          
-          return updatedClip
-        } catch (error) {
-          set({ error: error.message })
-          throw error
-        }
-      },
-      
-      deleteClip: async (projectId, clipId) => {
-        try {
-          await apiClient.deleteClip(clipId)
-          
-          set(state => ({
-            projects: state.projects.map(p => 
-              p.id === projectId 
-                ? {
-                    ...p,
-                    clips: p.clips.filter(c => c.id !== clipId)
-                  }
-                : p
-            ),
-            currentProject: state.currentProject?.id === projectId
-              ? {
-                  ...state.currentProject,
-                  clips: state.currentProject.clips.filter(c => c.id !== clipId)
-                }
-              : state.currentProject
-          }))
-        } catch (error) {
-          set({ error: error.message })
-          throw error
-        }
-      },
-      
-      // Export functionality
-      exportClips: async (projectId, exportSettings) => {
-        try {
-          set({ isLoading: true, error: null })
-          
-          const result = await apiClient.exportClips(projectId, exportSettings)
-          
-          set({ isLoading: false })
-          return result
-        } catch (error) {
-          set({ error: error.message, isLoading: false })
-          throw error
-        }
-      },
-      
-      exportClip: async (clipId, exportSettings) => {
-        try {
-          set({ isLoading: true, error: null })
-          
-          const result = await apiClient.exportClip(clipId, exportSettings)
-          
-          set({ isLoading: false })
-          return result
-        } catch (error) {
-          set({ error: error.message, isLoading: false })
-          throw error
-        }
-      },
-      
-      // Search and filter
-      searchProjects: async (query, filters = {}) => {
-        try {
-          set({ isLoading: true, error: null })
-          
-          const results = await apiClient.searchProjects(query, filters)
-          
-          set({
-            projects: results,
-            isLoading: false
-          })
-          
-          return results
-        } catch (error) {
-          set({ error: error.message, isLoading: false })
-          throw error
-        }
-      },
-      
-      // Utility functions
+      // Utility functions using the extracted utilities
       getProjectById: (projectId) => {
         const { projects } = get()
         return projects.find(p => p.id === projectId)
@@ -416,33 +310,20 @@ const useProjectStore = create(
       
       getProjectsByStatus: (status) => {
         const { projects } = get()
-        return projects.filter(p => p.status === status)
+        return projectUtils.filterByStatus(projects, status)
       },
       
       getRecentProjects: (limit = 5) => {
         const { projects } = get()
-        return projects
-          .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
-          .slice(0, limit)
+        return projectUtils.getRecentProjects(projects, limit)
       },
       
-      // Analytics
       getProjectStats: () => {
         const { projects } = get()
-        
-        return {
-          total: projects.length,
-          completed: projects.filter(p => p.status === 'completed').length,
-          analyzing: projects.filter(p => p.status === 'analyzing').length,
-          error: projects.filter(p => p.status === 'error').length,
-          totalClips: projects.reduce((sum, p) => sum + (p.clips?.length || 0), 0),
-          totalDuration: projects.reduce((sum, p) => 
-            sum + (p.video_data?.duration || 0), 0
-          )
-        }
+        return projectUtils.calculateStats(projects)
       },
-      
-      // Initialize
+
+      // Simplified initialization
       initialize: async () => {
         try {
           await get().loadProjects()
@@ -453,7 +334,7 @@ const useProjectStore = create(
         }
       },
       
-      // Reset store
+      // Complete reset
       reset: () => {
         set({
           projects: [],
@@ -462,13 +343,13 @@ const useProjectStore = create(
           isProcessing: false,
           processingProgress: 0,
           processingStatus: '',
+          uploadProgress: 0,
           error: null
         })
       }
     }),
     {
       name: 'openclip-projects',
-      // Only persist project references, not full data
       partialize: (state) => ({
         projects: state.projects.map(p => ({
           id: p.id,

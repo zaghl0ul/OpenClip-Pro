@@ -15,17 +15,21 @@ import {
   Coffee,
   ChevronRight,
   BarChart3,
-  Calendar
+  Calendar,
+  AlertCircle,
+  Loader
 } from 'lucide-react'
 import useProjectStore from '../stores/projectStore'
 import authService from '../services/authService'
+import toast from 'react-hot-toast'
 
 const Dashboard = () => {
   const navigate = useNavigate()
-  const { projects, getProjectStats, loadProjects } = useProjectStore()
+  const { projects, getProjectStats, loadProjects, isLoading, error } = useProjectStore()
   const [timeGreeting, setTimeGreeting] = useState('')
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
+  const [authLoading, setAuthLoading] = useState(true)
+  const [dashboardLoading, setDashboardLoading] = useState(true)
   
   const stats = getProjectStats ? getProjectStats() : {
     totalProjects: 0,
@@ -41,311 +45,344 @@ const Dashboard = () => {
     else setTimeGreeting('Good evening')
   }, [])
 
-  // Auto-login for development (memoized)
+  // Proper authentication check
   useEffect(() => {
     let isMounted = true;
     
-    const autoLogin = async () => {
+    const checkAuthentication = async () => {
       try {
-        if (!authService.isAuthenticated()) {
-          const result = await authService.login({
-            email: 'admin@openclippro.com',
-            password: 'admin123!'
-          })
+        const isAuth = authService.isAuthenticated()
+        
+        if (isMounted) {
+          setIsAuthenticated(isAuth)
           
-          if (isMounted) {
-            if (result.success) {
-              setIsAuthenticated(true)
-            } else {
-              setIsAuthenticated(false)
-            }
-          }
-        } else {
-          if (isMounted) {
-            setIsAuthenticated(true)
+          if (!isAuth) {
+            toast.error('Please log in to access the dashboard')
+            navigate('/login')
           }
         }
       } catch (error) {
+        console.error('Authentication check failed:', error)
         if (isMounted) {
           setIsAuthenticated(false)
+          toast.error('Authentication error. Please try logging in again.')
+          navigate('/login')
         }
       } finally {
         if (isMounted) {
-          setIsLoading(false)
+          setAuthLoading(false)
         }
       }
     }
     
-    autoLogin()
+    checkAuthentication()
     
     return () => {
       isMounted = false;
     };
-  }, [])
+  }, [navigate])
 
-  // Load projects when authenticated
+  // Load dashboard data
   useEffect(() => {
-    if (isAuthenticated && !isLoading) {
-      loadProjects().catch(error => {
-        console.error('Failed to load projects:', error)
-      })
+    let isMounted = true;
+    
+    const loadDashboardData = async () => {
+      if (!isAuthenticated) return;
+      
+      try {
+        setDashboardLoading(true)
+        await loadProjects()
+      } catch (error) {
+        console.error('Failed to load dashboard data:', error)
+        if (isMounted) {
+          toast.error('Failed to load dashboard data. Please refresh the page.')
+        }
+      } finally {
+        if (isMounted) {
+          setDashboardLoading(false)
+        }
+      }
     }
-  }, [isAuthenticated, isLoading, loadProjects])
-  
-  const handleCreateProject = () => {
-    navigate('/projects?create=true')
-  }
-  
-  const handleProjectClick = (projectId) => {
-    navigate(`/projects/${projectId}`)
-  }
+    
+    loadDashboardData()
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [isAuthenticated, loadProjects])
 
-  // Show loading screen while authenticating
-  if (isLoading) {
+  // Show loading state during authentication
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-            className="w-16 h-16 mx-auto mb-4"
-          >
-            <Sparkles className="w-full h-full text-primary" />
-          </motion.div>
-          <p className="text-white/60">Initializing OpenClip Pro...</p>
+          <Loader className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-gray-400">Checking authentication...</p>
         </div>
       </div>
     )
   }
 
-  return (
-    <div className="space-y-8">
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="glass-frosted p-6 relative overflow-hidden"
-      >
-        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none"></div>
-        <h1 className="text-3xl font-bold text-white">{timeGreeting}, Creator!</h1>
-        <p className="text-lg text-subtle mt-1 max-w-lg">Welcome to OpenClip. Create, edit, and share your video clips with AI assistance.</p>
-        
-        <div className="flex flex-wrap gap-4 mt-6">
-          <button 
-            onClick={() => navigate('/projects?create=true')}
-            className="btn-glass px-4 py-2 rounded-lg flex items-center gap-2"
+  // Show error state if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 text-error mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-white mb-2">Authentication Required</h2>
+          <p className="text-gray-400 mb-4">Please log in to access the dashboard</p>
+          <button
+            onClick={() => navigate('/login')}
+            className="btn btn-primary"
           >
-            <Plus className="w-4 h-4" />
-            New Project
+            Go to Login
           </button>
+        </div>
+      </div>
+    )
+  }
+
+  // Show loading state for dashboard data
+  if (dashboardLoading) {
+    return (
+      <div className="min-h-screen p-6">
+        <div className="max-w-7xl mx-auto">
+          {/* Header skeleton */}
+          <div className="mb-8">
+            <div className="h-8 bg-gray-700 rounded w-64 mb-2 animate-pulse"></div>
+            <div className="h-6 bg-gray-800 rounded w-96 animate-pulse"></div>
+          </div>
           
-          <button 
-            onClick={() => navigate('/projects')}
-            className="btn-glass px-4 py-2 rounded-lg flex items-center gap-2"
+          {/* Stats skeleton */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="glass-card p-6">
+                <div className="h-6 bg-gray-700 rounded w-24 mb-2 animate-pulse"></div>
+                <div className="h-8 bg-gray-600 rounded w-16 animate-pulse"></div>
+              </div>
+            ))}
+          </div>
+          
+          {/* Content skeleton */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="glass-card p-6">
+              <div className="h-6 bg-gray-700 rounded w-32 mb-4 animate-pulse"></div>
+              <div className="space-y-3">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="h-4 bg-gray-800 rounded animate-pulse"></div>
+                ))}
+              </div>
+            </div>
+            <div className="glass-card p-6">
+              <div className="h-6 bg-gray-700 rounded w-32 mb-4 animate-pulse"></div>
+              <div className="space-y-3">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="h-4 bg-gray-800 rounded animate-pulse"></div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 text-error mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-white mb-2">Error Loading Dashboard</h2>
+          <p className="text-gray-400 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="btn btn-primary"
           >
-            <Video className="w-4 h-4" />
-            Browse Projects
+            Retry
           </button>
         </div>
-      </motion.div>
-      
-      {/* Stats Overview */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
-      >
-        <div className="glass-frosted p-4">
-          <div className="flex items-center gap-3">
-            <div className="bg-primary/10 p-2 rounded-lg">
-              <Video className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <div className="text-sm text-subtle">Total Projects</div>
-              <div className="text-2xl font-bold text-white">{stats.totalProjects || 0}</div>
-            </div>
-          </div>
-        </div>
-        
-        <div className="glass-frosted p-4">
-          <div className="flex items-center gap-3">
-            <div className="bg-primary/10 p-2 rounded-lg">
-              <Play className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <div className="text-sm text-subtle">Total Clips</div>
-              <div className="text-2xl font-bold text-white">{stats.totalClips || 0}</div>
-            </div>
-          </div>
-        </div>
-        
-        <div className="glass-frosted p-4">
-          <div className="flex items-center gap-3">
-            <div className="bg-primary/10 p-2 rounded-lg">
-              <Target className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <div className="text-sm text-subtle">Completed</div>
-              <div className="text-2xl font-bold text-white">{stats.completedProjects || 0}</div>
-            </div>
-          </div>
-        </div>
-        
-        <div className="glass-frosted p-4">
-          <div className="flex items-center gap-3">
-            <div className="bg-primary/10 p-2 rounded-lg">
-              <Clock className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <div className="text-sm text-subtle">Processing</div>
-              <div className="text-2xl font-bold text-white">{stats.processingProjects || 0}</div>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-      
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Quick Actions */}
+      </div>
+    )
+  }
+
+  const quickActions = [
+    {
+      icon: Upload,
+      label: 'Upload Video',
+      description: 'Start a new project',
+      action: () => navigate('/projects?create=true'),
+      color: 'from-blue-500 to-blue-600'
+    },
+    {
+      icon: Brain,
+      label: 'AI Analysis',
+      description: 'Analyze existing videos',
+      action: () => navigate('/projects?filter=unanalyzed'),
+      color: 'from-purple-500 to-purple-600'
+    },
+    {
+      icon: Target,
+      label: 'Create Clips',
+      description: 'Generate viral clips',
+      action: () => navigate('/clips'),
+      color: 'from-green-500 to-green-600'
+    }
+  ]
+
+  const recentProjects = projects
+    .filter(p => p.updated_at)
+    .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
+    .slice(0, 5)
+
+  return (
+    <div className="min-h-screen p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="glass-card lg:col-span-1"
+          className="mb-8"
         >
-          <div className="p-4 border-b border-border">
-            <h2 className="text-lg font-semibold text-white">Quick Actions</h2>
+          <h1 className="text-3xl font-bold text-white mb-2">
+            {timeGreeting}! 👋
+          </h1>
+          <p className="text-gray-400">
+            Ready to create some viral content today?
+          </p>
+        </motion.div>
+
+        {/* Stats Grid */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+        >
+          <div className="glass-card p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-400 text-sm">Total Projects</p>
+                <p className="text-2xl font-bold text-white">{stats.totalProjects || 0}</p>
+              </div>
+              <Video className="w-8 h-8 text-blue-400" />
+            </div>
           </div>
-          
-          <div className="p-2">
-            <motion.button
-              whileHover={{ x: 4 }}
-              onClick={() => navigate('/projects?create=true')}
-              className="w-full text-left p-3 rounded-lg hover:bg-surface flex items-center gap-3"
-            >
-              <div className="bg-primary/10 p-2 rounded-lg">
-                <Plus className="w-4 h-4 text-primary" />
-              </div>
+
+          <div className="glass-card p-6">
+            <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-medium text-white">New Project</h3>
-                <p className="text-xs text-subtle">Start from scratch</p>
+                <p className="text-gray-400 text-sm">Generated Clips</p>
+                <p className="text-2xl font-bold text-white">{stats.totalClips || 0}</p>
               </div>
-            </motion.button>
-            
-            <motion.button
-              whileHover={{ x: 4 }}
-              onClick={() => navigate('/projects')}
-              className="w-full text-left p-3 rounded-lg hover:bg-surface flex items-center gap-3"
-            >
-              <div className="bg-primary/10 p-2 rounded-lg">
-                <Upload className="w-4 h-4 text-primary" />
-              </div>
+              <Play className="w-8 h-8 text-green-400" />
+            </div>
+          </div>
+
+          <div className="glass-card p-6">
+            <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-medium text-white">Upload Video</h3>
-                <p className="text-xs text-subtle">Import your video files</p>
+                <p className="text-gray-400 text-sm">Completed</p>
+                <p className="text-2xl font-bold text-white">{stats.completedProjects || 0}</p>
               </div>
-            </motion.button>
-            
-            <motion.button
-              whileHover={{ x: 4 }}
-              onClick={() => navigate('/clips')}
-              className="w-full text-left p-3 rounded-lg hover:bg-surface flex items-center gap-3"
-            >
-              <div className="bg-primary/10 p-2 rounded-lg">
-                <Play className="w-4 h-4 text-primary" />
-              </div>
+              <BarChart3 className="w-8 h-8 text-purple-400" />
+            </div>
+          </div>
+
+          <div className="glass-card p-6">
+            <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-medium text-white">View All Clips</h3>
-                <p className="text-xs text-subtle">Browse your content</p>
+                <p className="text-gray-400 text-sm">Processing</p>
+                <p className="text-2xl font-bold text-white">{stats.processingProjects || 0}</p>
               </div>
-            </motion.button>
-            
-            <motion.button
-              whileHover={{ x: 4 }}
-              onClick={() => navigate('/analytics')}
-              className="w-full text-left p-3 rounded-lg hover:bg-surface flex items-center gap-3"
-            >
-              <div className="bg-primary/10 p-2 rounded-lg">
-                <BarChart3 className="w-4 h-4 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-medium text-white">Analytics</h3>
-                <p className="text-xs text-subtle">View performance data</p>
-              </div>
-            </motion.button>
+              <Clock className="w-8 h-8 text-orange-400" />
+            </div>
           </div>
         </motion.div>
 
-        {/* Recent Projects */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="glass-frosted lg:col-span-2"
-        >
-          <div className="p-4 border-b border-border flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-white">Recent Projects</h2>
-            {projects && projects.length > 0 && (
-              <button
-                onClick={() => navigate('/projects')}
-                className="text-sm font-medium text-primary hover:underline flex items-center gap-1"
-              >
-                View all <ChevronRight className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-          
-          <div className="p-4">
-            {!projects || !Array.isArray(projects) || projects.length === 0 ? (
-              <div className="text-center py-8">
-                <div className="bg-primary/5 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Video className="w-8 h-8 text-primary/60" />
-                </div>
-                <p className="text-subtle mb-4">No projects yet</p>
-                <button
-                  onClick={() => navigate('/projects?create=true')}
-                  className="btn-glass"
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Quick Actions */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+            className="glass-card p-6"
+          >
+            <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+              <Zap className="w-5 h-5 text-yellow-400" />
+              Quick Actions
+            </h2>
+            <div className="space-y-3">
+              {quickActions.map((action, index) => (
+                <motion.button
+                  key={action.label}
+                  onClick={action.action}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full p-4 rounded-lg bg-gradient-to-r hover:shadow-lg transition-all duration-200 text-left group"
+                  style={{
+                    background: action.color ? `linear-gradient(135deg, ${action.color.split(' ')[0]?.replace('from-', '') || 'blue-500'}20, ${action.color.split(' ')[2]?.replace('to-', '') || 'blue-600'}20)` : 'rgba(59, 130, 246, 0.2)'
+                  }}
                 >
-                  Create Your First Project
-                </button>
-              </div>
-            ) : (
+                  <div className="flex items-center gap-3">
+                    <action.icon className="w-6 h-6 text-white" />
+                    <div>
+                      <p className="font-medium text-white">{action.label}</p>
+                      <p className="text-sm text-gray-400">{action.description}</p>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-gray-400 ml-auto group-hover:text-white transition-colors" />
+                  </div>
+                </motion.button>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Recent Projects */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 }}
+            className="glass-card p-6"
+          >
+            <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+              <Clock className="w-5 h-5 text-blue-400" />
+              Recent Projects
+            </h2>
+            {recentProjects.length > 0 ? (
               <div className="space-y-3">
-                {projects.slice(0, 4).map((project, index) => (
+                {recentProjects.map((project, index) => (
                   <motion.div
-                    key={`${project.id}-${index}`}
-                    whileHover={{ x: 4 }}
+                    key={project.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 + index * 0.1 }}
                     onClick={() => navigate(`/projects/${project.id}`)}
-                    className="p-3 rounded-lg hover:bg-surface cursor-pointer border border-transparent hover:border-border"
+                    className="p-3 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 cursor-pointer transition-colors group"
                   >
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 rounded-full bg-green-400"></div>
                       <div className="flex-1">
-                        <h3 className="font-medium text-white">{project.name}</h3>
-                        <div className="flex items-center gap-3 mt-1 text-xs text-subtle">
-                          <div className="flex items-center gap-1">
-                            <Play className="w-3 h-3" />
-                            <span>{project.clips?.length || 0} clips</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3" />
-                            <span>{new Date(project.createdAt || project.created_at).toLocaleDateString()}</span>
-                          </div>
-                        </div>
+                        <p className="font-medium text-white group-hover:text-blue-400 transition-colors">
+                          {project.name}
+                        </p>
+                        <p className="text-sm text-gray-400">
+                          {project.status} • {new Date(project.updated_at).toLocaleDateString()}
+                        </p>
                       </div>
-                      <div className={`w-2 h-2 rounded-full ${
-                        project.status === 'completed' ? 'bg-green-500' :
-                        project.status === 'processing' ? 'bg-yellow-500' :
-                        project.status === 'error' ? 'bg-red-500' :
-                        'bg-primary'
-                      }`}></div>
+                      <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors" />
                     </div>
                   </motion.div>
                 ))}
               </div>
+            ) : (
+              <div className="text-center py-8">
+                <Coffee className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                <p className="text-gray-400">No recent projects</p>
+                <p className="text-sm text-gray-500">Create your first project to get started!</p>
+              </div>
             )}
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
       </div>
     </div>
   )

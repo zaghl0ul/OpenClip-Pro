@@ -6,13 +6,11 @@ import { Moon, Sun, Monitor, Palette, Eye } from 'lucide-react'
 const AppSettings = () => {
   const {
     app,
-    export: exportSettings,
     updateAppSetting,
-    updateExportSetting,
-    theme,
-    updateTheme,
-    performanceMode,
-    updatePerformanceMode
+    performance,
+    updatePerformanceSetting,
+    export: exportSettings,
+    updateExportSetting
   } = useSettingsStore()
   const [showGlassDemo, setShowGlassDemo] = useState(false)
   
@@ -62,8 +60,8 @@ const AppSettings = () => {
             <input
               type="checkbox"
               className="sr-only peer"
-              checked={performanceMode}
-              onChange={(e) => updatePerformanceMode(e.target.checked)}
+              checked={performance?.hardwareAcceleration || false}
+              onChange={(e) => updatePerformanceSetting('hardwareAcceleration', e.target.checked)}
             />
             <div className="w-11 h-6 bg-surface rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
           </label>
@@ -81,7 +79,7 @@ const AppSettings = () => {
               Language
             </label>
             <select
-              value={app.language}
+              value={app?.language || 'en'}
               onChange={(e) => updateAppSetting('language', e.target.value)}
               className="input"
             >
@@ -98,7 +96,7 @@ const AppSettings = () => {
             </label>
             <input
               type="number"
-              value={app.autoSaveInterval}
+              value={app?.autoSaveInterval || 30}
               onChange={(e) => updateAppSetting('autoSaveInterval', parseInt(e.target.value))}
               className="input"
               min="10"
@@ -110,7 +108,7 @@ const AppSettings = () => {
             <span className="text-sm font-medium text-gray-300">Auto Save</span>
             <input
               type="checkbox"
-              checked={app.autoSave}
+              checked={app?.autoSave || false}
               onChange={(e) => updateAppSetting('autoSave', e.target.checked)}
               className="rounded"
             />
@@ -120,7 +118,7 @@ const AppSettings = () => {
             <span className="text-sm font-medium text-gray-300">Enable Notifications</span>
             <input
               type="checkbox"
-              checked={app.enableNotifications}
+              checked={app?.enableNotifications || false}
               onChange={(e) => updateAppSetting('enableNotifications', e.target.checked)}
               className="rounded"
             />
@@ -139,7 +137,7 @@ const AppSettings = () => {
               Default Format
             </label>
             <select
-              value={exportSettings.defaultFormat}
+              value={exportSettings?.defaultFormat || 'mp4'}
               onChange={(e) => updateExportSetting('defaultFormat', e.target.value)}
               className="input"
             >
@@ -155,7 +153,7 @@ const AppSettings = () => {
               Default Quality
             </label>
             <select
-              value={exportSettings.defaultQuality}
+              value={exportSettings?.defaultQuality || '1080p'}
               onChange={(e) => updateExportSetting('defaultQuality', e.target.value)}
               className="input"
             >
@@ -170,7 +168,7 @@ const AppSettings = () => {
             <span className="text-sm font-medium text-gray-300">Include Watermark</span>
             <input
               type="checkbox"
-              checked={exportSettings.includeWatermark}
+              checked={exportSettings?.includeWatermark || false}
               onChange={(e) => updateExportSetting('includeWatermark', e.target.checked)}
               className="rounded"
             />
@@ -181,7 +179,7 @@ const AppSettings = () => {
               Default Frame Rate
             </label>
             <select
-              value={exportSettings.defaultFrameRate}
+              value={exportSettings?.defaultFrameRate || 30}
               onChange={(e) => updateExportSetting('defaultFrameRate', parseInt(e.target.value))}
               className="input"
             >

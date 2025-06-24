@@ -1,5 +1,6 @@
 // API service with authentication
 import debug from '../utils/debug';
+import apiClient from '../utils/apiClient';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001';
 
@@ -211,3 +212,30 @@ class ApiService {
 const apiService = new ApiService();
 
 export default apiService;
+
+// Project endpoints
+export const getProjects = () => apiClient.get('/api/projects');
+export const getProject = (id) => apiClient.get(`/api/projects/${id}`);
+export const createProject = (formData) => apiClient.post('/api/projects', formData);
+export const updateProject = (id, data) => apiClient.put(`/api/projects/${id}`, data);
+export const deleteProject = (id) => apiClient.delete(`/api/projects/${id}`);
+
+// Video endpoints
+export const getVideoStream = (projectId) => apiClient.get(`/api/projects/${projectId}/stream`);
+
+// Analysis endpoints
+export const analyzeVideo = (projectId, prompt, provider = 'openai') => {
+  return apiClient.post(`/api/projects/${projectId}/analyze`, {
+    prompt,
+    provider
+  });
+};
+
+// Stats endpoints
+export const getStats = () => apiClient.get('/api/stats');
+
+// Provider endpoints
+export const getProviders = () => apiClient.get('/api/providers');
+
+// Settings endpoints
+export const getSettings = () => apiClient.get('/api/settings');

@@ -62,6 +62,14 @@ const useSettingsStore = create(
         enableAuditLog: true,
       },
       
+      // Export Settings
+      export: {
+        defaultFormat: 'mp4',
+        defaultQuality: '1080p',
+        defaultFrameRate: 30,
+        includeWatermark: false,
+      },
+      
       // Loading states
       isLoading: false,
       error: null,
@@ -76,16 +84,17 @@ const useSettingsStore = create(
           }
         }))
         
-        // Save to backend if key is not empty
-        if (key && key.trim()) {
-          try {
-            await apiClient.saveApiKey(provider, key)
-            console.log(`✅ API key for ${provider} saved to backend`)
-          } catch (error) {
-            console.error(`❌ Failed to save ${provider} API key to backend:`, error)
-            // Continue with local storage for now
-          }
+              // Save to backend if key is not empty
+      if (key && key.trim()) {
+        try {
+          const result = await apiClient.saveApiKey(provider, key)
+          console.log(`✅ API key for ${provider} saved to backend:`, result.message)
+        } catch (error) {
+          console.error(`❌ Failed to save ${provider} API key to backend:`, error)
+          // Continue with local storage for now
+          // Don't show user error since local storage still works
         }
+      }
       },
       
       updateModelSetting: (key, value) => {
@@ -119,6 +128,15 @@ const useSettingsStore = create(
         set(state => ({
           security: {
             ...state.security,
+            [key]: value
+          }
+        }))
+      },
+      
+      updateExportSetting: (key, value) => {
+        set(state => ({
+          export: {
+            ...state.export,
             [key]: value
           }
         }))
@@ -167,7 +185,7 @@ const useSettingsStore = create(
         try {
           set({ isLoading: true, error: null })
           
-          const result = await apiClient.testAPIConnection(provider, apiKey)
+          const result = await apiClient.testApiKey(provider, apiKey)
           
           set({ isLoading: false })
           return result
@@ -307,6 +325,12 @@ const useSettingsStore = create(
             requirePassphrase: false,
             enableAuditLog: true,
           },
+          export: {
+            defaultFormat: 'mp4',
+            defaultQuality: '1080p',
+            defaultFrameRate: 30,
+            includeWatermark: false,
+          },
           error: null
         })
       },
@@ -331,7 +355,8 @@ const useSettingsStore = create(
           // Don't persist sensitive security settings
           encryptApiKeys: true,
           requirePassphrase: false,
-        }
+        },
+        export: state.export
       })
     }
   )

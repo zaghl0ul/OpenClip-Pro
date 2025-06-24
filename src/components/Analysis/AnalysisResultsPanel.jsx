@@ -31,8 +31,11 @@ const AnalysisResultsPanel = ({ project, onSeekTo }) => {
   }, [hasAnalysis, clips.length, analysisData]);
 
   const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
+    if (typeof seconds !== 'number' || isNaN(seconds) || !isFinite(seconds)) {
+      return '0:00';
+    }
+    const mins = Math.floor(Math.max(0, seconds) / 60);
+    const secs = Math.floor(Math.max(0, seconds) % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
@@ -209,7 +212,15 @@ const AnalysisResultsPanel = ({ project, onSeekTo }) => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
                 className="glass-shine rounded-lg p-4 hover:bg-white/5 transition-colors group cursor-pointer"
-                onClick={() => onSeekTo && onSeekTo(clip.start_time)}
+                onClick={() => {
+                  if (onSeekTo && typeof clip.start_time === 'number' && 
+                      !isNaN(clip.start_time) && isFinite(clip.start_time) && 
+                      clip.start_time >= 0) {
+                    onSeekTo(clip.start_time);
+                  } else {
+                    console.warn('Invalid clip start time:', clip.start_time);
+                  }
+                }}
               >
                 <div className="flex items-start justify-between mb-3">
                   <h4 className="font-medium text-white group-hover:text-cyan-400 transition-colors">

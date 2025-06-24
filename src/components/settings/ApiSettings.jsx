@@ -1,7 +1,9 @@
 import React, { useState } from 'react'
-import { CheckIcon, RefreshCwIcon, EyeIcon, EyeOffIcon } from 'lucide-react'
+import { CheckIcon, RefreshCwIcon, EyeIcon, EyeOffIcon, Play } from 'lucide-react'
+import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
 import { useSettingsStore } from '../../stores/settingsStore'
+import apiClient from '../../utils/apiClient'
 import Win98ProgressBar from '../Common/Win98ProgressBar'
 import { getCurrentTheme } from '../../config/themes'
 
@@ -11,8 +13,7 @@ const ApiSettings = () => {
     modelSettings,
     updateApiKey,
     updateModelSetting,
-    fetchAvailableModels,
-    testApiConnection
+    fetchAvailableModels
   } = useSettingsStore()
   
   const [showApiKeys, setShowApiKeys] = useState({})
@@ -42,36 +43,32 @@ const ApiSettings = () => {
   }
   
   const handleTestConnection = async (provider) => {
+    if (!apiKeys[provider]) {
+      toast.error('Please enter an API key first')
+      return
+    }
+
     setTestingConnection(prev => ({ ...prev, [provider]: true }))
     
     // Show Win98 progress bar in retro theme
     if (isRetroTheme) {
       setCurrentTestingProvider(provider)
       setShowWin98Progress(true)
+      return
     }
     
     try {
-      const result = await testApiConnection(provider)
-      
-      // Wait for progress bar to complete in retro theme
-      if (isRetroTheme) {
-        // The progress bar will handle the completion
-        return
-      }
+      const result = await apiClient.testApiKey(provider, apiKeys[provider])
       
       if (result.success) {
-        toast.success(`${provider} connection successful`)
+        toast.success(`${provider.toUpperCase()} API connection successful! ${result.models_count ? `Found ${result.models_count} models.` : ''}`)
       } else {
-        toast.error(`${provider} connection failed: ${result.message}`)
+        toast.error(`${provider.toUpperCase()} API test failed: ${result.message}`)
       }
     } catch (error) {
-      if (!isRetroTheme) {
-        toast.error(`Connection test failed: ${error.message}`)
-      }
+      toast.error(`Connection test failed: ${error.message}`)
     } finally {
-      if (!isRetroTheme) {
-        setTestingConnection(prev => ({ ...prev, [provider]: false }))
-      }
+      setTestingConnection(prev => ({ ...prev, [provider]: false }))
     }
   }
   
@@ -79,11 +76,11 @@ const ApiSettings = () => {
     setShowWin98Progress(false)
     
     try {
-      const result = await testApiConnection(currentTestingProvider)
+      const result = await apiClient.testApiKey(currentTestingProvider, apiKeys[currentTestingProvider])
       if (result.success) {
-        toast.success(`${currentTestingProvider} connection successful`)
+        toast.success(`${currentTestingProvider.toUpperCase()} connection successful! ${result.models_count ? `Found ${result.models_count} models.` : ''}`)
       } else {
-        toast.error(`${currentTestingProvider} connection failed: ${result.message}`)
+        toast.error(`${currentTestingProvider.toUpperCase()} connection failed: ${result.message}`)
       }
     } catch (error) {
       toast.error(`Connection test failed: ${error.message}`)
@@ -182,17 +179,25 @@ const ApiSettings = () => {
                     )}
                   </button>
                 </div>
-                <button
+                <motion.button
                   onClick={() => handleTestConnection(provider)}
                   disabled={!key || testingConnection[provider]}
-                  className="btn btn-secondary btn-sm"
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors text-sm"
+                  whileHover={{ scale: !key || testingConnection[provider] ? 1 : 1.02 }}
+                  whileTap={{ scale: !key || testingConnection[provider] ? 1 : 0.98 }}
                 >
                   {testingConnection[provider] ? (
-                    <div className="spinner w-4 h-4" />
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Testing...
+                    </>
                   ) : (
-                    <CheckIcon className="w-4 h-4" />
+                    <>
+                      <Play className="w-4 h-4" />
+                      Test
+                    </>
                   )}
-                </button>
+                </motion.button>
                 <button
                   onClick={() => handleFetchModels(provider)}
                   disabled={!key || loadingModels[provider]}

@@ -8,18 +8,38 @@ import {
   TrendingUp,
   Users,
   MessageSquare,
-  BarChart3
+  BarChart3,
+  Brain
 } from 'lucide-react'
 
 const AnalysisPrompt = ({ onAnalyze, isAnalyzing = false, className = '', initialPrompt = '' }) => {
   const [prompt, setPrompt] = useState(initialPrompt || '')
   const [selectedTemplate, setSelectedTemplate] = useState(null)
+  const [selectedProvider, setSelectedProvider] = useState('openai')
 
   useEffect(() => {
     if (initialPrompt && initialPrompt !== prompt) {
       setPrompt(initialPrompt)
     }
   }, [initialPrompt])
+
+  const aiProviders = [
+    {
+      id: 'openai',
+      name: 'OpenAI GPT-4 Vision',
+      description: 'Best for detailed content analysis'
+    },
+    {
+      id: 'anthropic',
+      name: 'Anthropic Claude',
+      description: 'Best for nuanced understanding'
+    },
+    {
+      id: 'gemini',
+      name: 'Google Gemini',
+      description: 'Best for visual elements'
+    }
+  ]
 
   const analysisTemplates = [
     {
@@ -74,7 +94,7 @@ const AnalysisPrompt = ({ onAnalyze, isAnalyzing = false, className = '', initia
   const handleSubmit = (e) => {
     e.preventDefault()
     if (prompt.trim() && onAnalyze) {
-      onAnalyze(prompt.trim())
+      onAnalyze(prompt.trim(), selectedProvider)
     }
   }
 
@@ -88,6 +108,37 @@ const AnalysisPrompt = ({ onAnalyze, isAnalyzing = false, className = '', initia
       <div className="flex items-center gap-2 mb-6">
         <Sparkles className="w-5 h-5 text-green-400" />
         <h3 className="text-lg font-semibold text-white">AI Video Analysis</h3>
+      </div>
+
+      {/* AI Provider Selection */}
+      <div className="mb-6">
+        <h4 className="text-sm font-medium text-white/80 mb-3">Select AI Provider</h4>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {aiProviders.map((provider) => (
+            <motion.button
+              key={provider.id}
+              type="button"
+              onClick={() => setSelectedProvider(provider.id)}
+              className={`p-3 rounded-lg border text-left transition-all ${
+                selectedProvider === provider.id
+                  ? 'border-blue-500 bg-blue-500/20 text-white'
+                  : 'border-white/20 bg-white/5 text-white/80 hover:border-white/30 hover:bg-white/10'
+              }`}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <div className="flex items-start gap-2">
+                <Brain className={`w-4 h-4 mt-0.5 ${
+                  selectedProvider === provider.id ? 'text-blue-400' : 'text-white/60'
+                }`} />
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-sm">{provider.name}</div>
+                  <div className="text-xs opacity-75 mt-1">{provider.description}</div>
+                </div>
+              </div>
+            </motion.button>
+          ))}
+        </div>
       </div>
 
       {/* Analysis Templates */}
@@ -174,7 +225,7 @@ const AnalysisPrompt = ({ onAnalyze, isAnalyzing = false, className = '', initia
 
         <div className="flex items-center justify-between">
           <div className="text-xs text-white/50">
-            {prompt.length}/1000 characters
+            Using: <span className="text-blue-400">{aiProviders.find(p => p.id === selectedProvider)?.name}</span>
           </div>
           
           <motion.button
@@ -207,6 +258,7 @@ const AnalysisPrompt = ({ onAnalyze, isAnalyzing = false, className = '', initia
           <li>• Mention your target audience or goals for better insights</li>
           <li>• Ask for actionable recommendations, not just observations</li>
           <li>• Consider asking about specific timestamps or segments</li>
+          <li>• Different AI providers have different strengths</li>
         </ul>
       </div>
     </div>

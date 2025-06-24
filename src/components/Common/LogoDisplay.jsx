@@ -5,85 +5,104 @@ const LogoDisplay = ({
   width = 800, 
   height = 600, 
   className = '',
-  primaryColor = '#0088cc',
-  secondaryColor = '#00aaff',
-  accentColor = '#00ffff',
-  particleCount = 400,
+  primaryColor = '#4F46E5',
+  secondaryColor = '#06B6D4',
+  accentColor = '#10B981',
+  particleCount = 600,
   animationSpeed = 1,
-  glowIntensity = 0.9
+  glowIntensity = 1.2
 }) => {
-  // Create organic flowing energy streams that match the reference image
+  // Create enhanced organic flowing energy streams
   const centerX = width * 0.5;
   const centerY = height * 0.48;
   
   const flowingPaths = [
-    // Main flowing energy stream - large loop on the left
-    `M${centerX - width*0.35},${centerY - height*0.15}
-     C${centerX - width*0.45},${centerY - height*0.25} ${centerX - width*0.4},${centerY - height*0.35} ${centerX - width*0.2},${centerY - height*0.32}
-     C${centerX},${centerY - height*0.28} ${centerX + width*0.15},${centerY - height*0.2} ${centerX + width*0.12},${centerY - height*0.05}
-     C${centerX + width*0.08},${centerY + height*0.1} ${centerX - width*0.05},${centerY + height*0.15} ${centerX - width*0.2},${centerY + height*0.12}
-     C${centerX - width*0.35},${centerY + height*0.08} ${centerX - width*0.38},${centerY - height*0.02} ${centerX - width*0.35},${centerY - height*0.15}`,
+    // Main flowing energy stream - enhanced large loop
+    `M${centerX - width*0.4},${centerY - height*0.2}
+     C${centerX - width*0.5},${centerY - height*0.3} ${centerX - width*0.45},${centerY - height*0.4} ${centerX - width*0.25},${centerY - height*0.35}
+     C${centerX - width*0.05},${centerY - height*0.3} ${centerX + width*0.2},${centerY - height*0.25} ${centerX + width*0.15},${centerY - height*0.08}
+     C${centerX + width*0.1},${centerY + height*0.15} ${centerX - width*0.08},${centerY + height*0.2} ${centerX - width*0.25},${centerY + height*0.15}
+     C${centerX - width*0.4},${centerY + height*0.1} ${centerX - width*0.45},${centerY - height*0.05} ${centerX - width*0.4},${centerY - height*0.2}`,
     
-    // Secondary energy stream - right side flow
-    `M${centerX + width*0.32},${centerY - height*0.08}
-     C${centerX + width*0.42},${centerY - height*0.18} ${centerX + width*0.38},${centerY - height*0.28} ${centerX + width*0.18},${centerY - height*0.25}
-     C${centerX - width*0.02},${centerY - height*0.22} ${centerX - width*0.15},${centerY - height*0.1} ${centerX - width*0.12},${centerY + height*0.05}
-     C${centerX - width*0.08},${centerY + height*0.2} ${centerX + width*0.05},${centerY + height*0.25} ${centerX + width*0.2},${centerY + height*0.22}
-     C${centerX + width*0.35},${centerY + height*0.18} ${centerX + width*0.38},${centerY + height*0.03} ${centerX + width*0.32},${centerY - height*0.08}`,
+    // Secondary energy stream - enhanced right side flow
+    `M${centerX + width*0.35},${centerY - height*0.12}
+     C${centerX + width*0.45},${centerY - height*0.22} ${centerX + width*0.4},${centerY - height*0.32} ${centerX + width*0.2},${centerY - height*0.28}
+     C${centerX - width*0.05},${centerY - height*0.25} ${centerX - width*0.2},${centerY - height*0.12} ${centerX - width*0.15},${centerY + height*0.08}
+     C${centerX - width*0.1},${centerY + height*0.25} ${centerX + width*0.08},${centerY + height*0.3} ${centerX + width*0.25},${centerY + height*0.25}
+     C${centerX + width*0.4},${centerY + height*0.2} ${centerX + width*0.45},${centerY + height*0.05} ${centerX + width*0.35},${centerY - height*0.12}`,
     
-    // Third energy stream - top crossing flow
-    `M${centerX - width*0.15},${centerY - height*0.25}
-     C${centerX - width*0.05},${centerY - height*0.35} ${centerX + width*0.1},${centerY - height*0.32} ${centerX + width*0.25},${centerY - height*0.22}
-     C${centerX + width*0.35},${centerY - height*0.12} ${centerX + width*0.3},${centerY + height*0.05} ${centerX + width*0.15},${centerY + height*0.15}
-     C${centerX},${centerY + height*0.25} ${centerX - width*0.2},${centerY + height*0.2} ${centerX - width*0.25},${centerY + height*0.05}
-     C${centerX - width*0.28},${centerY - height*0.1} ${centerX - width*0.22},${centerY - height*0.2} ${centerX - width*0.15},${centerY - height*0.25}`,
+    // Third energy stream - enhanced top crossing flow
+    `M${centerX - width*0.18},${centerY - height*0.3}
+     C${centerX - width*0.08},${centerY - height*0.4} ${centerX + width*0.12},${centerY - height*0.35} ${centerX + width*0.28},${centerY - height*0.25}
+     C${centerX + width*0.4},${centerY - height*0.15} ${centerX + width*0.35},${centerY + height*0.08} ${centerX + width*0.18},${centerY + height*0.18}
+     C${centerX},${centerY + height*0.28} ${centerX - width*0.25},${centerY + height*0.22} ${centerX - width*0.3},${centerY + height*0.08}
+     C${centerX - width*0.32},${centerY - height*0.12} ${centerX - width*0.25},${centerY - height*0.22} ${centerX - width*0.18},${centerY - height*0.3}`,
     
-    // Fourth energy stream - bottom crossing flow  
-    `M${centerX + width*0.18},${centerY + height*0.28}
-     C${centerX + width*0.08},${centerY + height*0.38} ${centerX - width*0.08},${centerY + height*0.35} ${centerX - width*0.22},${centerY + height*0.25}
-     C${centerX - width*0.32},${centerY + height*0.15} ${centerX - width*0.28},${centerY - height*0.02} ${centerX - width*0.15},${centerY - height*0.12}
-     C${centerX},${centerY - height*0.22} ${centerX + width*0.18},${centerY - height*0.18} ${centerX + width*0.22},${centerY - height*0.03}
-     C${centerX + width*0.25},${centerY + height*0.12} ${centerX + width*0.22},${centerY + height*0.22} ${centerX + width*0.18},${centerY + height*0.28}`,
+    // Fourth energy stream - enhanced bottom crossing flow  
+    `M${centerX + width*0.22},${centerY + height*0.32}
+     C${centerX + width*0.12},${centerY + height*0.42} ${centerX - width*0.1},${centerY + height*0.38} ${centerX - width*0.25},${centerY + height*0.28}
+     C${centerX - width*0.35},${centerY + height*0.18} ${centerX - width*0.32},${centerY - height*0.05} ${centerX - width*0.18},${centerY - height*0.15}
+     C${centerX - width*0.02},${centerY - height*0.25} ${centerX + width*0.22},${centerY - height*0.2} ${centerX + width*0.25},${centerY - height*0.05}
+     C${centerX + width*0.28},${centerY + height*0.15} ${centerX + width*0.25},${centerY + height*0.25} ${centerX + width*0.22},${centerY + height*0.32}`,
     
-    // Fifth energy stream - inner spiral
-    `M${centerX - width*0.1},${centerY - height*0.18}
-     C${centerX + width*0.05},${centerY - height*0.22} ${centerX + width*0.18},${centerY - height*0.15} ${centerX + width*0.22},${centerY}
-     C${centerX + width*0.18},${centerY + height*0.15} ${centerX + width*0.05},${centerY + height*0.22} ${centerX - width*0.1},${centerY + height*0.18}
-     C${centerX - width*0.25},${centerY + height*0.12} ${centerX - width*0.28},${centerY - height*0.05} ${centerX - width*0.22},${centerY - height*0.12}
-     C${centerX - width*0.15},${centerY - height*0.18} ${centerX - width*0.12},${centerY - height*0.18} ${centerX - width*0.1},${centerY - height*0.18}`,
+    // Fifth energy stream - enhanced inner spiral
+    `M${centerX - width*0.12},${centerY - height*0.22}
+     C${centerX + width*0.08},${centerY - height*0.25} ${centerX + width*0.22},${centerY - height*0.18} ${centerX + width*0.25},${centerY - height*0.02}
+     C${centerX + width*0.22},${centerY + height*0.18} ${centerX + width*0.08},${centerY + height*0.25} ${centerX - width*0.12},${centerY + height*0.22}
+     C${centerX - width*0.28},${centerY + height*0.15} ${centerX - width*0.32},${centerY - height*0.08} ${centerX - width*0.25},${centerY - height*0.15}
+     C${centerX - width*0.18},${centerY - height*0.22} ${centerX - width*0.15},${centerY - height*0.22} ${centerX - width*0.12},${centerY - height*0.22}`,
     
-    // Sixth energy stream - outer spiral
-    `M${centerX + width*0.12},${centerY + height*0.2}
-     C${centerX - width*0.03},${centerY + height*0.24} ${centerX - width*0.16},${centerY + height*0.17} ${centerX - width*0.2},${centerY + height*0.02}
-     C${centerX - width*0.16},${centerY - height*0.13} ${centerX - width*0.03},${centerY - height*0.2} ${centerX + width*0.12},${centerY - height*0.16}
-     C${centerX + width*0.27},${centerY - height*0.1} ${centerX + width*0.3},${centerY + height*0.07} ${centerX + width*0.24},${centerY + height*0.14}
-     C${centerX + width*0.18},${centerY + height*0.2} ${centerX + width*0.15},${centerY + height*0.2} ${centerX + width*0.12},${centerY + height*0.2}`
+    // Sixth energy stream - enhanced outer spiral
+    `M${centerX + width*0.15},${centerY + height*0.25}
+     C${centerX - width*0.05},${centerY + height*0.28} ${centerX - width*0.2},${centerY + height*0.2} ${centerX - width*0.25},${centerY + height*0.05}
+     C${centerX - width*0.2},${centerY - height*0.15} ${centerX - width*0.05},${centerY - height*0.22} ${centerX + width*0.15},${centerY - height*0.18}
+     C${centerX + width*0.32},${centerY - height*0.12} ${centerX + width*0.35},${centerY + height*0.1} ${centerX + width*0.28},${centerY + height*0.18}
+     C${centerX + width*0.22},${centerY + height*0.25} ${centerX + width*0.18},${centerY + height*0.25} ${centerX + width*0.15},${centerY + height*0.25}`,
+    
+    // Seventh energy stream - new diagonal flow
+    `M${centerX - width*0.3},${centerY - height*0.35}
+     C${centerX - width*0.2},${centerY - height*0.25} ${centerX + width*0.1},${centerY - height*0.15} ${centerX + width*0.25},${centerY - height*0.05}
+     C${centerX + width*0.35},${centerY + height*0.05} ${centerX + width*0.3},${centerY + height*0.2} ${centerX + width*0.2},${centerY + height*0.3}
+     C${centerX + width*0.1},${centerY + height*0.35} ${centerX - width*0.1},${centerY + height*0.3} ${centerX - width*0.2},${centerY + height*0.2}
+     C${centerX - width*0.25},${centerY + height*0.1} ${centerX - width*0.3},${centerY - height*0.05} ${centerX - width*0.3},${centerY - height*0.35}`,
+    
+    // Eighth energy stream - new counter-flow
+    `M${centerX + width*0.3},${centerY + height*0.35}
+     C${centerX + width*0.2},${centerY + height*0.25} ${centerX - width*0.1},${centerY + height*0.15} ${centerX - width*0.25},${centerY + height*0.05}
+     C${centerX - width*0.35},${centerY - height*0.05} ${centerX - width*0.3},${centerY - height*0.2} ${centerX - width*0.2},${centerY - height*0.3}
+     C${centerX - width*0.1},${centerY - height*0.35} ${centerX + width*0.1},${centerY - height*0.3} ${centerX + width*0.2},${centerY - height*0.2}
+     C${centerX + width*0.25},${centerY - height*0.1} ${centerX + width*0.3},${centerY + height*0.05} ${centerX + width*0.3},${centerY + height*0.35}`
   ];
 
-  // Generate dense particles that follow the energy streams like in the reference
+  // Generate enhanced dense particles with better distribution
   const pathParticles = Array.from({ length: particleCount }, (_, i) => {
     const pathIndex = i % flowingPaths.length;
-    // Layer assignment: 0-1 = background, 2-3 = middle, 4-5 = foreground
+    // Enhanced layer assignment with more variety
     const layer = pathIndex < 2 ? 'background' : 
                   pathIndex < 4 ? 'middle' : 
+                  pathIndex < 6 ? 'foreground' :
                   'prominent';
     
-    // Vary particle sizes for authentic look
-    const baseSize = layer === 'background' ? 0.8 : layer === 'middle' ? 1.2 : 1.5;
-    const sizeVariation = Math.random() * 1.5 + 0.5;
+    // Enhanced particle sizing with more variation
+    const baseSize = layer === 'background' ? 1.0 : 
+                     layer === 'middle' ? 1.4 : 
+                     layer === 'foreground' ? 1.8 :
+                     2.2;
+    const sizeVariation = Math.random() * 2.0 + 0.8;
     
     return {
       id: i,
       pathIndex,
       layer,
       size: baseSize * sizeVariation,
-      delay: Math.random() * 20,
-      duration: Math.random() * 12 + 6,
-      opacity: layer === 'background' ? Math.random() * 0.4 + 0.2 :
-               layer === 'middle' ? Math.random() * 0.6 + 0.3 :
-               Math.random() * 0.8 + 0.4,
-      // Add position along path for spacing
-      pathPosition: Math.random()
+      delay: Math.random() * 25,
+      duration: Math.random() * 15 + 8,
+      opacity: layer === 'background' ? Math.random() * 0.5 + 0.3 :
+               layer === 'middle' ? Math.random() * 0.7 + 0.4 :
+               layer === 'foreground' ? Math.random() * 0.9 + 0.5 :
+               Math.random() * 1.0 + 0.6,
+      pathPosition: Math.random(),
+      pulseSpeed: Math.random() * 0.02 + 0.01
     };
   });
 
@@ -93,60 +112,107 @@ const LogoDisplay = ({
       style={{ width, height }}
     >
 
-      {/* Multi-layered flowing paths with 3D depth */}
+      {/* Enhanced multi-layered flowing paths with 3D depth */}
       <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox={`0 0 ${width} ${height}`}>
         <defs>
-          {/* Enhanced flowing line gradients */}
+          {/* Enhanced flowing line gradients with better color transitions */}
           <linearGradient id="backgroundGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style={{ stopColor: primaryColor, stopOpacity: 0.1 }} />
-            <stop offset="25%" style={{ stopColor: accentColor, stopOpacity: 0.5 }} />
-            <stop offset="50%" style={{ stopColor: '#ffffff', stopOpacity: 0.3 }} />
-            <stop offset="75%" style={{ stopColor: secondaryColor, stopOpacity: 0.5 }} />
-            <stop offset="100%" style={{ stopColor: primaryColor, stopOpacity: 0.1 }} />
+            <stop offset="0%" style={{ stopColor: primaryColor, stopOpacity: 0.2 }}>
+              <animate attributeName="stop-opacity" values="0.2;0.4;0.2" dur={`${8 / animationSpeed}s`} repeatCount="indefinite" />
+            </stop>
+            <stop offset="25%" style={{ stopColor: accentColor, stopOpacity: 0.6 }}>
+              <animate attributeName="stop-opacity" values="0.6;0.8;0.6" dur={`${6 / animationSpeed}s`} repeatCount="indefinite" />
+            </stop>
+            <stop offset="50%" style={{ stopColor: '#ffffff', stopOpacity: 0.4 }}>
+              <animate attributeName="stop-opacity" values="0.4;0.6;0.4" dur={`${7 / animationSpeed}s`} repeatCount="indefinite" />
+            </stop>
+            <stop offset="75%" style={{ stopColor: secondaryColor, stopOpacity: 0.6 }}>
+              <animate attributeName="stop-opacity" values="0.6;0.8;0.6" dur={`${5 / animationSpeed}s`} repeatCount="indefinite" />
+            </stop>
+            <stop offset="100%" style={{ stopColor: primaryColor, stopOpacity: 0.2 }}>
+              <animate attributeName="stop-opacity" values="0.2;0.4;0.2" dur={`${8 / animationSpeed}s`} repeatCount="indefinite" />
+            </stop>
           </linearGradient>
           
-          {/* Ethereal wisp gradients */}
+          {/* Enhanced ethereal wisp gradients */}
           <linearGradient id="middleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style={{ stopColor: '#ffffff', stopOpacity: 0.2 }} />
-            <stop offset="30%" style={{ stopColor: accentColor, stopOpacity: 0.7 }} />
-            <stop offset="60%" style={{ stopColor: primaryColor, stopOpacity: 0.6 }} />
-            <stop offset="100%" style={{ stopColor: '#ffffff', stopOpacity: 0.2 }} />
+            <stop offset="0%" style={{ stopColor: '#ffffff', stopOpacity: 0.3 }}>
+              <animate attributeName="stop-opacity" values="0.3;0.5;0.3" dur={`${7 / animationSpeed}s`} repeatCount="indefinite" />
+            </stop>
+            <stop offset="30%" style={{ stopColor: accentColor, stopOpacity: 0.8 }}>
+              <animate attributeName="stop-opacity" values="0.8;1.0;0.8" dur={`${6 / animationSpeed}s`} repeatCount="indefinite" />
+            </stop>
+            <stop offset="60%" style={{ stopColor: primaryColor, stopOpacity: 0.7 }}>
+              <animate attributeName="stop-opacity" values="0.7;0.9;0.7" dur={`${8 / animationSpeed}s`} repeatCount="indefinite" />
+            </stop>
+            <stop offset="100%" style={{ stopColor: '#ffffff', stopOpacity: 0.3 }}>
+              <animate attributeName="stop-opacity" values="0.3;0.5;0.3" dur={`${7 / animationSpeed}s`} repeatCount="indefinite" />
+            </stop>
           </linearGradient>
           
-          {/* Luminous stream gradients */}
+          {/* Enhanced luminous stream gradients */}
           <linearGradient id="foregroundGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style={{ stopColor: secondaryColor, stopOpacity: 0.3 }} />
-            <stop offset="40%" style={{ stopColor: '#ffffff', stopOpacity: 0.8 }} />
-            <stop offset="70%" style={{ stopColor: accentColor, stopOpacity: 0.9 }} />
-            <stop offset="100%" style={{ stopColor: '#ffffff', stopOpacity: 0.3 }} />
+            <stop offset="0%" style={{ stopColor: secondaryColor, stopOpacity: 0.4 }}>
+              <animate attributeName="stop-opacity" values="0.4;0.6;0.4" dur={`${6 / animationSpeed}s`} repeatCount="indefinite" />
+            </stop>
+            <stop offset="40%" style={{ stopColor: '#ffffff', stopOpacity: 0.9 }}>
+              <animate attributeName="stop-opacity" values="0.9;1.0;0.9" dur={`${5 / animationSpeed}s`} repeatCount="indefinite" />
+            </stop>
+            <stop offset="70%" style={{ stopColor: accentColor, stopOpacity: 1.0 }}>
+              <animate attributeName="stop-opacity" values="1.0;0.8;1.0" dur={`${7 / animationSpeed}s`} repeatCount="indefinite" />
+            </stop>
+            <stop offset="100%" style={{ stopColor: '#ffffff', stopOpacity: 0.4 }}>
+              <animate attributeName="stop-opacity" values="0.4;0.6;0.4" dur={`${6 / animationSpeed}s`} repeatCount="indefinite" />
+            </stop>
           </linearGradient>
           
-          {/* Floating particle gradients */}
+          {/* Enhanced floating particle gradients */}
           <radialGradient id="backgroundParticle">
-            <stop offset="0%" style={{ stopColor: '#ffffff', stopOpacity: 0.8 }} />
-            <stop offset="30%" style={{ stopColor: accentColor, stopOpacity: 0.6 }} />
-            <stop offset="70%" style={{ stopColor: primaryColor, stopOpacity: 0.3 }} />
+            <stop offset="0%" style={{ stopColor: '#ffffff', stopOpacity: 0.9 }}>
+              <animate attributeName="stop-opacity" values="0.9;1.0;0.9" dur={`${4 / animationSpeed}s`} repeatCount="indefinite" />
+            </stop>
+            <stop offset="30%" style={{ stopColor: accentColor, stopOpacity: 0.7 }}>
+              <animate attributeName="stop-opacity" values="0.7;0.9;0.7" dur={`${5 / animationSpeed}s`} repeatCount="indefinite" />
+            </stop>
+            <stop offset="70%" style={{ stopColor: primaryColor, stopOpacity: 0.4 }}>
+              <animate attributeName="stop-opacity" values="0.4;0.6;0.4" dur={`${6 / animationSpeed}s`} repeatCount="indefinite" />
+            </stop>
             <stop offset="100%" style={{ stopColor: 'transparent', stopOpacity: 0 }} />
           </radialGradient>
           
           <radialGradient id="middleParticle">
-            <stop offset="0%" style={{ stopColor: '#ffffff', stopOpacity: 1.0 }} />
-            <stop offset="20%" style={{ stopColor: '#ffffff', stopOpacity: 0.9 }} />
-            <stop offset="50%" style={{ stopColor: accentColor, stopOpacity: 0.7 }} />
+            <stop offset="0%" style={{ stopColor: '#ffffff', stopOpacity: 1.0 }}>
+              <animate attributeName="stop-opacity" values="1.0;0.9;1.0" dur={`${3 / animationSpeed}s`} repeatCount="indefinite" />
+            </stop>
+            <stop offset="20%" style={{ stopColor: '#ffffff', stopOpacity: 0.95 }}>
+              <animate attributeName="stop-opacity" values="0.95;0.85;0.95" dur={`${4 / animationSpeed}s`} repeatCount="indefinite" />
+            </stop>
+            <stop offset="50%" style={{ stopColor: accentColor, stopOpacity: 0.8 }}>
+              <animate attributeName="stop-opacity" values="0.8;1.0;0.8" dur={`${5 / animationSpeed}s`} repeatCount="indefinite" />
+            </stop>
             <stop offset="100%" style={{ stopColor: 'transparent', stopOpacity: 0 }} />
           </radialGradient>
           
           <radialGradient id="foregroundParticle">
-            <stop offset="0%" style={{ stopColor: '#ffffff', stopOpacity: 1.0 }} />
-            <stop offset="15%" style={{ stopColor: '#ffffff', stopOpacity: 0.95 }} />
-            <stop offset="40%" style={{ stopColor: accentColor, stopOpacity: 0.8 }} />
-            <stop offset="70%" style={{ stopColor: secondaryColor, stopOpacity: 0.5 }} />
+            <stop offset="0%" style={{ stopColor: '#ffffff', stopOpacity: 1.0 }}>
+              <animate attributeName="stop-opacity" values="1.0;0.95;1.0" dur={`${2 / animationSpeed}s`} repeatCount="indefinite" />
+            </stop>
+            <stop offset="15%" style={{ stopColor: '#ffffff', stopOpacity: 1.0 }}>
+              <animate attributeName="stop-opacity" values="1.0;0.9;1.0" dur={`${3 / animationSpeed}s`} repeatCount="indefinite" />
+            </stop>
+            <stop offset="40%" style={{ stopColor: accentColor, stopOpacity: 0.9 }}>
+              <animate attributeName="stop-opacity" values="0.9;1.0;0.9" dur={`${4 / animationSpeed}s`} repeatCount="indefinite" />
+            </stop>
+            <stop offset="70%" style={{ stopColor: secondaryColor, stopOpacity: 0.6 }}>
+              <animate attributeName="stop-opacity" values="0.6;0.8;0.6" dur={`${5 / animationSpeed}s`} repeatCount="indefinite" />
+            </stop>
             <stop offset="100%" style={{ stopColor: 'transparent', stopOpacity: 0 }} />
           </radialGradient>
           
-          {/* Special effects filters */}
+          {/* Enhanced special effects filters */}
           <filter id="etherealGlow">
-            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+            <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+            <feColorMatrix in="coloredBlur" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1.5 0"/>
             <feMerge>
               <feMergeNode in="coloredBlur"/>
               <feMergeNode in="SourceGraphic"/>
@@ -154,65 +220,89 @@ const LogoDisplay = ({
           </filter>
           
           <filter id="intenseGlow">
-            <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
-            <feColorMatrix in="coloredBlur" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 2 0"/>
+            <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+            <feColorMatrix in="coloredBlur" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 2.5 0"/>
             <feMerge>
               <feMergeNode in="coloredBlur"/>
               <feMergeNode in="SourceGraphic"/>
             </feMerge>
           </filter>
           
-          {/* Additional layer gradients */}
+          {/* Enhanced additional layer gradients */}
           <linearGradient id="additionalGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style={{ stopColor: primaryColor, stopOpacity: 0 }} />
-            <stop offset="50%" style={{ stopColor: '#ffffff', stopOpacity: 0.6 }} />
-            <stop offset="100%" style={{ stopColor: accentColor, stopOpacity: 0 }} />
+            <stop offset="0%" style={{ stopColor: primaryColor, stopOpacity: 0.1 }}>
+              <animate attributeName="stop-opacity" values="0.1;0.3;0.1" dur={`${8 / animationSpeed}s`} repeatCount="indefinite" />
+            </stop>
+            <stop offset="50%" style={{ stopColor: '#ffffff', stopOpacity: 0.7 }}>
+              <animate attributeName="stop-opacity" values="0.7;0.9;0.7" dur={`${6 / animationSpeed}s`} repeatCount="indefinite" />
+            </stop>
+            <stop offset="100%" style={{ stopColor: accentColor, stopOpacity: 0.1 }}>
+              <animate attributeName="stop-opacity" values="0.1;0.3;0.1" dur={`${8 / animationSpeed}s`} repeatCount="indefinite" />
+            </stop>
           </linearGradient>
           
           <radialGradient id="additionalParticle">
-            <stop offset="0%" style={{ stopColor: '#ffffff', stopOpacity: 0.9 }} />
-            <stop offset="100%" style={{ stopColor: primaryColor, stopOpacity: 0 }} />
+            <stop offset="0%" style={{ stopColor: '#ffffff', stopOpacity: 1.0 }}>
+              <animate attributeName="stop-opacity" values="1.0;0.9;1.0" dur={`${3 / animationSpeed}s`} repeatCount="indefinite" />
+            </stop>
+            <stop offset="100%" style={{ stopColor: primaryColor, stopOpacity: 0.1 }}>
+              <animate attributeName="stop-opacity" values="0.1;0.2;0.1" dur={`${5 / animationSpeed}s`} repeatCount="indefinite" />
+            </stop>
           </radialGradient>
           
-          {/* Prominent white line gradients */}
+          {/* Enhanced prominent white line gradients */}
           <linearGradient id="prominentGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style={{ stopColor: '#ffffff', stopOpacity: 0.2 }} />
-            <stop offset="30%" style={{ stopColor: '#ffffff', stopOpacity: 0.9 }} />
-            <stop offset="70%" style={{ stopColor: accentColor, stopOpacity: 0.8 }} />
-            <stop offset="100%" style={{ stopColor: '#ffffff', stopOpacity: 0.2 }} />
+            <stop offset="0%" style={{ stopColor: '#ffffff', stopOpacity: 0.3 }}>
+              <animate attributeName="stop-opacity" values="0.3;0.5;0.3" dur={`${6 / animationSpeed}s`} repeatCount="indefinite" />
+            </stop>
+            <stop offset="30%" style={{ stopColor: '#ffffff', stopOpacity: 1.0 }}>
+              <animate attributeName="stop-opacity" values="1.0;0.9;1.0" dur={`${4 / animationSpeed}s`} repeatCount="indefinite" />
+            </stop>
+            <stop offset="70%" style={{ stopColor: accentColor, stopOpacity: 0.9 }}>
+              <animate attributeName="stop-opacity" values="0.9;1.0;0.9" dur={`${5 / animationSpeed}s`} repeatCount="indefinite" />
+            </stop>
+            <stop offset="100%" style={{ stopColor: '#ffffff', stopOpacity: 0.3 }}>
+              <animate attributeName="stop-opacity" values="0.3;0.5;0.3" dur={`${6 / animationSpeed}s`} repeatCount="indefinite" />
+            </stop>
           </linearGradient>
           
           <radialGradient id="prominentParticle">
-            <stop offset="0%" style={{ stopColor: '#ffffff', stopOpacity: 1.0 }} />
-            <stop offset="30%" style={{ stopColor: accentColor, stopOpacity: 0.8 }} />
-            <stop offset="100%" style={{ stopColor: secondaryColor, stopOpacity: 0 }} />
+            <stop offset="0%" style={{ stopColor: '#ffffff', stopOpacity: 1.0 }}>
+              <animate attributeName="stop-opacity" values="1.0;0.95;1.0" dur={`${2 / animationSpeed}s`} repeatCount="indefinite" />
+            </stop>
+            <stop offset="30%" style={{ stopColor: accentColor, stopOpacity: 0.9 }}>
+              <animate attributeName="stop-opacity" values="0.9;1.0;0.9" dur={`${3 / animationSpeed}s`} repeatCount="indefinite" />
+            </stop>
+            <stop offset="100%" style={{ stopColor: secondaryColor, stopOpacity: 0.1 }}>
+              <animate attributeName="stop-opacity" values="0.1;0.2;0.1" dur={`${4 / animationSpeed}s`} repeatCount="indefinite" />
+            </stop>
           </radialGradient>
         </defs>
         
-        {/* Background layer - 3D depth with perspective */}
+        {/* Enhanced background layer - 3D depth with perspective */}
         <g filter="url(#etherealGlow)" style={{ 
-          filter: `blur(3px) drop-shadow(0 0 20px ${primaryColor}30)`,
-          transform: 'scale(0.95) translateZ(-100px)',
+          filter: `blur(4px) drop-shadow(0 0 25px ${primaryColor}40)`,
+          transform: 'scale(0.92) translateZ(-120px)',
           transformOrigin: 'center'
         }}>
-          {flowingPaths.slice(0, 1).map((path, pathIndex) => (
+          {flowingPaths.slice(0, 2).map((path, pathIndex) => (
             <g key={`bg-path-${pathIndex}`}>
               <path
                 d={path}
                 fill="none"
                 stroke="url(#backgroundGradient)"
-                strokeWidth="1"
-                opacity={0.25}
+                strokeWidth="1.5"
+                opacity={0.35}
                 strokeLinecap="round"
-                strokeDasharray="40 20"
+                strokeDasharray="50 25"
                 style={{
-                  animation: `flow-pulse ${(15 + pathIndex) / animationSpeed}s ease-in-out infinite alternate, undulate-width ${(18 + pathIndex * 3) / animationSpeed}s ease-in-out infinite`
+                  animation: `flow-pulse ${(18 + pathIndex * 2) / animationSpeed}s ease-in-out infinite alternate, undulate-width ${(20 + pathIndex * 4) / animationSpeed}s ease-in-out infinite`
                 }}
               >
                 <animate
                   attributeName="stroke-dashoffset"
-                  values="0;-60;0"
-                  dur={`${12 / animationSpeed}s`}
+                  values="0;-75;0"
+                  dur={`${15 / animationSpeed}s`}
                   repeatCount="indefinite"
                 />
               </path>
@@ -225,7 +315,7 @@ const LogoDisplay = ({
                     fill="url(#backgroundParticle)"
                     opacity={particle.opacity}
                     style={{
-                      animation: `wisp-flow ${(particle.duration + 2) / animationSpeed}s ease-in-out infinite`
+                      animation: `wisp-flow ${(particle.duration + 3) / animationSpeed}s ease-in-out infinite`
                     }}
                   >
                     <animateMotion
@@ -236,14 +326,14 @@ const LogoDisplay = ({
                     />
                     <animate
                       attributeName="opacity"
-                      values={`0;${particle.opacity * 0.7};${particle.opacity};${particle.opacity * 0.5};0`}
+                      values={`0;${particle.opacity * 0.8};${particle.opacity};${particle.opacity * 0.6};0`}
                       dur={`${particle.duration / animationSpeed}s`}
                       repeatCount="indefinite"
                       begin={`${particle.delay}s`}
                     />
                     <animate
                       attributeName="r"
-                      values={`${particle.size * 0.5};${particle.size};${particle.size * 1.2};${particle.size * 0.8};${particle.size * 0.5}`}
+                      values={`${particle.size * 0.6};${particle.size};${particle.size * 1.3};${particle.size * 0.9};${particle.size * 0.6}`}
                       dur={`${particle.duration / animationSpeed}s`}
                       repeatCount="indefinite"
                       begin={`${particle.delay}s`}
@@ -254,30 +344,30 @@ const LogoDisplay = ({
           ))}
         </g>
         
-        {/* Middle layer - authentic energy streams */}
+        {/* Enhanced middle layer - authentic energy streams */}
         <g filter="url(#etherealGlow)" style={{ 
-          filter: `blur(0.3px) drop-shadow(0 0 15px ${accentColor}60)`,
-          transform: 'scale(0.99) translateZ(-25px)',
+          filter: `blur(0.5px) drop-shadow(0 0 20px ${accentColor}70)`,
+          transform: 'scale(0.97) translateZ(-40px)',
           transformOrigin: 'center' 
         }}>
-          {flowingPaths.slice(2, 4).map((path, pathIndex) => (
+          {flowingPaths.slice(2, 5).map((path, pathIndex) => (
             <g key={`middle-path-${pathIndex}`}>
               <path
                 d={path}
                 fill="none"
                 stroke="url(#middleGradient)"
-                strokeWidth="1.5"
-                opacity={0.6}
+                strokeWidth="2"
+                opacity={0.75}
                 strokeLinecap="round"
-                strokeDasharray="12 6 4 8"
+                strokeDasharray="15 8 6 10"
                 style={{
-                  animation: `flow-pulse ${(3 + pathIndex * 0.3) / animationSpeed}s ease-in-out infinite alternate, undulate-width-medium ${(8 + pathIndex * 2) / animationSpeed}s ease-in-out infinite`
+                  animation: `flow-pulse ${(4 + pathIndex * 0.4) / animationSpeed}s ease-in-out infinite alternate, undulate-width-medium ${(10 + pathIndex * 2.5) / animationSpeed}s ease-in-out infinite`
                 }}
               >
                 <animate
                   attributeName="stroke-dashoffset"
-                  values="0;-40;0"
-                  dur={`${7 / animationSpeed}s`}
+                  values="0;-50;0"
+                  dur={`${9 / animationSpeed}s`}
                   repeatCount="indefinite"
                 />
               </path>
@@ -290,7 +380,7 @@ const LogoDisplay = ({
                     fill="url(#middleParticle)"
                     opacity={particle.opacity}
                     style={{
-                      animation: `ethereal-drift ${(particle.duration + 1) / animationSpeed}s ease-in-out infinite`
+                      animation: `ethereal-drift ${(particle.duration + 2) / animationSpeed}s ease-in-out infinite`
                     }}
                   >
                     <animateMotion
@@ -301,7 +391,14 @@ const LogoDisplay = ({
                     />
                     <animate
                       attributeName="opacity"
-                      values={`0;${particle.opacity * 0.8};${particle.opacity};${particle.opacity * 0.6};0`}
+                      values={`0;${particle.opacity * 0.9};${particle.opacity};${particle.opacity * 0.7};0`}
+                      dur={`${particle.duration / animationSpeed}s`}
+                      repeatCount="indefinite"
+                      begin={`${particle.delay}s`}
+                    />
+                    <animate
+                      attributeName="r"
+                      values={`${particle.size * 0.7};${particle.size};${particle.size * 1.2};${particle.size * 0.8};${particle.size * 0.7}`}
                       dur={`${particle.duration / animationSpeed}s`}
                       repeatCount="indefinite"
                       begin={`${particle.delay}s`}

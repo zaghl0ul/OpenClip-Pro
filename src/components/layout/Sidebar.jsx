@@ -95,7 +95,7 @@ const Sidebar = ({ isOpen, setOpen }) => {
       )
       
       if (unanalyzedProjects.length === 0) {
-        toast.info('No projects available for quick analysis. Upload a video first!')
+        toast('No projects available for quick analysis. Upload a video first!', { icon: 'ℹ️' })
         navigate('/projects')
         setOpen(false)
         return
@@ -112,7 +112,7 @@ const Sidebar = ({ isOpen, setOpen }) => {
       // If multiple projects, show selection or navigate to projects page
       navigate('/projects?filter=unanalyzed')
       setOpen(false)
-      toast.info('Select a project to analyze from the list')
+                toast('Select a project to analyze from the list', { icon: 'ℹ️' })
     } catch (error) {
       throw error
     }
@@ -124,7 +124,7 @@ const Sidebar = ({ isOpen, setOpen }) => {
       const projectsWithClips = projects.filter(p => p.clips && p.clips.length > 0)
       
       if (projectsWithClips.length === 0) {
-        toast.info('No clips available for trimming. Analyze a video first!')
+        toast('No clips available for trimming. Analyze a video first!', { icon: 'ℹ️' })
         navigate('/projects')
         setOpen(false)
         return
@@ -133,7 +133,7 @@ const Sidebar = ({ isOpen, setOpen }) => {
       // Navigate to clips page with trim mode
       navigate('/clips?mode=trim')
       setOpen(false)
-      toast.info('Select clips to trim from the list')
+                toast('Select clips to trim from the list', { icon: 'ℹ️' })
     } catch (error) {
       throw error
     }
@@ -147,7 +147,7 @@ const Sidebar = ({ isOpen, setOpen }) => {
       )
       
       if (projectsWithClips.length === 0) {
-        toast.info('No completed projects available for export!')
+        toast('No completed projects available for export!', { icon: 'ℹ️' })
         navigate('/projects')
         setOpen(false)
         return
@@ -172,7 +172,7 @@ const Sidebar = ({ isOpen, setOpen }) => {
       // If multiple projects, navigate to projects page with export filter
       navigate('/projects?filter=completed')
       setOpen(false)
-      toast.info('Select a project to export from the list')
+                toast('Select a project to export from the list', { icon: 'ℹ️' })
     } catch (error) {
       throw error
     }
@@ -201,6 +201,12 @@ const Sidebar = ({ isOpen, setOpen }) => {
       description: 'Download completed clips'
     }
   ]
+  
+  const quickStats = [
+    { id: 'totalProjects', label: 'Total Projects', value: stats.totalProjects || 0 },
+    { id: 'totalClips', label: 'Total Clips', value: stats.totalClips || 0 },
+    { id: 'processing', label: 'Processing', value: stats.processing || 0 },
+  ];
   
   const toggleSection = (section) => {
     setExpandedSections(prev => ({
@@ -284,6 +290,7 @@ const Sidebar = ({ isOpen, setOpen }) => {
         <div className="flex-1 overflow-y-auto scrollbar-thin">
           <div className="p-4">
             <Link
+              key="logo-link"
               to="/"
               className={`flex items-center gap-2 mb-6 ${!isOpen && 'justify-center'}`}
             >
@@ -307,26 +314,26 @@ const Sidebar = ({ isOpen, setOpen }) => {
                 const isActive = location.pathname === item.path;
                 
                 return (
-                  <motion.div
-                    key={item.path}
-                    custom={i}
-                    initial="hidden"
-                    animate="visible"
-                    variants={itemVariants}
-                  >
-                    <Link
-                      to={item.path}
-                      className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                        isActive
-                          ? 'bg-primary/20 text-white shadow-lg shadow-primary/10'
-                          : 'text-subtle hover:text-white hover:bg-white/5'
-                      } relative overflow-hidden`}
-                      onClick={() => {
-                        if (window.innerWidth < 1024) {
-                          setOpen(false);
-                        }
-                      }}
+                                      <motion.div
+                      key={`nav-item-${item.path}`}
+                      custom={i}
+                      initial="hidden"
+                      animate="visible"
+                      variants={itemVariants}
                     >
+                      <Link
+                        to={item.path}
+                        className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                          isActive
+                            ? 'bg-primary/20 text-white shadow-lg shadow-primary/10'
+                            : 'text-subtle hover:text-white hover:bg-white/5'
+                        } relative overflow-hidden`}
+                        onClick={() => {
+                          if (window.innerWidth < 1024) {
+                            setOpen(false);
+                          }
+                        }}
+                      >
                       {/* Subtle gradient for active items */}
                       {isActive && (
                         <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent pointer-events-none"></div>
@@ -422,7 +429,7 @@ const Sidebar = ({ isOpen, setOpen }) => {
                           {recentProjects && recentProjects.length > 0 ? (
                             recentProjects.map((project) => (
                               <Link
-                                key={project.id}
+                                key={`recent-project-${project.id}`}
                                 to={`/projects/${project.id}`}
                                 className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm text-subtle hover:text-white hover:bg-white/5 transition-all relative overflow-hidden group"
                                 onClick={() => {
@@ -473,34 +480,16 @@ const Sidebar = ({ isOpen, setOpen }) => {
                       >
                         <div className="pl-4 pr-2 py-2 space-y-3">
                           {stats && Object.keys(stats).length > 0 ? (
-                            <>
-                              <div className="px-3 py-2 rounded-lg bg-white/5 backdrop-blur-lg relative overflow-hidden">
+                            quickStats.map(stat => (
+                              <div key={stat.id} className="px-3 py-2 rounded-lg bg-white/5 backdrop-blur-lg relative overflow-hidden">
                                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent"></div>
                                 <div className="absolute top-0 left-0 right-0 h-px bg-white/10"></div>
                                 <div className="relative">
-                                  <div className="text-xs text-subtle">Total Projects</div>
-                                  <div className="text-lg font-semibold text-white">{stats.totalProjects || 0}</div>
+                                  <div className="text-xs text-subtle">{stat.label}</div>
+                                  <div className="text-lg font-semibold text-white">{stat.value}</div>
                                 </div>
                               </div>
-                              
-                              <div className="px-3 py-2 rounded-lg bg-white/5 backdrop-blur-lg relative overflow-hidden">
-                                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent"></div>
-                                <div className="absolute top-0 left-0 right-0 h-px bg-white/10"></div>
-                                <div className="relative">
-                                  <div className="text-xs text-subtle">Total Clips</div>
-                                  <div className="text-lg font-semibold text-white">{stats.totalClips || 0}</div>
-                                </div>
-                              </div>
-                              
-                              <div className="px-3 py-2 rounded-lg bg-white/5 backdrop-blur-lg relative overflow-hidden">
-                                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent"></div>
-                                <div className="absolute top-0 left-0 right-0 h-px bg-white/10"></div>
-                                <div className="relative">
-                                  <div className="text-xs text-subtle">Processing</div>
-                                  <div className="text-lg font-semibold text-white">{stats.processing || 0}</div>
-                                </div>
-                              </div>
-                            </>
+                            ))
                           ) : (
                             <div className="px-3 py-2 text-sm text-subtle">
                               No stats available

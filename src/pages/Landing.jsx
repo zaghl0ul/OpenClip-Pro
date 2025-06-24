@@ -2,26 +2,39 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Play, Sparkles, Zap, Target, ArrowRight, Download, Star } from 'lucide-react';
-import LogoDisplay from '../components/Common/LogoDisplay';
+import GeometricPattern from '../components/Common/GeometricPattern';
+import { detectDevicePerformance, startPerformanceMonitoring, getOptimalSettings } from '../utils/performance';
 
 const Landing = () => {
-  const [canvasSize, setCanvasSize] = useState({ width: 700, height: 700 });
+  const [isMobile, setIsMobile] = useState(false);
+  const [performanceSettings, setPerformanceSettings] = useState(null);
 
   useEffect(() => {
-    const updateCanvasSize = () => {
-      const size = window.innerWidth < 768 ? 500 : window.innerWidth < 1024 ? 600 : 700;
-      setCanvasSize({ width: size, height: size });
+    const updateViewport = () => {
+      setIsMobile(window.innerWidth < 640);
     };
 
-    updateCanvasSize();
-    window.addEventListener('resize', updateCanvasSize);
-    return () => window.removeEventListener('resize', updateCanvasSize);
+    // Initialize performance monitoring
+    startPerformanceMonitoring();
+    
+    // Detect device performance and adjust settings
+    const devicePerformance = detectDevicePerformance();
+    const optimalSettings = getOptimalSettings();
+    setPerformanceSettings({
+      showAnimations: devicePerformance !== 'low' && optimalSettings.animationsEnabled,
+      performanceMode: optimalSettings.performanceMode,
+      reducedPatterns: devicePerformance === 'low' || optimalSettings.performanceMode
+    });
+
+    updateViewport();
+    window.addEventListener('resize', updateViewport);
+    return () => window.removeEventListener('resize', updateViewport);
   }, []);
 
   const features = [
     {
       icon: Sparkles,
-      title: "AI-Powered Analysis",
+      title: "AI-Powered Analysis", 
       description: "Advanced machine learning algorithms analyze your videos to identify the most engaging moments automatically."
     },
     {
@@ -43,31 +56,76 @@ const Landing = () => {
     { number: "4.9/5", label: "User Rating" }
   ];
 
+  // Optimized animation settings based on performance
+  const getAnimationProps = (delay = 0) => {
+    if (!performanceSettings?.showAnimations) {
+      return { initial: { opacity: 1 }, animate: { opacity: 1 } };
+    }
+    
+    return {
+      initial: { opacity: 0, y: 20 },
+      animate: { opacity: 1, y: 0 },
+      transition: { duration: 0.6, delay }
+    };
+  };
+
+  // Render geometric patterns only on high-performance devices
+  const renderGeometricPattern = (variant, size, opacity, color, className) => {
+    if (performanceSettings?.reducedPatterns) {
+      return null; // Skip patterns on low-performance devices
+    }
+    
+    return (
+      <GeometricPattern 
+        variant={variant}
+        size={size}
+        opacity={opacity}
+        animate={performanceSettings?.showAnimations}
+        color={color}
+        className={className}
+        performanceMode={performanceSettings?.performanceMode}
+      />
+    );
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-surface to-background overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--color-primary)_0%,_transparent_50%)] opacity-10"></div>
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--color-accent)_0%,_transparent_50%)] opacity-10"></div>
+    <div className="min-h-screen bg-gradient-to-br from-background via-surface to-background overflow-hidden relative">
+      {/* Optimized Background Elements - Simplified */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--color-primary)_0%,_transparent_50%)] opacity-5 z-0"></div>
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--color-accent)_0%,_transparent_50%)] opacity-5 z-0"></div>
       
-      {/* Navigation */}
-      <nav className="relative z-50 px-6 py-6">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+      {/* Navigation - Simplified */}
+      <nav className="relative z-50 px-6 py-6 backdrop-blur-sm bg-background/20">
+        {/* Single navigation pattern for high-performance devices only */}
+        {!isMobile && (
+          <div className="absolute top-0 right-0 opacity-40">
+            {renderGeometricPattern("simple", "small", 0.2, "primary", "w-16 h-16")}
+          </div>
+        )}
+        
+        <div className="max-w-7xl mx-auto flex items-center justify-between relative">
           <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
+            {...getAnimationProps(0)}
             className="flex items-center space-x-3"
           >
-            <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
+            <motion.div 
+              className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center"
+              whileHover={performanceSettings?.showAnimations ? { 
+                scale: 1.1,
+                rotate: 10,
+                boxShadow: "0 0 20px rgba(88, 166, 255, 0.3)"
+              } : {}}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            >
               <Play className="w-5 h-5 text-white fill-current" />
-            </div>
+            </motion.div>
             <span className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               OpenClip Pro
             </span>
           </motion.div>
           
           <motion.div 
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
+            {...getAnimationProps(0.1)}
             className="flex items-center space-x-6"
           >
             <Link 
@@ -80,29 +138,31 @@ const Landing = () => {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="relative z-10 px-6 py-20">
+      {/* Hero Section - Single optimized pattern */}
+      <section className="relative z-20 px-6 py-20">
+        {/* Single hero decoration - only on desktop high-performance */}
+        {!isMobile && (
+          <div className="absolute top-20 right-20 opacity-30">
+            {renderGeometricPattern("grid", "medium", 0.15, "primary", "w-24 h-24")}
+          </div>
+        )}
+        
         <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-            {/* Left Content */}
+          <div className="grid lg:grid-cols-1 gap-12 lg:gap-16 items-center text-center">
             <motion.div 
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              className="space-y-8"
+              {...getAnimationProps(0.2)}
+              className="space-y-8 max-w-4xl mx-auto relative"
             >
               <div className="space-y-6">
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.2 }}
+                  {...getAnimationProps(0.3)}
                   className="inline-flex items-center px-4 py-2 rounded-full glass-minimal border border-primary/20 text-sm font-medium"
                 >
                   <Star className="w-4 h-4 mr-2 text-accent" />
                   AI-Powered Video Intelligence
                 </motion.div>
                 
-                <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold leading-tight">
+                <h1 className="text-4xl sm:text-5xl lg:text-8xl font-bold leading-tight">
                   Create
                   <span className="block bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
                     Viral Clips
@@ -110,104 +170,53 @@ const Landing = () => {
                   <span className="block text-secondary">Instantly</span>
                 </h1>
                 
-                <p className="text-xl text-subtle leading-relaxed max-w-xl">
+                <p className="text-xl lg:text-2xl text-subtle leading-relaxed max-w-3xl mx-auto">
                   Transform your long-form content into engaging short clips with AI-powered analysis. 
                   Perfect for YouTube Shorts, TikTok, Instagram Reels, and more.
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-6 justify-center">
                 <Link 
                   to="/dashboard"
-                  className="group bg-gradient-to-r from-primary to-accent text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/25 flex items-center justify-center"
+                  className="group bg-gradient-to-r from-primary to-accent text-white px-10 py-5 rounded-2xl font-bold text-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/25 flex items-center justify-center"
                 >
                   Get Started Free
-                  <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-6 h-6 ml-3 group-hover:translate-x-1 transition-transform" />
                 </Link>
-                <button className="glass-frosted px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 hover:scale-105 flex items-center justify-center">
-                  <Download className="w-5 h-5 mr-2" />
+                <button className="glass-frosted px-10 py-5 rounded-2xl font-bold text-xl transition-all duration-300 hover:scale-105 flex items-center justify-center backdrop-blur-md border border-primary/20">
+                  <Download className="w-6 h-6 mr-3" />
                   Download App
                 </button>
               </div>
 
               {/* Stats */}
               <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 }}
-                className="grid grid-cols-2 sm:grid-cols-4 gap-6 pt-8"
+                {...getAnimationProps(0.4)}
+                className="grid grid-cols-2 sm:grid-cols-4 gap-8 pt-12"
               >
                 {stats.map((stat, index) => (
-                  <div key={index} className="text-center">
-                    <div className="text-2xl font-bold text-primary">{stat.number}</div>
-                    <div className="text-sm text-subtle">{stat.label}</div>
-                  </div>
+                  <motion.div 
+                    key={index} 
+                    className="text-center glass-minimal p-4 rounded-xl backdrop-blur-md border border-primary/10"
+                    whileHover={performanceSettings?.showAnimations ? { scale: 1.05, y: -2 } : {}}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  >
+                    <div className="text-3xl font-bold text-primary">{stat.number}</div>
+                    <div className="text-sm text-subtle mt-1">{stat.label}</div>
+                  </motion.div>
                 ))}
-              </motion.div>
-            </motion.div>
-
-            {/* Right - Hero Visual */}
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 1, delay: 0.3 }}
-              className="relative flex items-center justify-center"
-            >
-              <LogoDisplay
-                width={canvasSize.width}
-                height={canvasSize.height}
-                className="backdrop-blur-none"
-                primaryColor="#4F46E5"
-                secondaryColor="#06B6D4" 
-                accentColor="#10B981"
-                particleCount={240}
-                animationSpeed={0.8}
-                glowIntensity={1.2}
-              />
-
-              {/* Floating Elements */}
-              <motion.div
-                animate={{ 
-                  y: [-10, 10, -10],
-                  rotate: [0, 5, 0, -5, 0]
-                }}
-                transition={{ 
-                  duration: 6,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-                className="absolute -top-8 -right-8 glass-minimal p-3 rounded-xl z-10"
-              >
-                <Sparkles className="w-6 h-6 text-accent" />
-              </motion.div>
-
-              <motion.div
-                animate={{ 
-                  y: [10, -10, 10],
-                  rotate: [0, -5, 0, 5, 0]
-                }}
-                transition={{ 
-                  duration: 8,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  delay: 1
-                }}
-                className="absolute -bottom-8 -left-8 glass-minimal p-3 rounded-xl z-10"
-              >
-                <Zap className="w-6 h-6 text-primary" />
               </motion.div>
             </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="relative z-10 px-6 py-20">
+      {/* Features Section - Minimal decoration */}
+      <section className="relative z-20 px-6 py-20 backdrop-blur-sm bg-background/10">
         <div className="max-w-7xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            {...getAnimationProps(0.5)}
             className="text-center mb-16"
           >
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">
@@ -226,11 +235,8 @@ const Landing = () => {
             {features.map((feature, index) => (
               <motion.div
                 key={index}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.2 }}
-                className="glass-card p-8 rounded-2xl hover:scale-105 transition-all duration-300 group"
+                {...getAnimationProps(0.6 + index * 0.1)}
+                className="glass-card p-8 rounded-2xl hover:scale-105 transition-all duration-300 group backdrop-blur-md bg-background/40 border border-primary/10"
               >
                 <div className="w-16 h-16 bg-gradient-to-br from-primary/20 to-accent/20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                   <feature.icon className="w-8 h-8 text-primary" />
@@ -243,14 +249,12 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="relative z-10 px-6 py-20">
+      {/* CTA Section - No decoration for better performance */}
+      <section className="relative z-20 px-6 py-20 backdrop-blur-sm bg-background/10">
         <div className="max-w-4xl mx-auto text-center">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="glass-card p-12 rounded-3xl"
+            {...getAnimationProps(0.7)}
+            className="glass-card p-12 rounded-3xl backdrop-blur-md bg-background/40 border border-primary/10"
           >
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">
               Ready to Create

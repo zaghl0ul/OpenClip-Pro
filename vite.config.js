@@ -1,6 +1,7 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
+import { visualizer } from 'rollup-plugin-visualizer'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -14,8 +15,15 @@ export default defineConfig(({ mode }) => {
         fastRefresh: true,
         // Include .jsx files
         include: "**/*.{jsx,tsx}",
+      }),
+      // Bundle analyzer - generates stats.html after build
+      mode === 'production' && visualizer({
+        filename: 'dist/stats.html',
+        open: false,
+        gzipSize: true,
+        brotliSize: true,
       })
-    ],
+    ].filter(Boolean),
     
     resolve: {
       alias: {
@@ -64,10 +72,8 @@ export default defineConfig(({ mode }) => {
             // Vendor chunk for React and core libraries
             vendor: ['react', 'react-dom', 'react-router-dom'],
             
-            // UI chunk for UI libraries
+            // UI chunk for UI libraries - removed unused deps
             ui: [
-              '@headlessui/react',
-              '@heroicons/react',
               'lucide-react'
             ],
             
@@ -88,7 +94,10 @@ export default defineConfig(({ mode }) => {
               '@ffmpeg/ffmpeg',
               '@ffmpeg/util',
               'react-player'
-            ]
+            ],
+            
+            // Toast notifications chunk
+            notifications: ['react-hot-toast']
           },
           // Optimize chunk names
           chunkFileNames: (chunkInfo) => {

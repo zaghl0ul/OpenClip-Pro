@@ -67,9 +67,18 @@ def init_database():
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         video_data TEXT,
         youtube_url TEXT,
-        file_size INTEGER
+        file_size INTEGER,
+        thumbnail_url TEXT
     )
     ''')
+    
+    # Add thumbnail_url column if it doesn't exist (migration)
+    try:
+        cursor.execute('ALTER TABLE projects ADD COLUMN thumbnail_url TEXT')
+        print("Added thumbnail_url column to projects table")
+    except sqlite3.OperationalError:
+        # Column already exists
+        pass
     
     # Video files table
     cursor.execute('''
@@ -361,13 +370,46 @@ async def upload_video(project_id: str, file: UploadFile = File(...)):
         conn.commit()
         conn.close()
         
+        # Generate thumbnail automatically after upload
+        thumbnail_url = None
+        try:
+            thumbnail_result = await create_video_thumbnail(file_id)
+            if thumbnail_result.get("success"):
+                thumbnail_url = f"/api/videos/{file_id}/thumbnail"
+                
+                # Update the project with thumbnail URL
+                conn = get_db_connection()
+                cursor = conn.cursor()
+                
+                # Get current video_data and add thumbnail_url
+                cursor.execute("SELECT video_data FROM projects WHERE id = ?", (project_id,))
+                current_data = cursor.fetchone()
+                if current_data and current_data[0]:
+                    updated_video_data = json.loads(current_data[0])
+                    updated_video_data["thumbnail_url"] = thumbnail_url
+                    
+                    # Update project with thumbnail URL
+                    cursor.execute('''
+                    UPDATE projects SET 
+                    video_data = ?,
+                    thumbnail_url = ?,
+                    updated_at = ? 
+                    WHERE id = ?
+                    ''', (json.dumps(updated_video_data), thumbnail_url, datetime.now().isoformat(), project_id))
+                    
+                    conn.commit()
+                conn.close()
+        except Exception as e:
+            print(f"Warning: Could not generate thumbnail: {e}")
+        
         return {
             "success": True,
             "file_id": file_id,
             "filename": file.filename,
             "size": file_size,
             "message": "Video uploaded successfully",
-            "project": await get_project(project_id)
+            "project": await get_project(project_id),
+            "thumbnail_url": f"http://localhost:8001/api/videos/{file_id}/thumbnail" if thumbnail_url else None
         }
         
     except HTTPException:
@@ -521,109 +563,257 @@ async def create_video_thumbnail(file_id: str):
         thumb_filename = f"thumb_{file_id}.jpg"
         thumb_path = THUMBNAILS_DIR / thumb_filename
         
-        # Try to create thumbnail using FFmpeg
+        # Try to create thumbnail using system FFmpeg first
+        thumbnail_created = False
+        
         try:
             import subprocess
             
-            # FFmpeg command to extract thumbnail at 5 seconds
-            cmd = [
-                'ffmpeg',
-                '-i', str(file_path),
-                '-ss', '00:00:05',  # Extract at 5 seconds
-                '-vframes', '1',    # Extract only 1 frame
-                '-vf', 'scale=320:180',  # Scale to 320x180
-                '-y',  # Overwrite output file
-                str(thumb_path)
-            ]
+            # Check if FFmpeg is available in system PATH
+            try:
+                subprocess.run(["ffmpeg", "-version"], capture_output=True, timeout=5)
+                ffmpeg_cmd = "ffmpeg"
+            except:
+                try:
+                    subprocess.run(["ffmpeg.exe", "-version"], capture_output=True, timeout=5)
+                    ffmpeg_cmd = "ffmpeg.exe"
+                except:
+                    ffmpeg_cmd = None
             
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-            
-            if result.returncode == 0 and thumb_path.exists():
-                return {
-                    "success": True,
-                    "thumbnail_url": f"http://localhost:8001/uploads/thumbnails/{thumb_filename}",
-                    "thumbnail_path": str(thumb_path),
-                    "message": "Thumbnail created successfully"
-                }
-            else:
-                # Fallback: create placeholder using PIL
-                _create_placeholder_thumbnail(thumb_path)
-                return {
-                    "success": True,
-                    "thumbnail_url": f"http://localhost:8001/uploads/thumbnails/{thumb_filename}",
-                    "thumbnail_path": str(thumb_path),
-                    "message": "Created placeholder thumbnail (FFmpeg not available)"
-                }
+            if ffmpeg_cmd:
+                # FFmpeg command to extract thumbnail at 10% of video duration
+                cmd = [
+                    ffmpeg_cmd,
+                    '-i', str(file_path),
+                    '-ss', '00:00:05',  # Extract at 5 seconds
+                    '-vframes', '1',    # Extract only 1 frame
+                    '-vf', 'scale=320:180:force_original_aspect_ratio=decrease,pad=320:180:(ow-iw)/2:(oh-ih)/2',
+                    '-q:v', '2',        # High quality
+                    '-y',               # Overwrite output file
+                    str(thumb_path)
+                ]
                 
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+                
+                if result.returncode == 0 and thumb_path.exists():
+                    thumbnail_created = True
+                    print(f"Successfully created thumbnail using FFmpeg for {file_id}")
+                else:
+                    print(f"FFmpeg failed for {file_id}: {result.stderr}")
+            
         except Exception as e:
-            # Fallback: create placeholder using PIL
-            _create_placeholder_thumbnail(thumb_path)
+            print(f"FFmpeg thumbnail creation failed for {file_id}: {str(e)}")
+        
+        # If FFmpeg failed, try OpenCV
+        if not thumbnail_created:
+            try:
+                import cv2
+                
+                cap = cv2.VideoCapture(str(file_path))
+                
+                # Get video info
+                fps = cap.get(cv2.CAP_PROP_FPS)
+                frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+                
+                # Seek to 5 seconds or 10% of video, whichever is smaller
+                seek_frame = min(int(fps * 5), int(frame_count * 0.1)) if fps > 0 else 0
+                cap.set(cv2.CAP_PROP_POS_FRAMES, seek_frame)
+                
+                ret, frame = cap.read()
+                cap.release()
+                
+                if ret:
+                    # Resize frame to 320x180
+                    height, width = frame.shape[:2]
+                    target_width, target_height = 320, 180
+                    
+                    # Calculate scaling to maintain aspect ratio
+                    scale = min(target_width / width, target_height / height)
+                    new_width = int(width * scale)
+                    new_height = int(height * scale)
+                    
+                    # Resize frame
+                    resized = cv2.resize(frame, (new_width, new_height))
+                    
+                    # Create black canvas and center the frame
+                    canvas = cv2.copyMakeBorder(
+                        resized,
+                        (target_height - new_height) // 2,
+                        (target_height - new_height) // 2,
+                        (target_width - new_width) // 2,
+                        (target_width - new_width) // 2,
+                        cv2.BORDER_CONSTANT,
+                        value=[0, 0, 0]
+                    )
+                    
+                    # Save thumbnail
+                    success = cv2.imwrite(str(thumb_path), canvas)
+                    if success:
+                        thumbnail_created = True
+                        print(f"Successfully created thumbnail using OpenCV for {file_id}")
+                
+            except Exception as e:
+                print(f"OpenCV thumbnail creation failed for {file_id}: {str(e)}")
+        
+        # Final fallback: create placeholder thumbnail
+        if not thumbnail_created:
+            _create_placeholder_thumbnail(thumb_path, filename)
+            print(f"Created placeholder thumbnail for {file_id}")
+        
+        # Return success response
+        return {
+            "success": True,
+            "thumbnail_url": f"http://localhost:8001/uploads/thumbnails/{thumb_filename}",
+            "thumbnail_path": str(thumb_path),
+            "message": "Thumbnail created successfully"
+        }
+            
+    except Exception as e:
+        print(f"Thumbnail creation failed for {file_id}: {str(e)}")
+        # Try to create a basic placeholder as last resort
+        try:
+            thumb_filename = f"thumb_{file_id}.jpg"
+            thumb_path = THUMBNAILS_DIR / thumb_filename
+            _create_placeholder_thumbnail(thumb_path, filename)
             return {
                 "success": True,
                 "thumbnail_url": f"http://localhost:8001/uploads/thumbnails/{thumb_filename}",
                 "thumbnail_path": str(thumb_path),
-                "message": f"Created placeholder thumbnail (FFmpeg error: {str(e)})"
+                "message": "Created placeholder thumbnail"
             }
-            
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Thumbnail creation failed: {str(e)}")
+        except:
+            raise HTTPException(status_code=500, detail=f"Thumbnail creation failed: {str(e)}")
 
-def _create_placeholder_thumbnail(thumb_path: Path):
+def _create_placeholder_thumbnail(thumb_path: Path, filename: str = "Video"):
     """Create a placeholder thumbnail"""
     try:
         from PIL import Image, ImageDraw, ImageFont
         
         # Create a 320x180 image with dark background
-        img = Image.new('RGB', (320, 180), color='#1f2937')
+        img = Image.new('RGB', (320, 180), color='#1a1a1a')
         draw = ImageDraw.Draw(img)
+        
+        # Add gradient background
+        for y in range(180):
+            color_value = int(26 + (y / 180) * 20)  # Gradient from #1a1a1a to slightly lighter
+            draw.line([(0, y), (320, y)], fill=(color_value, color_value, color_value))
+        
+        # Add video icon (simple rectangle with play triangle)
+        # Video frame
+        draw.rectangle([100, 60, 220, 120], outline='#4f46e5', width=2)
+        
+        # Play triangle
+        play_points = [(140, 75), (140, 105), (170, 90)]
+        draw.polygon(play_points, fill='#4f46e5')
         
         # Add text
         try:
-            font = ImageFont.load_default()
+            # Try to load a better font
+            font_title = ImageFont.load_default()
+            font_subtitle = ImageFont.load_default()
         except:
-            font = None
+            font_title = None
+            font_subtitle = None
         
-        text = "Video Thumbnail"
-        if font:
-            bbox = draw.textbbox((0, 0), text, font=font)
+        # Main title
+        title = "Video Thumbnail"
+        if font_title:
+            bbox = draw.textbbox((0, 0), title, font=font_title)
             text_width = bbox[2] - bbox[0]
-            text_height = bbox[3] - bbox[1]
             x = (320 - text_width) // 2
-            y = (180 - text_height) // 2
-            draw.text((x, y), text, fill='#9ca3af', font=font)
+            draw.text((x, 130), title, fill='#e5e7eb', font=font_title)
         else:
-            draw.text((120, 85), text, fill='#9ca3af')
+            draw.text((110, 130), title, fill='#e5e7eb')
         
-        img.save(thumb_path, 'JPEG')
+        # Filename (truncated)
+        if len(filename) > 30:
+            display_name = filename[:27] + "..."
+        else:
+            display_name = filename
+            
+        if font_subtitle:
+            bbox = draw.textbbox((0, 0), display_name, font=font_subtitle)
+            text_width = bbox[2] - bbox[0]
+            x = (320 - text_width) // 2
+            draw.text((x, 150), display_name, fill='#9ca3af', font=font_subtitle)
+        else:
+            draw.text((80, 150), display_name[:20], fill='#9ca3af')
         
-    except ImportError:
-        # If PIL is not available, create a simple text file
-        with open(thumb_path.with_suffix('.txt'), 'w') as f:
-            f.write('Thumbnail placeholder - PIL not available')
+        # Save the image
+        img.save(thumb_path, 'JPEG', quality=85)
+        print(f"Created PIL placeholder thumbnail: {thumb_path}")
+        
+    except ImportError as e:
+        print(f"PIL not available: {e}")
+        # Create a simple text file as absolute fallback
+        try:
+            with open(thumb_path.with_suffix('.txt'), 'w') as f:
+                f.write(f'Video Thumbnail Placeholder\nFile: {filename}\nThumbnail generation requires PIL or FFmpeg')
+            print(f"Created text placeholder: {thumb_path.with_suffix('.txt')}")
+        except Exception as txt_error:
+            print(f"Could not even create text file: {txt_error}")
+            raise
+    except Exception as e:
+        print(f"Error creating placeholder thumbnail: {e}")
+        # Create a minimal text file
+        try:
+            with open(thumb_path.with_suffix('.txt'), 'w') as f:
+                f.write(f"Thumbnail Error: {str(e)}")
+        except:
+            pass
+        raise
 
 @app.get("/api/videos/{file_id}/thumbnail")
 async def get_video_thumbnail(file_id: str):
     """Get thumbnail for a video"""
     thumb_filename = f"thumb_{file_id}.jpg"
     thumb_path = THUMBNAILS_DIR / thumb_filename
+    thumb_txt_path = THUMBNAILS_DIR / f"thumb_{file_id}.txt"
     
-    if thumb_path.exists():
+    # Check if valid thumbnail exists
+    if thumb_path.exists() and thumb_path.stat().st_size > 1000:  # At least 1KB for valid image
         return FileResponse(
             thumb_path,
             filename=thumb_filename,
             media_type="image/jpeg"
         )
-    else:
-        # Thumbnail doesn't exist, create it
-        result = await create_video_thumbnail(file_id)
-        if result["success"]:
-            return FileResponse(
-                thumb_path,
-                filename=thumb_filename,
-                media_type="image/jpeg"
-            )
-        else:
-            raise HTTPException(status_code=404, detail="Could not create thumbnail")
+    
+    # Check if there's a failed thumbnail (.txt file) - regenerate it
+    if thumb_txt_path.exists():
+        print(f"Found failed thumbnail (.txt) for {file_id}, attempting to regenerate...")
+        try:
+            # Remove the old .txt file
+            thumb_txt_path.unlink()
+            
+            # Try to create new thumbnail
+            result = await create_video_thumbnail(file_id)
+            if result.get("success") and thumb_path.exists():
+                return FileResponse(
+                    thumb_path,
+                    filename=thumb_filename,
+                    media_type="image/jpeg"
+                )
+        except Exception as e:
+            print(f"Failed to regenerate thumbnail for {file_id}: {e}")
+    
+    # No valid thumbnail exists, create it
+    if not thumb_path.exists():
+        try:
+            result = await create_video_thumbnail(file_id)
+            if result.get("success") and thumb_path.exists():
+                return FileResponse(
+                    thumb_path,
+                    filename=thumb_filename,
+                    media_type="image/jpeg"
+                )
+        except Exception as e:
+            print(f"Failed to create thumbnail for {file_id}: {e}")
+    
+    # If all else fails, return a 404 with helpful message
+    raise HTTPException(
+        status_code=404, 
+        detail=f"Could not create or find thumbnail for video {file_id}"
+    )
 
 # Serve uploaded files
 app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
@@ -645,7 +835,7 @@ def init_settings_table():
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS settings (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        category TEXT NOT NULL,
+        category TEXT NOT NULL DEFAULT 'general',
         key TEXT NOT NULL,
         value TEXT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -665,7 +855,7 @@ async def get_providers():
     """Get available AI providers"""
     return ["openai", "gemini", "lmstudio", "anthropic"]
 
-@app.post("/api/settings/api-key")
+@app.post("/api/settings/api-keys")
 async def store_api_key(request: APIKeyStorage):
     """Store API key for a provider"""
     conn = get_db_connection()
@@ -681,6 +871,70 @@ async def store_api_key(request: APIKeyStorage):
     conn.close()
     
     return {"success": True, "message": f"API key for {request.provider} stored successfully"}
+
+@app.post("/api/settings/test-api-key")
+async def test_api_key(request: APIKeyStorage):
+    """Test an API key to verify it works"""
+    try:
+        if request.provider == "openai":
+            import openai
+            client = openai.OpenAI(api_key=request.api_key)
+            # Make a simple test request
+            response = client.models.list()
+            return {"success": True, "message": "OpenAI API key is valid", "models_count": len(response.data)}
+            
+        elif request.provider == "gemini":
+            import google.generativeai as genai
+            genai.configure(api_key=request.api_key)
+            # Test by trying to list models
+            models = list(genai.list_models())
+            return {"success": True, "message": "Gemini API key is valid", "models_count": len(models)}
+            
+        elif request.provider == "anthropic":
+            import anthropic
+            client = anthropic.Anthropic(api_key=request.api_key)
+            # Test with a simple message
+            response = client.messages.create(
+                model="claude-3-haiku-20240307",
+                max_tokens=10,
+                messages=[{"role": "user", "content": "Hello"}]
+            )
+            return {"success": True, "message": "Anthropic API key is valid"}
+            
+        elif request.provider == "lmstudio":
+            # For LM Studio, test connection to local endpoint
+            import requests
+            try:
+                response = requests.get("http://localhost:1234/v1/models", timeout=5)
+                if response.status_code == 200:
+                    models = response.json()
+                    return {"success": True, "message": "LM Studio connection successful", "models_count": len(models.get('data', []))}
+                else:
+                    return {"success": False, "message": "LM Studio not responding. Make sure it's running on localhost:1234"}
+            except requests.exceptions.RequestException:
+                return {"success": False, "message": "Cannot connect to LM Studio. Make sure it's running on localhost:1234"}
+        else:
+            return {"success": False, "message": f"Unknown provider: {request.provider}"}
+            
+    except Exception as e:
+        return {"success": False, "message": f"API key test failed: {str(e)}"}
+
+@app.delete("/api/settings/api-keys/{provider}")
+async def delete_api_key(provider: str):
+    """Delete an API key"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute('DELETE FROM settings WHERE category = ? AND key = ?', ("api_keys", f"{provider}_key"))
+    conn.commit()
+    conn.close()
+    
+    return {"success": True, "message": f"API key for {provider} deleted successfully"}
+
+@app.post("/api/settings/api-key")
+async def store_api_key_legacy(request: APIKeyStorage):
+    """Legacy endpoint for backward compatibility"""
+    return await store_api_key(request)
 
 @app.get("/api/settings")
 async def get_settings():

@@ -1,6 +1,6 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { Upload as UploadIcon, FileText as FileTextIcon } from 'lucide-react'
+import { Upload as UploadIcon, FileText as FileTextIcon, CheckCircle } from 'lucide-react'
 
 const VideoUploadStep = ({ 
   selectedFile, 
@@ -8,13 +8,31 @@ const VideoUploadStep = ({
   dragActive, 
   handleDrag, 
   handleDrop, 
-  fileInputRef 
+  fileInputRef,
+  error,
+  uploadProgress = 0,
+  isUploading = false
 }) => {
   const stepVariants = {
     hidden: { opacity: 0, x: 20 },
     visible: { opacity: 1, x: 0 },
     exit: { opacity: 0, x: -20 }
   }
+
+  // Ensure we're handling file selection correctly
+  const onFileChange = (e) => {
+    if (e.target.files?.[0]) {
+      // Pass the actual File object, not an array
+      handleFileSelect(e.target.files[0]);
+      
+      // Log file details for debugging
+      console.log('File selected:', {
+        name: e.target.files[0].name,
+        type: e.target.files[0].type,
+        size: e.target.files[0].size
+      });
+    }
+  };
 
   return (
     <motion.div
@@ -37,20 +55,48 @@ const VideoUploadStep = ({
         <div className="p-6 border border-gray-700 bg-gray-800/50 rounded-lg">
           <div className="flex items-center gap-4">
             <div className="p-3 rounded-lg bg-primary-500/20 text-primary-400">
-              <FileTextIcon className="w-6 h-6" />
+              {isUploading ? (
+                <div className="w-6 h-6 border-2 border-primary-400 border-t-transparent rounded-full animate-spin" />
+              ) : uploadProgress === 100 ? (
+                <CheckCircle className="w-6 h-6 text-green-400" />
+              ) : (
+                <FileTextIcon className="w-6 h-6" />
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <h4 className="font-medium text-gray-100 truncate">{selectedFile.name}</h4>
               <p className="text-sm text-gray-400">
                 {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
               </p>
+              
+              {/* Upload Progress */}
+              {isUploading && (
+                <div className="mt-2">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-gray-400">
+                      {uploadProgress < 100 ? 'Uploading...' : 'Processing...'}
+                    </span>
+                    <span className="text-xs text-gray-400">{uploadProgress}%</span>
+                  </div>
+                  <div className="w-full bg-gray-700 rounded-full h-1.5">
+                    <motion.div 
+                      className="bg-primary-500 h-1.5 rounded-full"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${uploadProgress}%` }}
+                      transition={{ duration: 0.3 }}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
-            <button
-              onClick={() => handleFileSelect(null)}
-              className="px-3 py-1 text-sm bg-gray-700 hover:bg-gray-600 text-white rounded"
-            >
-              Change
-            </button>
+            {!isUploading && (
+              <button
+                onClick={() => handleFileSelect(null)}
+                className="px-3 py-1 text-sm bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors"
+              >
+                Change
+              </button>
+            )}
           </div>
         </div>
       ) : (
@@ -79,7 +125,7 @@ const VideoUploadStep = ({
                 {dragActive ? 'Drop your file here' : 'Drag & drop your video file here'}
               </p>
               <p className="text-gray-500 text-sm mb-4">
-                Supports MP4, MOV, AVI, and other common formats
+                Supports MP4, MOV, AVI, and other common formats (max 500MB)
               </p>
               
               <button
@@ -92,15 +138,18 @@ const VideoUploadStep = ({
                 ref={fileInputRef}
                 type="file"
                 accept="video/*"
-                onChange={(e) => {
-                  if (e.target.files?.[0]) {
-                    handleFileSelect(e.target.files[0])
-                  }
-                }}
+                onChange={onFileChange}
                 className="hidden"
               />
             </div>
           </div>
+        </div>
+      )}
+      
+      {/* Error Display */}
+      {error && (
+        <div className="p-3 bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg text-sm">
+          {error}
         </div>
       )}
     </motion.div>

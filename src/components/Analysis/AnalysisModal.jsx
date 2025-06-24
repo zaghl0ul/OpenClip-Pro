@@ -1,18 +1,16 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { X, Zap, Settings, Check, Info } from 'lucide-react';
+import { X, Zap, Info } from 'lucide-react';
 import AnalysisPrompt from './AnalysisPrompt';
 
 const AnalysisModal = ({ isOpen, onClose, onStartAnalysis, defaultPrompt = '' }) => {
   const [prompt, setPrompt] = useState(defaultPrompt);
-  const [provider, setProvider] = useState('openai');
-  const [showAdvanced, setShowAdvanced] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState('');
 
   if (!isOpen) return null;
 
-  const handleStartAnalysis = async (promptText) => {
+  const handleStartAnalysis = async (promptText, provider = 'openai') => {
     if (!promptText?.trim()) {
       setError('Please provide an analysis prompt');
       return;
@@ -35,13 +33,6 @@ const AnalysisModal = ({ isOpen, onClose, onStartAnalysis, defaultPrompt = '' })
       setIsAnalyzing(false);
     }
   };
-
-  const providers = [
-    { id: 'openai', name: 'OpenAI', logo: 'https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg' },
-    { id: 'gemini', name: 'Google Gemini', logo: 'https://seeklogo.com/images/G/google-gemini-logo-4F05CA3DB1-seeklogo.com.png' },
-    { id: 'anthropic', name: 'Anthropic Claude', logo: 'https://seeklogo.com/images/A/anthropic-logo-1146A0624A-seeklogo.com.png' },
-    { id: 'local', name: 'Local LLM', logo: 'https://cdn-icons-png.flaticon.com/512/2285/2285551.png' },
-  ];
 
   return (
     <motion.div
@@ -72,67 +63,24 @@ const AnalysisModal = ({ isOpen, onClose, onStartAnalysis, defaultPrompt = '' })
 
         {/* Modal Content */}
         <div className="p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <AnalysisPrompt
-                onAnalyze={handleStartAnalysis}
-                isAnalyzing={isAnalyzing}
-                initialPrompt={defaultPrompt}
-              />
-            </div>
+          <div className="grid grid-cols-1 gap-6">
+            <AnalysisPrompt
+              onAnalyze={handleStartAnalysis}
+              isAnalyzing={isAnalyzing}
+              initialPrompt={defaultPrompt}
+            />
             
-            <div className="space-y-6">
-              {/* Provider Selection */}
-              <div className="glass-shine rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <Settings className="w-4 h-4 text-white/60" />
-                  <h4 className="font-medium text-white">
-                    AI Provider
-                  </h4>
-                </div>
-                
-                <div className="space-y-2">
-                  {providers.map((p) => (
-                    <button
-                      key={p.id}
-                      onClick={() => setProvider(p.id)}
-                      className={`flex items-center gap-3 w-full p-3 rounded-lg transition-colors ${
-                        provider === p.id
-                          ? 'bg-green-500/20 border border-green-500/50'
-                          : 'hover:bg-white/10 border border-transparent'
-                      }`}
-                    >
-                      <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center">
-                        {provider === p.id ? (
-                          <Check className="w-5 h-5 text-green-400" />
-                        ) : (
-                          <img src={p.logo} alt={p.name} className="w-5 h-5 object-contain" />
-                        )}
-                      </div>
-                      <span className={`text-sm font-medium ${
-                        provider === p.id 
-                          ? 'text-green-300' 
-                          : 'text-white/80'
-                      }`}>
-                        {p.name}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Settings & Info */}
-              <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                <div className="flex items-start gap-3">
-                  <Info className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
-                  <div className="text-sm text-white/70">
-                    <p className="mb-2">
-                      The AI will analyze your video and identify key moments based on your prompt.
-                    </p>
-                    <p>
-                      For best results, be specific about what you're looking for in your video.
-                    </p>
-                  </div>
+            {/* Info Box */}
+            <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+              <div className="flex items-start gap-3">
+                <Info className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-white/70">
+                  <p className="mb-2">
+                    The AI will analyze your video and identify key moments based on your prompt.
+                  </p>
+                  <p>
+                    For best results, be specific about what you're looking for in your video.
+                  </p>
                 </div>
               </div>
             </div>

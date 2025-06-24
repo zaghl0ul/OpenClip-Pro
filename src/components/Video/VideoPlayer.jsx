@@ -1,8 +1,8 @@
-import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback, forwardRef, useImperativeHandle } from 'react';
 import ReactPlayer from 'react-player';
 import { Play, Pause, Volume2, VolumeX, Maximize, SkipForward, SkipBack, AlertOctagon } from 'lucide-react';
 
-const VideoPlayer = ({ videoUrl, projectId, showControls = true, autoPlay = false, onProgress, onDuration, className = '' }) => {
+const VideoPlayer = forwardRef(({ videoUrl, projectId, showControls = true, autoPlay = false, onProgress, onDuration, className = '' }, ref) => {
   const [playing, setPlaying] = useState(autoPlay);
   const [volume, setVolume] = useState(0.7);
   const [muted, setMuted] = useState(false);
@@ -14,6 +14,37 @@ const VideoPlayer = ({ videoUrl, projectId, showControls = true, autoPlay = fals
   const [thumbnailUrl, setThumbnailUrl] = useState(null);
   const playerRef = useRef(null);
   const containerRef = useRef(null);
+  
+  // Memoize the functions used in useImperativeHandle to prevent infinite loops
+  const seekTo = useCallback((seconds) => {
+    // Validate the seconds parameter to prevent HTMLMediaElement errors
+    if (playerRef.current && 
+        typeof seconds === 'number' && 
+        !isNaN(seconds) && 
+        isFinite(seconds) && 
+        seconds >= 0) {
+      playerRef.current.seekTo(seconds);
+    } else {
+      console.warn('Invalid seek time:', seconds);
+    }
+  }, []);
+  
+  const getCurrentTime = useCallback(() => currentTime, []);
+  
+  const getDuration = useCallback(() => duration, []);
+  
+  const play = useCallback(() => setPlaying(true), []);
+  
+  const pause = useCallback(() => setPlaying(false), []);
+
+  // Expose methods to parent components with memoized functions
+  useImperativeHandle(ref, () => ({
+    seekTo,
+    getCurrentTime,
+    getDuration,
+    play,
+    pause
+  }), [seekTo, getCurrentTime, getDuration, play, pause]);
 
   // Fetch video URL and thumbnail from backend when using projectId (memoized to prevent excessive calls)
   useEffect(() => {
@@ -32,8 +63,14 @@ const VideoPlayer = ({ videoUrl, projectId, showControls = true, autoPlay = fals
         
         const projectData = await projectResponse.json();
         
-        if (isMounted && projectData.project?.video_data?.thumbnail_url) {
-          setThumbnailUrl(projectData.project.video_data.thumbnail_url);
+        if (isMounted) {
+          // Check for thumbnail in different possible locations
+          const thumbnail = projectData.project?.thumbnail_url || 
+                           projectData.project?.video_data?.thumbnail_url;
+          
+          if (thumbnail) {
+            setThumbnailUrl(`http://localhost:8001${thumbnail}`);
+          }
         }
         
         // Then get video stream URL
@@ -44,7 +81,11 @@ const VideoPlayer = ({ videoUrl, projectId, showControls = true, autoPlay = fals
         
         if (isMounted) {
           if (streamData.video_url) {
-            setActualVideoUrl(streamData.video_url);
+            // Check if URL already has base URL
+            const videoUrl = streamData.video_url.startsWith('http') 
+              ? streamData.video_url 
+              : `http://localhost:8001${streamData.video_url}`;
+            setActualVideoUrl(videoUrl);
           } else {
             setError('No video URL available');
           }
@@ -52,6 +93,7 @@ const VideoPlayer = ({ videoUrl, projectId, showControls = true, autoPlay = fals
       } catch (err) {
         if (isMounted) {
           setError('Failed to fetch video data');
+          console.error('Video fetch error:', err);
         }
       }
     };
@@ -61,7 +103,7 @@ const VideoPlayer = ({ videoUrl, projectId, showControls = true, autoPlay = fals
     return () => {
       isMounted = false;
     };
-  }, [projectId]); // Remove videoUrl from dependencies to prevent loops
+  }, [projectId, videoUrl]); // Keep videoUrl in dependencies but handle it properly in the effect
 
   // Memoized video source to prevent excessive re-calculations
   const videoSource = useMemo(() => {
@@ -86,13 +128,13 @@ const VideoPlayer = ({ videoUrl, projectId, showControls = true, autoPlay = fals
     if (onDuration) onDuration(duration);
   }, [onDuration]);
 
-  const formatTime = (seconds) => {
+  const formatTime = useCallback((seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
+  }, []);
 
-  const handleFullscreen = () => {
+  const handleFullscreen = useCallback(() => {
     if (containerRef.current) {
       if (document.fullscreenElement) {
         document.exitFullscreen();
@@ -100,70 +142,91 @@ const VideoPlayer = ({ videoUrl, projectId, showControls = true, autoPlay = fals
         containerRef.current.requestFullscreen();
       }
     }
-  };
+  }, []);
 
-  const handleSeek = (e) => {
+  const handleSeek = useCallback((e) => {
     const progressBar = e.currentTarget;
     const bounds = progressBar.getBoundingClientRect();
     const x = e.clientX - bounds.left;
     const percent = x / bounds.width;
     const seekTo = percent * duration;
 
-    playerRef.current?.seekTo(seekTo);
-  };
+    if (playerRef.current) {
+      playerRef.current.seekTo(seekTo);
+    }
+  }, [duration]);
 
-  const handleSkipForward = () => {
+  const handleSkipForward = useCallback(() => {
     const newTime = Math.min(currentTime + 10, duration);
-    playerRef.current?.seekTo(newTime);
-  };
+    if (playerRef.current) {
+      playerRef.current.seekTo(newTime);
+    }
+  }, [currentTime, duration]);
 
-  const handleSkipBackward = () => {
+  const handleSkipBackward = useCallback(() => {
     const newTime = Math.max(currentTime - 10, 0);
-    playerRef.current?.seekTo(newTime);
-  };
+    if (playerRef.current) {
+      playerRef.current.seekTo(newTime);
+    }
+  }, [currentTime, duration]);
 
+  // Update playing state when autoPlay prop changes
   useEffect(() => {
     setPlaying(autoPlay);
-  }, [autoPlay, videoUrl]);
+  }, [autoPlay]);
 
+  // Memoize the keyboard event handler to prevent re-creating it on every render
+  const handleKeyPress = useCallback((e) => {
+    // Only handle events when this player is focused or no specific element is focused
+    if (!containerRef.current?.contains(document.activeElement) && document.activeElement !== document.body) {
+      return;
+    }
+
+    switch (e.code) {
+      case 'Space':
+        setPlaying(prev => !prev);
+        e.preventDefault();
+        break;
+      case 'ArrowRight':
+        if (playerRef.current) {
+          const newTime = Math.min(currentTime + 10, duration);
+          playerRef.current.seekTo(newTime);
+        }
+        e.preventDefault();
+        break;
+      case 'ArrowLeft':
+        if (playerRef.current) {
+          const newTime = Math.max(currentTime - 10, 0);
+          playerRef.current.seekTo(newTime);
+        }
+        e.preventDefault();
+        break;
+      case 'KeyM':
+        setMuted(prev => !prev);
+        e.preventDefault();
+        break;
+      case 'KeyF':
+        if (containerRef.current) {
+          if (document.fullscreenElement) {
+            document.exitFullscreen();
+          } else {
+            containerRef.current.requestFullscreen();
+          }
+        }
+        e.preventDefault();
+        break;
+      default:
+        break;
+    }
+  }, [currentTime, duration]);
+
+  // Set up keyboard event listeners
   useEffect(() => {
-    const handleKeyPress = (e) => {
-      // Only handle events when this player is focused or no specific element is focused
-      if (!containerRef.current?.contains(document.activeElement) && document.activeElement !== document.body) {
-        return;
-      }
-
-      switch (e.code) {
-        case 'Space':
-          setPlaying(prev => !prev);
-          e.preventDefault();
-          break;
-        case 'ArrowRight':
-          handleSkipForward();
-          e.preventDefault();
-          break;
-        case 'ArrowLeft':
-          handleSkipBackward();
-          e.preventDefault();
-          break;
-        case 'KeyM':
-          setMuted(prev => !prev);
-          e.preventDefault();
-          break;
-        case 'KeyF':
-          handleFullscreen();
-          e.preventDefault();
-          break;
-        default:
-          break;
-      }
-    };
-
     window.addEventListener('keydown', handleKeyPress);
     return () => {
       window.removeEventListener('keydown', handleKeyPress);
     };
-  }, [currentTime, duration]);
+  }, [handleKeyPress]);
 
   return (
     <div 
@@ -188,7 +251,7 @@ const VideoPlayer = ({ videoUrl, projectId, showControls = true, autoPlay = fals
             console.error('❌ Video playback error:', e);
             console.error('❌ Failed video source:', videoSource);
             console.error('❌ Error details:', e.target?.error);
-            setError('Failed to load video. This is a mock implementation - video streaming needs proper setup.');
+            setError('Failed to load video. Please check your connection or try another video file.');
             setLoading(false);
           }}
         />
@@ -308,6 +371,8 @@ const VideoPlayer = ({ videoUrl, projectId, showControls = true, autoPlay = fals
       )}
     </div>
   );
-};
+});
+
+VideoPlayer.displayName = 'VideoPlayer';
 
 export default VideoPlayer;

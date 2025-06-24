@@ -26,6 +26,11 @@
   --color-gradientStart: #1C93E3;
   --color-gradientEnd: #A855F7;
   
+  /* Logo theme adaptivity */
+  --logo-brightness: 1.1;
+  --logo-saturation: 1.2;
+  --logo-contrast: 1.1;
+  
   /* Glass effect variables */
   --glass-blur: 16px;
   --glass-saturation: 1.1;
@@ -618,6 +623,26 @@
     color: transparent;
   }
 
+  /* Animated Logo Text Styling */
+  .animated-logo-text {
+    font-family: inherit;
+    color: var(--color-text, var(--color-secondary));
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    transition: color 0.3s ease;
+  }
+
+  .animated-logo-text .logo-accent {
+    background: linear-gradient(
+      135deg,
+      var(--color-primary),
+      var(--color-accent)
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 700;
+  }
+
   /* Glass Minimal - Ultra Light touch */
   .glass-minimal {
     background: rgba(255, 255, 255, 0.02);
@@ -718,6 +743,173 @@
 
 .animate-out {
   animation: fadeOut 0.3s ease-out;
+}
+
+/* Enhanced Logo Animations */
+@keyframes flow-pulse {
+  0%, 100% { 
+    opacity: 0.6; 
+    stroke-width: 1.5;
+    filter: brightness(0.8);
+  }
+  50% { 
+    opacity: 1; 
+    stroke-width: 2.5;
+    filter: brightness(1.2);
+  }
+}
+
+@keyframes undulate-width {
+  0%, 100% { 
+    stroke-width: 1.5;
+    stroke-dasharray: 50 25;
+  }
+  25% { 
+    stroke-width: 2.2;
+    stroke-dasharray: 60 20;
+  }
+  50% { 
+    stroke-width: 1.8;
+    stroke-dasharray: 45 30;
+  }
+  75% { 
+    stroke-width: 2.8;
+    stroke-dasharray: 70 15;
+  }
+}
+
+@keyframes undulate-width-medium {
+  0%, 100% { 
+    stroke-width: 2;
+    stroke-dasharray: 15 8 6 10;
+  }
+  25% { 
+    stroke-width: 2.8;
+    stroke-dasharray: 20 6 8 12;
+  }
+  50% { 
+    stroke-width: 2.4;
+    stroke-dasharray: 12 10 4 8;
+  }
+  75% { 
+    stroke-width: 3.2;
+    stroke-dasharray: 25 4 10 15;
+  }
+}
+
+@keyframes wisp-flow {
+  0% { 
+    opacity: 0;
+    transform: scale(0.6);
+    filter: blur(0.5px);
+  }
+  20% { 
+    opacity: 0.8;
+    transform: scale(1.1);
+    filter: blur(0px);
+  }
+  50% { 
+    opacity: 1;
+    transform: scale(1.3);
+    filter: blur(0px);
+  }
+  80% { 
+    opacity: 0.7;
+    transform: scale(1.0);
+    filter: blur(0.3px);
+  }
+  100% { 
+    opacity: 0;
+    transform: scale(0.8);
+    filter: blur(0.8px);
+  }
+}
+
+@keyframes ethereal-drift {
+  0% { 
+    opacity: 0;
+    transform: scale(0.7) rotate(0deg);
+    filter: blur(0.3px);
+  }
+  15% { 
+    opacity: 0.9;
+    transform: scale(1.2) rotate(5deg);
+    filter: blur(0px);
+  }
+  45% { 
+    opacity: 1;
+    transform: scale(1.4) rotate(-3deg);
+    filter: blur(0px);
+  }
+  75% { 
+    opacity: 0.8;
+    transform: scale(1.1) rotate(2deg);
+    filter: blur(0.2px);
+  }
+  100% { 
+    opacity: 0;
+    transform: scale(0.9) rotate(0deg);
+    filter: blur(0.6px);
+  }
+}
+
+@keyframes prominent-glow {
+  0%, 100% { 
+    opacity: 0.7;
+    transform: scale(1);
+    filter: brightness(1) drop-shadow(0 0 5px currentColor);
+  }
+  50% { 
+    opacity: 1;
+    transform: scale(1.2);
+    filter: brightness(1.3) drop-shadow(0 0 15px currentColor);
+  }
+}
+
+@keyframes energy-surge {
+  0% { 
+    stroke-dashoffset: 0;
+    opacity: 0.5;
+  }
+  25% { 
+    stroke-dashoffset: -25;
+    opacity: 0.8;
+  }
+  50% { 
+    stroke-dashoffset: -50;
+    opacity: 1;
+  }
+  75% { 
+    stroke-dashoffset: -75;
+    opacity: 0.8;
+  }
+  100% { 
+    stroke-dashoffset: -100;
+    opacity: 0.5;
+  }
+}
+
+@keyframes particle-pulse {
+  0%, 100% { 
+    opacity: 0.6;
+    transform: scale(0.8);
+  }
+  50% { 
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+@keyframes gradient-shift {
+  0% { 
+    background-position: 0% 50%;
+  }
+  50% { 
+    background-position: 100% 50%;
+  }
+  100% { 
+    background-position: 0% 50%;
+  }
 }
 
 /* Remove all adaptive UI related styles */
