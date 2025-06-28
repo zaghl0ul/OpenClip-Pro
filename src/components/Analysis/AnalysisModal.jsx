@@ -16,6 +16,12 @@ const AnalysisModal = ({ isOpen, onClose, onStartAnalysis, defaultPrompt = '' })
       return;
     }
 
+    if (!onStartAnalysis || typeof onStartAnalysis !== 'function') {
+      setError('Analysis function not available. Please try again.');
+      console.error('onStartAnalysis is not a function:', onStartAnalysis);
+      return;
+    }
+
     setPrompt(promptText);
     setIsAnalyzing(true);
     setError('');

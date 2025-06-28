@@ -72,8 +72,21 @@ const ProtectedRoute = ({ children }) => {
   React.useEffect(() => {
     const checkAuth = async () => {
       try {
+        // Check regular authentication
         const authenticated = authService.isAuthenticated();
-        setIsAuthenticated(authenticated);
+        
+        // Also check if user is a beta user
+        const betaUser = localStorage.getItem('openclip_beta_user');
+        const isBetaUser = betaUser !== null;
+        
+        console.log('🔐 Auth check:', {
+          authenticated,
+          betaUser: !!betaUser,
+          betaUserData: betaUser,
+          finalAuth: authenticated || isBetaUser
+        });
+        
+        setIsAuthenticated(authenticated || isBetaUser);
       } catch (error) {
         console.error('Auth check failed:', error);
         setIsAuthenticated(false);

@@ -173,6 +173,26 @@ class ApiService {
 
   // Analysis
   async analyzeVideo(projectId, prompt, provider = 'openai', model = null) {
+    // Set default models for each provider if not specified
+    if (!model) {
+      switch (provider) {
+        case 'openai':
+          model = 'gpt-4-vision-preview';
+          break;
+        case 'gemini':
+          model = 'gemini-1.5-flash';
+          break;
+        case 'anthropic':
+          model = 'claude-3-opus-20240229';
+          break;
+        case 'lmstudio':
+          model = 'local-model';
+          break;
+        default:
+          model = 'gpt-4-vision-preview'; // fallback
+      }
+    }
+
     return this.request(`/api/projects/${projectId}/analyze`, {
       method: 'POST',
       body: JSON.stringify({
@@ -229,10 +249,31 @@ export const deleteProject = (id) => apiClient.delete(`/api/projects/${id}`);
 export const getVideoStream = (projectId) => apiClient.get(`/api/projects/${projectId}/stream`);
 
 // Analysis endpoints
-export const analyzeVideo = (projectId, prompt, provider = 'openai') => {
+export const analyzeVideo = (projectId, prompt, provider = 'openai', model = null) => {
+  // Set default models for each provider if not specified
+  if (!model) {
+    switch (provider) {
+      case 'openai':
+        model = 'gpt-4-vision-preview';
+        break;
+      case 'gemini':
+        model = 'gemini-1.5-flash';
+        break;
+      case 'anthropic':
+        model = 'claude-3-opus-20240229';
+        break;
+      case 'lmstudio':
+        model = 'local-model';
+        break;
+      default:
+        model = 'gpt-4-vision-preview'; // fallback
+    }
+  }
+
   return apiClient.post(`/api/projects/${projectId}/analyze`, {
     prompt,
     provider,
+    model,
   });
 };
 

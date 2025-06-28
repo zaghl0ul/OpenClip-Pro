@@ -1,5 +1,5 @@
-# Production Dockerfile for FastAPI Backend
-FROM python:3.11-slim
+# Multi-stage Dockerfile for FastAPI Backend
+FROM python:3.11-slim AS base
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -46,5 +46,10 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:8000/health || exit 1
 
-# Start the application
+# Development stage
+FROM base AS development
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+# Production stage
+FROM base AS production
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"] 

@@ -1,0 +1,59 @@
+# Backend files (not needed for frontend deployment)
+backend/
+*.pyc
+__pycache__/
+.pytest_cache/
+venv/
+env/
+
+# Docker files
+docker-compose*.yml
+Dockerfile*
+nginx/
+
+# Large dependencies and build artifacts
+node_modules/
+.next/
+.cache/
+*.log
+
+# Development files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Large media files
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.webm
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Large documentation
+TROUBLESHOOTING.md
+DEPLOYMENT.md
+IMPLEMENTATION_GAPS_FILLED.md
+PROJECT_CLEANUP_SUMMARY.md
+CODEBASE_OPTIMIZATION_SUMMARY.md
+
+# Monitoring
+monitoring/
+
+# Scripts
+scripts/
+
+# Test files
+src/test/
+*.test.js
+*.test.ts 

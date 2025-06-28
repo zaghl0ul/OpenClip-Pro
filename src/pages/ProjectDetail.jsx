@@ -74,37 +74,99 @@ const ProjectDetail = () => {
   }, [id, getProjectById, navigate]);
 
   const handleStartAnalysis = useCallback(
-    async ({ prompt, provider }) => {
-      if (!project || (!project.video && !project.video_data)) {
-        toast.error('Please upload a video first');
-        return;
-      }
-
-      analysisStatus.startAnalysis(provider, prompt);
-
+    async ({ prompt, provider } = {}) => {
       try {
-        const response = await apiService.analyzeVideo(project.id, prompt, provider);
+        // Validate inputs
+        if (!prompt?.trim()) {
+          toast.error('Please provide an analysis prompt');
+          return;
+        }
+
+        if (!project) {
+          toast.error('Project not found');
+          return;
+        }
+
+        if (!project.video && !project.video_data) {
+          toast.error('Please upload a video first');
+          return;
+        }
+
+        // Close the modal and start analysis
+        setShowAnalysisModal(false);
+
+        // Start analysis status tracking
+        if (analysisStatus?.startAnalysis) {
+          analysisStatus.startAnalysis(provider || 'openai', prompt);
+        }
+
+        // Call the API
+        const response = await apiService.analyzeVideo(project.id, prompt, provider || 'openai');
+
+        console.log('Analysis response:', response);
+
+        // Handle different response formats
+        let updatedProject = null;
+        let clips = [];
 
         if (response?.project) {
-          updateProject(project.id, response.project);
-          setProject(response.project);
-          analysisStatus.completeAnalysis(true, 'Analysis completed successfully!');
-          toast.success('Analysis completed successfully!');
+          // Backend returned updated project
+          updatedProject = response.project;
+          clips = response.project.clips || [];
+        } else if (response?.analysis?.clips) {
+          // Backend returned analysis data
+          clips = response.analysis.clips;
+          // Update project with analysis results
+          updatedProject = {
+            ...project,
+            clips: clips,
+            status: 'completed',
+            analysis_data: response.analysis,
+            updated_at: new Date().toISOString()
+          };
+        } else if (response?.clips) {
+          // Direct clips response
+          clips = response.clips;
+          updatedProject = {
+            ...project,
+            clips: clips,
+            status: 'completed',
+            analysis_data: response,
+            updated_at: new Date().toISOString()
+          };
+        } else {
+          throw new Error('No analysis results received from the API');
         }
+
+        // Update project state
+        if (updatedProject) {
+          await updateProject(project.id, updatedProject);
+          setProject(updatedProject);
+          
+          if (analysisStatus?.completeAnalysis) {
+            analysisStatus.completeAnalysis(true, `Analysis completed! Found ${clips.length} clips.`);
+          }
+          
+          toast.success(`Analysis completed! Found ${clips.length} potential clips.`);
+        }
+
       } catch (error) {
         console.error('Analysis error:', error);
 
         if (error.message.includes('API key')) {
           toast.error('Please configure your API key in Settings');
+        } else if (error.message.includes('lmstudio')) {
+          toast.error('LM Studio error: Make sure LM Studio is running with a model loaded');
         } else {
           toast.error(`Analysis failed: ${error.message}`);
         }
-        analysisStatus.completeAnalysis(false, error.message);
-      } finally {
-        setShowAnalysisModal(false);
+        
+        if (analysisStatus?.completeAnalysis) {
+          analysisStatus.completeAnalysis(false, error.message);
+        }
       }
     },
-    [project, updateProject, analysisStatus]
+    [project, updateProject, analysisStatus?.startAnalysis, analysisStatus?.completeAnalysis]
   );
 
   const handleSeekTo = useCallback((seconds) => {
@@ -242,7 +304,7 @@ const ProjectDetail = () => {
       <AnalysisModal
         isOpen={showAnalysisModal}
         onClose={() => setShowAnalysisModal(false)}
-        onAnalyze={handleStartAnalysis}
+        onStartAnalysis={handleStartAnalysis}
         defaultPrompt={
           project.analysis_prompt ||
           'Analyze this video and identify key moments, highlights, and segments that would make compelling clips. Focus on engaging content, important topics, and natural break points.'
@@ -311,9 +373,6 @@ const getProjectState = (project, isAnalyzing = false) => {
     return 'empty';
   }
   
-  // Uploaded state: has video data but no analysis results
-  if (hasActualVideoData && !project.clips) return 'uploaded';
-  
   // Analyzing state: currently being analyzed
   if (isAnalyzing) return 'analyzing';
   
@@ -322,6 +381,9 @@ const getProjectState = (project, isAnalyzing = false) => {
   
   // Error state: explicitly marked as error
   if (project.status === 'error') return 'error';
+  
+  // Uploaded state: has video data but no analysis results
+  if (hasActualVideoData) return 'uploaded';
   
   // Default to empty if we can't determine state (likely no video content yet)
   return 'empty';

@@ -42,7 +42,7 @@ from .logger import logger
 class AIAnalyzer:
     """Service for analyzing videos using various AI providers"""
     
-    def __init__(self, api_keys: Dict[str, str] = None):
+    def __init__(self, api_keys: Optional[Dict[str, str]] = None):
         self.api_keys = api_keys or {}
         self.video_processor = VideoProcessor()
         self.supported_providers = ['openai', 'gemini', 'lmstudio', 'anthropic']
@@ -93,7 +93,7 @@ class AIAnalyzer:
             'clip_recommendations': 'Recommend clippable segments'
         }
     
-    async def analyze_video(self, video_path: str, analysis_types: List[str] = None, youtube_metadata: Dict[str, Any] = None) -> Dict[str, Any]:
+    async def analyze_video(self, video_path: str, analysis_types: Optional[List[str]] = None, youtube_metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Analyze video with specified analysis types
         """
@@ -272,7 +272,7 @@ class AIAnalyzer:
             'notes': 'Ready for advanced highlight detection integration (AI-based)'
         }
         
-    async def _generate_summary(self, video_path: str, video_info: Dict, youtube_metadata: Dict = None) -> Dict[str, Any]:
+    async def _generate_summary(self, video_path: str, video_info: Dict, youtube_metadata: Optional[Dict] = None) -> Dict[str, Any]:
         """Generate video summary - placeholder for AI summary generation"""
         title = youtube_metadata.get('title', 'Video') if youtube_metadata else 'Video'
         duration = video_info.get('duration', 0)
@@ -297,7 +297,7 @@ class AIAnalyzer:
             'notes': 'Ready for AI-powered summary generation integration'
         }
         
-    async def _generate_tags(self, video_path: str, video_info: Dict, youtube_metadata: Dict = None) -> List[str]:
+    async def _generate_tags(self, video_path: str, video_info: Dict, youtube_metadata: Optional[Dict] = None) -> Dict[str, Any]:
         """Generate relevant tags - placeholder for AI tag generation"""
         tags = ['video', 'content', 'media']
         
@@ -498,7 +498,7 @@ class AIAnalyzer:
         }]
     
     async def _analyze_with_lmstudio(self, video_path: str, prompt: str, api_key: str) -> List[Dict[str, Any]]:
-        """Analyze video using LM Studio local models"""
+        """Analyze video using LM Studio local models with vision capabilities"""
         logger.info(f"LM Studio analysis requested for {video_path}")
         
         try:
@@ -509,47 +509,124 @@ class AIAnalyzer:
             # Get LM Studio base URL from config
             base_url = os.getenv('LMSTUDIO_BASE_URL', 'http://localhost:1234')
             
-            # Get basic video info
+            # Get basic video info and extract frames for vision models
             video_duration = 60  # Default duration
+            frame_data = []
+            
             try:
-                # Try to get actual duration using video processor
+                # Extract video duration and sample frames using OpenCV
                 cap = cv2.VideoCapture(video_path)
                 if cap.isOpened():
                     fps = cap.get(cv2.CAP_PROP_FPS)
                     frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
                     if fps > 0:
                         video_duration = frame_count / fps
+                    
+                    # Extract 3-5 sample frames for vision analysis
+                    sample_points = [0.1, 0.3, 0.5, 0.7, 0.9]  # At 10%, 30%, 50%, 70%, 90%
+                    
+                    for point in sample_points:
+                        frame_number = int(frame_count * point)
+                        cap.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
+                        ret, frame = cap.read()
+                        
+                        if ret:
+                            # Convert frame to base64 for vision model
+                            _, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 85])
+                            frame_b64 = base64.b64encode(buffer).decode('utf-8')
+                            
+                            frame_data.append({
+                                'timestamp': video_duration * point,
+                                'frame_data': frame_b64,
+                                'position': f"{int(point*100)}%"
+                            })
+                    
                     cap.release()
-            except:
-                pass
+            except Exception as e:
+                logger.warning(f"Frame extraction failed: {e}")
+            
+            # Check if we have vision-capable models available
+            has_vision_model = await self._check_vision_models(base_url)
             
             # Prepare the analysis prompt
-            analysis_prompt = f"""
-            Analyze a video file: {os.path.basename(video_path)}
-            Duration: {video_duration:.1f} seconds
-            
-            Task: {prompt}
-            
-            As an expert video editor, identify the best segments for creating engaging clips.
-            Focus on: interesting moments, scene changes, peak action, dialogue highlights.
-            
-            For each potential clip, provide:
-            1. A compelling title
-            2. Start time in seconds (between 0 and {video_duration:.1f})
-            3. End time in seconds
-            4. A score from 0-1 (1 being most engaging)
-            5. A brief explanation why this segment would make a good clip
-            
-            Return your response as a JSON object with a "clips" array only.
-            """
-            
-            # Make request to LM Studio
-            url = f"{base_url}/v1/chat/completions"
-            headers = {"Content-Type": "application/json"}
-            
-            payload = {
-                "model": os.getenv('LMSTUDIO_MODEL', 'local-model'),
-                "messages": [
+            if has_vision_model and frame_data:
+                # Enhanced prompt for vision models
+                analysis_prompt = f"""
+                Analyze this video file: {os.path.basename(video_path)}
+                Duration: {video_duration:.1f} seconds
+                
+                I've provided {len(frame_data)} sample frames from different timestamps in the video.
+                
+                Task: {prompt}
+                
+                As an expert video editor with visual analysis capabilities, examine the provided frames and identify the best segments for creating engaging clips.
+                
+                Consider:
+                - Visual composition and aesthetics in each frame
+                - Action or movement patterns
+                - Scene changes and visual transitions  
+                - Interesting visual elements or objects
+                - Overall visual appeal for social media clips
+                
+                For each potential clip, provide:
+                1. A compelling title based on visual content
+                2. Start time in seconds (between 0 and {video_duration:.1f})
+                3. End time in seconds  
+                4. A score from 0-1 (1 being most visually engaging)
+                5. A brief explanation focusing on why this visual segment would make a compelling clip
+                
+                Return your response as a JSON object with a "clips" array only.
+                """
+                
+                # Prepare messages with vision content
+                messages = [
+                    {
+                        "role": "system",
+                        "content": "You are an expert video editor and visual content analyst with computer vision capabilities. Always respond with valid JSON. Analyze the provided video frames to make intelligent clip recommendations."
+                    },
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": analysis_prompt}
+                        ]
+                    }
+                ]
+                
+                # Add frame images to the message
+                for frame_info in frame_data:
+                    messages[1]["content"].append({
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{frame_info['frame_data']}"
+                        }
+                    })
+                    messages[1]["content"].append({
+                        "type": "text", 
+                        "text": f"Frame at {frame_info['timestamp']:.1f}s ({frame_info['position']} through video)"
+                    })
+                
+            else:
+                # Fallback to text-only analysis
+                analysis_prompt = f"""
+                Analyze a video file: {os.path.basename(video_path)}
+                Duration: {video_duration:.1f} seconds
+                
+                Task: {prompt}
+                
+                As an expert video editor, identify the best segments for creating engaging clips.
+                Focus on: interesting moments, scene changes, peak action, dialogue highlights.
+                
+                For each potential clip, provide:
+                1. A compelling title
+                2. Start time in seconds (between 0 and {video_duration:.1f})
+                3. End time in seconds
+                4. A score from 0-1 (1 being most engaging)
+                5. A brief explanation why this segment would make a good clip
+                
+                Return your response as a JSON object with a "clips" array only.
+                """
+                
+                messages = [
                     {
                         "role": "system",
                         "content": "You are an expert video editor and content analyst. Always respond with valid JSON."
@@ -558,13 +635,21 @@ class AIAnalyzer:
                         "role": "user", 
                         "content": analysis_prompt
                     }
-                ],
+                ]
+            
+            # Make request to LM Studio
+            url = f"{base_url}/v1/chat/completions"
+            headers = {"Content-Type": "application/json"}
+            
+            payload = {
+                "model": os.getenv('LMSTUDIO_MODEL', 'local-model'),
+                "messages": messages,
                 "temperature": 0.7,
-                "max_tokens": 1000
+                "max_tokens": 1500 if has_vision_model else 1000
             }
             
             async with httpx.AsyncClient() as client:
-                response = await client.post(url, json=payload, headers=headers, timeout=30.0)
+                response = await client.post(url, json=payload, headers=headers, timeout=60.0)
                 
                 if response.status_code == 200:
                     result = response.json()
@@ -596,6 +681,7 @@ class AIAnalyzer:
                                         })
                                 
                                 if valid_clips:
+                                    logger.info(f"LM Studio generated {len(valid_clips)} clips with {'vision' if has_vision_model else 'text'} analysis")
                                     return valid_clips
                     except Exception as parse_error:
                         logger.warning(f"Failed to parse LM Studio response: {parse_error}")
@@ -631,6 +717,24 @@ class AIAnalyzer:
                 "score": 0.6,
                 "explanation": "Default clip (LM Studio analysis failed)"
             }]
+    
+    async def _check_vision_models(self, base_url: str) -> bool:
+        """Check if LM Studio has vision-capable models loaded"""
+        try:
+            import httpx
+            async with httpx.AsyncClient() as client:
+                response = await client.get(f"{base_url}/v1/models", timeout=5.0)
+                if response.status_code == 200:
+                    models = response.json().get('data', [])
+                    vision_models = ['llava', 'vision', 'gpt-4v', 'claude-3']
+                    
+                    for model in models:
+                        model_id = model.get('id', '').lower()
+                        if any(vision_keyword in model_id for vision_keyword in vision_models):
+                            return True
+            return False
+        except:
+            return False
     
     async def _analyze_with_anthropic(self, video_path: str, prompt: str, api_key: str) -> List[Dict[str, Any]]:
         """Analyze video using Anthropic Claude - placeholder implementation"""

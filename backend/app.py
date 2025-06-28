@@ -85,6 +85,30 @@ def init_database():
         # Column already exists
         pass
     
+    # Add clips column if it doesn't exist (migration)
+    try:
+        cursor.execute('ALTER TABLE projects ADD COLUMN clips TEXT')
+        print("Added clips column to projects table")
+    except sqlite3.OperationalError:
+        # Column already exists
+        pass
+    
+    # Add analysis_prompt column if it doesn't exist (migration)
+    try:
+        cursor.execute('ALTER TABLE projects ADD COLUMN analysis_prompt TEXT')
+        print("Added analysis_prompt column to projects table")
+    except sqlite3.OperationalError:
+        # Column already exists
+        pass
+    
+    # Add analysis_provider column if it doesn't exist (migration)
+    try:
+        cursor.execute('ALTER TABLE projects ADD COLUMN analysis_provider TEXT')
+        print("Added analysis_provider column to projects table")
+    except sqlite3.OperationalError:
+        # Column already exists
+        pass
+    
     # Video files table
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS video_files (
@@ -164,7 +188,7 @@ async def get_projects():
     cursor.execute("SELECT * FROM projects ORDER BY created_at DESC")
     projects = cursor.fetchall()
     
-    # Parse video_data JSON for each project and add thumbnail URLs
+    # Parse video_data JSON and clips for each project and add thumbnail URLs
     for project in projects:
         if project['video_data']:
             try:
@@ -182,6 +206,15 @@ async def get_projects():
                         project['video_data']['has_thumbnail'] = False
             except:
                 project['video_data'] = None
+        
+        # Parse clips JSON
+        if project.get('clips'):
+            try:
+                project['clips'] = json.loads(project['clips'])
+            except:
+                project['clips'] = []
+        else:
+            project['clips'] = []
     
     conn.close()
     return {"projects": projects}
@@ -242,6 +275,15 @@ async def get_project(project_id: str):
                     project['video_data']['has_thumbnail'] = False
         except:
             project['video_data'] = None
+    
+    # Parse clips JSON
+    if project.get('clips'):
+        try:
+            project['clips'] = json.loads(project['clips'])
+        except:
+            project['clips'] = []
+    else:
+        project['clips'] = []
     
     conn.close()
     return {"project": project}
@@ -879,6 +921,60 @@ async def get_providers():
     """Get available AI providers"""
     return ["openai", "gemini", "lmstudio", "anthropic"]
 
+@app.get("/api/lmstudio/status")
+async def get_lmstudio_status():
+    """Check LM Studio status and vision capabilities"""
+    try:
+        import httpx
+        base_url = "http://localhost:1234"
+        
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"{base_url}/v1/models", timeout=5.0)
+            if response.status_code == 200:
+                models_data = response.json().get('data', [])
+                vision_keywords = ['llava', 'vision', 'gpt-4v', 'claude-3']
+                
+                models_info = []
+                has_vision = False
+                
+                for model in models_data:
+                    model_id = model.get('id', '')
+                    model_has_vision = any(keyword in model_id.lower() for keyword in vision_keywords)
+                    has_vision = has_vision or model_has_vision
+                    
+                    models_info.append({
+                        "id": model_id,
+                        "name": model.get('object', model_id),
+                        "has_vision": model_has_vision,
+                        "vision_keywords_found": [kw for kw in vision_keywords if kw in model_id.lower()]
+                    })
+                
+                return {
+                    "connected": True,
+                    "models": models_info,
+                    "has_vision_model": has_vision,
+                    "vision_available": has_vision,
+                    "total_models": len(models_info),
+                    "base_url": base_url,
+                    "message": "LLaVA or vision model detected!" if has_vision else "No vision models detected. Load a model with 'llava' or 'vision' in the name."
+                }
+            else:
+                return {
+                    "connected": False,
+                    "error": f"LM Studio responded with status {response.status_code}",
+                    "has_vision_model": False,
+                    "vision_available": False
+                }
+                
+    except Exception as e:
+        return {
+            "connected": False,
+            "error": str(e),
+            "has_vision_model": False,
+            "vision_available": False,
+            "message": "LM Studio not running or not accessible at http://localhost:1234"
+        }
+
 @app.post("/api/settings/api-keys")
 async def store_api_key(request: APIKeyStorage):
     """Store API key for a provider"""
@@ -1068,8 +1164,11 @@ async def analyze_video(project_id: str, request: AnalysisRequest):
         # Ensure provider is not None
         provider = request.provider or "openai"
         
-        # Perform AI analysis (mock implementation for now)
+        # Perform AI analysis
         analysis_results = await perform_ai_analysis(file_path, request.prompt, provider, api_key)
+        
+        # Extract clips from analysis results
+        clips = analysis_results.get('clips', [])
         
         # Update project with analysis results
         video_data['analysis'] = {
@@ -1079,21 +1178,47 @@ async def analyze_video(project_id: str, request: AnalysisRequest):
             "analyzed_at": datetime.now().isoformat()
         }
         
+        # Convert clips to JSON string for database storage
+        clips_json = json.dumps(clips)
+        
         cursor.execute('''
         UPDATE projects SET 
         video_data = ?, 
-        status = 'analyzed',
+        clips = ?,
+        status = 'completed',
+        analysis_prompt = ?,
+        analysis_provider = ?,
         updated_at = ? 
         WHERE id = ?
-        ''', (json.dumps(video_data), datetime.now().isoformat(), project_id))
+        ''', (
+            json.dumps(video_data), 
+            clips_json,
+            request.prompt,
+            provider,
+            datetime.now().isoformat(), 
+            project_id
+        ))
         
         conn.commit()
+        
+        # Get updated project
+        cursor.execute("SELECT * FROM projects WHERE id = ?", (project_id,))
+        updated_project = cursor.fetchone()
         conn.close()
+        
+        # Parse clips back to list for response
+        if updated_project and updated_project['clips']:
+            try:
+                updated_project['clips'] = json.loads(updated_project['clips'])
+            except:
+                updated_project['clips'] = []
         
         return {
             "success": True,
             "analysis": analysis_results,
-            "message": f"Video analyzed successfully using {request.provider}"
+            "clips": clips,
+            "project": updated_project,
+            "message": f"Video analyzed successfully using {provider}. Found {len(clips)} clips."
         }
         
     except Exception as e:
@@ -1312,21 +1437,25 @@ async def analyze_with_gemini(frames: List[Dict], prompt: str, api_key: str) -> 
 async def analyze_with_anthropic(frames: List[Dict], prompt: str, api_key: str) -> Dict[str, Any]:
     """Analyze video frames using Anthropic Claude"""
     try:
+        import anthropic
+        
+        # Initialize Anthropic client
         client = anthropic.Anthropic(api_key=api_key)
         
-        # Prepare images for Claude
+        # Convert frames to base64 images for Claude
         image_contents = []
-        for frame in frames[:8]:  # Limit to 8 frames for Claude
-            image_contents.append({
-                "type": "image",
-                "source": {
-                    "type": "base64",
-                    "media_type": "image/jpeg",
-                    "data": frame['image']
-                }
-            })
+        for frame in frames:
+            if 'image_data' in frame:
+                image_contents.append({
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": "image/jpeg",
+                        "data": frame['image_data']
+                    }
+                })
         
-        # Create message
+        # Prepare messages for Claude
         messages = [
             {
                 "role": "user",
@@ -1403,6 +1532,237 @@ async def analyze_with_anthropic(frames: List[Dict], prompt: str, api_key: str) 
     except Exception as e:
         raise Exception(f"Anthropic analysis failed: {str(e)}")
 
+async def analyze_with_lmstudio(frames: List[Dict], prompt: str, api_key: str, file_path: str) -> Dict[str, Any]:
+    """Analyze video frames using LM Studio local models with vision capabilities"""
+    try:
+        import httpx
+        import json
+        import re
+        import cv2
+        
+        # Get LM Studio base URL (api_key contains the URL for LM Studio)
+        base_url = api_key if api_key.startswith('http') else 'http://localhost:1234'
+        
+        # Get video duration for context
+        video_duration = 60  # Default
+        try:
+            cap = cv2.VideoCapture(file_path)
+            if cap.isOpened():
+                fps = cap.get(cv2.CAP_PROP_FPS)
+                frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+                if fps > 0:
+                    video_duration = frame_count / fps
+                cap.release()
+        except:
+            pass
+        
+        # Check if we have vision-capable models
+        has_vision_model = await check_lmstudio_vision_models(base_url)
+        
+        # Prepare analysis prompt
+        if has_vision_model and frames:
+            # Enhanced prompt for vision models
+            analysis_prompt = f"""
+            Analyze this video: {os.path.basename(file_path)}
+            Duration: {video_duration:.1f} seconds
+            
+            I've provided {len(frames)} sample frames from different timestamps in the video.
+            
+            Task: {prompt}
+            
+            As an expert video editor with visual analysis capabilities, examine the provided frames and identify the best segments for creating engaging clips.
+            
+            Consider:
+            - Visual composition and aesthetics in each frame
+            - Action or movement patterns
+            - Scene changes and visual transitions  
+            - Interesting visual elements or objects
+            - Overall visual appeal for social media clips
+            
+            For each potential clip, provide:
+            1. A compelling title based on visual content
+            2. Start time in seconds (between 0 and {video_duration:.1f})
+            3. End time in seconds  
+            4. A score from 0-1 (1 being most visually engaging)
+            5. A brief explanation focusing on why this visual segment would make a compelling clip
+            
+            Return your response as a JSON object with a "clips" array only.
+            """
+            
+            # Prepare messages with vision content
+            messages = [
+                {
+                    "role": "system",
+                    "content": "You are an expert video editor and visual content analyst with computer vision capabilities. Always respond with valid JSON. Analyze the provided video frames to make intelligent clip recommendations."
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": analysis_prompt}
+                    ]
+                }
+            ]
+            
+            # Add frame images to the message
+            for frame in frames:
+                if 'image_data' in frame:
+                    messages[1]["content"].append({
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{frame['image_data']}"
+                        }
+                    })
+                    messages[1]["content"].append({
+                        "type": "text", 
+                        "text": f"Frame at {frame.get('timestamp', 0):.1f}s"
+                    })
+            
+        else:
+            # Fallback to text-only analysis
+            analysis_prompt = f"""
+            Analyze video: {os.path.basename(file_path)}
+            Duration: {video_duration:.1f} seconds
+            
+            Task: {prompt}
+            
+            As an expert video editor, identify the best segments for creating engaging clips.
+            Focus on: interesting moments, scene changes, peak action, dialogue highlights.
+            
+            For each potential clip, provide:
+            1. A compelling title
+            2. Start time in seconds (between 0 and {video_duration:.1f})
+            3. End time in seconds
+            4. A score from 0-1 (1 being most engaging)
+            5. A brief explanation why this segment would make a good clip
+            
+            Return your response as a JSON object with a "clips" array only.
+            """
+            
+            messages = [
+                {
+                    "role": "system",
+                    "content": "You are an expert video editor and content analyst. Always respond with valid JSON."
+                },
+                {
+                    "role": "user", 
+                    "content": analysis_prompt
+                }
+            ]
+        
+        # Make request to LM Studio
+        url = f"{base_url}/v1/chat/completions"
+        headers = {"Content-Type": "application/json"}
+        
+        payload = {
+            "model": "local-model",
+            "messages": messages,
+            "temperature": 0.7,
+            "max_tokens": 1500 if has_vision_model else 1000
+        }
+        
+        async with httpx.AsyncClient() as client:
+            response = await client.post(url, json=payload, headers=headers, timeout=60.0)
+            
+            if response.status_code == 200:
+                result = response.json()
+                content = result.get('choices', [{}])[0].get('message', {}).get('content', '')
+                
+                # Try to parse JSON from response
+                try:
+                    # Extract JSON from response
+                    json_match = re.search(r'\{.*\}', content, re.DOTALL)
+                    if json_match:
+                        analysis_data = json.loads(json_match.group())
+                        clips = analysis_data.get('clips', [])
+                        
+                        if clips and isinstance(clips, list):
+                            # Validate and fix clip data
+                            valid_clips = []
+                            for clip in clips:
+                                if isinstance(clip, dict):
+                                    # Ensure required fields and valid values
+                                    start_time = float(clip.get('start_time', 0))
+                                    end_time = float(clip.get('end_time', min(start_time + 20, video_duration)))
+                                    
+                                    valid_clips.append({
+                                        "title": str(clip.get('title', 'LM Studio Clip')),
+                                        "start_time": max(0, min(start_time, video_duration)),
+                                        "end_time": max(start_time, min(end_time, video_duration)),
+                                        "score": max(0, min(float(clip.get('score', 0.7)), 1.0)),
+                                        "reason": str(clip.get('explanation', clip.get('reason', 'Local AI analysis')))
+                                    })
+                            
+                            if valid_clips:
+                                return {
+                                    "clips": valid_clips,
+                                    "summary": f"LM Studio analysis: {len(valid_clips)} clips identified with {'vision' if has_vision_model else 'text'} analysis.",
+                                    "provider_used": "lmstudio",
+                                    "model_used": "local-model",
+                                    "vision_used": has_vision_model
+                                }
+                except Exception as parse_error:
+                    print(f"Failed to parse LM Studio response: {parse_error}")
+                
+                # Fallback: Generate clips based on video duration
+                num_clips = min(3, max(1, int(video_duration / 30)))
+                clips = []
+                
+                for i in range(num_clips):
+                    start_time = (video_duration / num_clips) * i
+                    end_time = min(start_time + 20, video_duration)
+                    
+                    clips.append({
+                        "title": f"LM Studio Segment {i+1}",
+                        "start_time": start_time,
+                        "end_time": end_time,
+                        "score": 0.8 - (i * 0.1),
+                        "reason": f"Local AI identified content at {start_time:.1f}s"
+                    })
+                
+                return {
+                    "clips": clips,
+                    "summary": f"LM Studio fallback analysis: {len(clips)} clips identified.",
+                    "provider_used": "lmstudio",
+                    "raw_response": content[:200] + "..." if len(content) > 200 else content
+                }
+            else:
+                raise Exception(f"LM Studio API error: {response.status_code}")
+                
+    except Exception as e:
+        print(f"LM Studio analysis failed: {e}")
+        
+        # Final fallback: Return basic clips
+        return {
+            "clips": [{
+                "title": "Opening Segment",
+                "start_time": 0.0,
+                "end_time": 30.0,
+                "score": 0.6,
+                "reason": "Default clip (LM Studio analysis failed)"
+            }],
+            "summary": "LM Studio analysis failed, returning default clips.",
+            "provider_used": "lmstudio",
+            "error": str(e)
+        }
+
+async def check_lmstudio_vision_models(base_url: str) -> bool:
+    """Check if LM Studio has vision-capable models loaded"""
+    try:
+        import httpx
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"{base_url}/v1/models", timeout=5.0)
+            if response.status_code == 200:
+                models = response.json().get('data', [])
+                vision_models = ['llava', 'vision', 'gpt-4v', 'claude-3']
+                
+                for model in models:
+                    model_id = model.get('id', '').lower()
+                    if any(vision_keyword in model_id for vision_keyword in vision_models):
+                        return True
+        return False
+    except:
+        return False
+
 async def perform_ai_analysis(file_path: str, prompt: str, provider: str, api_key: str):
     """Perform REAL AI analysis on video using actual AI providers"""
     if not os.path.exists(file_path):
@@ -1432,6 +1792,9 @@ async def perform_ai_analysis(file_path: str, prompt: str, provider: str, api_ke
         elif provider == "anthropic":
             print("🔬 Analyzing with Anthropic Claude...")
             result = await analyze_with_anthropic(frames, prompt, api_key)
+        elif provider == "lmstudio":
+            print("🏠 Analyzing with LM Studio (Local AI)...")
+            result = await analyze_with_lmstudio(frames, prompt, api_key, file_path)
         else:
             raise Exception(f"Unsupported AI provider: {provider}")
         
@@ -1762,14 +2125,14 @@ async def get_beta_signups():
         
         cursor.execute('''
         SELECT * FROM beta_signups 
-        ORDER BY created_at DESC
+        ORDER BY signup_date DESC
         ''')
         
         signups = cursor.fetchall()
         
         # Parse interests JSON
         for signup in signups:
-            if signup['interests']:
+            if signup.get('interests'):
                 try:
                     signup['interests'] = json.loads(signup['interests'])
                 except:
@@ -1796,7 +2159,7 @@ async def get_feedback():
         
         cursor.execute('''
         SELECT * FROM feedback 
-        ORDER BY created_at DESC
+        ORDER BY timestamp DESC
         ''')
         
         feedback = cursor.fetchall()

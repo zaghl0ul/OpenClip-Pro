@@ -22,10 +22,10 @@ const AnalysisResultsPanel = ({ project, onSeekTo }) => {
   const [showConsole, setShowConsole] = useState(false);
   const [consoleLines, setConsoleLines] = useState([]);
 
-  // Extract analysis data from the nested structure
+  // Extract analysis data - clips are now stored directly on project
+  const clips = project?.clips || [];
   const analysisData = project?.video_data?.analysis?.results;
-  const clips = analysisData?.clips || [];
-  const hasAnalysis = project?.status === 'analyzed' && analysisData;
+  const hasAnalysis = (project?.status === 'completed' || project?.status === 'analyzed') && clips.length > 0;
 
   useEffect(() => {
     if (hasAnalysis) {
@@ -44,12 +44,12 @@ const AnalysisResultsPanel = ({ project, onSeekTo }) => {
         {
           timestamp: new Date().toISOString(),
           level: 'info',
-          message: `Provider: ${analysisData.provider_used}`,
+          message: `Provider: ${project?.analysis_provider || analysisData?.provider_used || 'Unknown'}`,
         },
         {
           timestamp: new Date().toISOString(),
           level: 'info',
-          message: `Frames analyzed: ${analysisData.frames_analyzed}`,
+          message: `Frames analyzed: ${analysisData?.frames_analyzed || 'N/A'}`,
         },
         {
           timestamp: new Date().toISOString(),
@@ -138,7 +138,7 @@ const AnalysisResultsPanel = ({ project, onSeekTo }) => {
               <Eye className="w-5 h-5 text-purple-400" />
               <span className="text-white/60 text-sm">Frames</span>
             </div>
-            <p className="text-white font-medium">{analysisData.frames_analyzed || 0}</p>
+            <p className="text-white font-medium">{analysisData?.frames_analyzed || 'N/A'}</p>
           </div>
 
           <div className="glass-shine rounded-lg p-4">
@@ -146,15 +146,17 @@ const AnalysisResultsPanel = ({ project, onSeekTo }) => {
               <Zap className="w-5 h-5 text-yellow-400" />
               <span className="text-white/60 text-sm">Provider</span>
             </div>
-            <p className="text-white font-medium capitalize">{analysisData.provider_used}</p>
+            <p className="text-white font-medium capitalize">
+              {project?.analysis_provider || analysisData?.provider_used || 'Unknown'}
+            </p>
           </div>
         </div>
 
         {/* Summary */}
-        {analysisData.summary && (
+        {(analysisData?.summary || project?.analysis_data?.summary) && (
           <div className="glass-shine rounded-lg p-4 mb-6">
             <h3 className="text-white font-medium mb-2">Summary</h3>
-            <p className="text-white/80">{analysisData.summary}</p>
+            <p className="text-white/80">{analysisData?.summary || project?.analysis_data?.summary}</p>
           </div>
         )}
       </div>
@@ -217,7 +219,12 @@ const AnalysisResultsPanel = ({ project, onSeekTo }) => {
                   <span className="text-purple-400 font-mono text-sm">Raw Analysis Data</span>
                 </div>
                 <button
-                  onClick={() => copyToClipboard(JSON.stringify(analysisData, null, 2))}
+                  onClick={() => copyToClipboard(JSON.stringify({
+                    clips,
+                    analysis_provider: project?.analysis_provider,
+                    analysis_prompt: project?.analysis_prompt,
+                    analysisData
+                  }, null, 2))}
                   className="text-purple-400 hover:text-purple-300 transition-colors"
                 >
                   <Copy className="w-4 h-4" />
@@ -226,7 +233,13 @@ const AnalysisResultsPanel = ({ project, onSeekTo }) => {
             </div>
             <div className="p-4 bg-black/30">
               <pre className="text-xs text-white/80 overflow-x-auto whitespace-pre-wrap">
-                {JSON.stringify(analysisData, null, 2)}
+                {JSON.stringify({
+                  clips,
+                  analysis_provider: project?.analysis_provider,
+                  analysis_prompt: project?.analysis_prompt,
+                  status: project?.status,
+                  analysisData
+                }, null, 2)}
               </pre>
             </div>
           </motion.div>
@@ -316,7 +329,9 @@ const AnalysisResultsPanel = ({ project, onSeekTo }) => {
       </div>
 
       {/* Raw Response Warning */}
-      {analysisData.raw_response && analysisData.raw_response.includes('safety guidelines') && (
+      {(analysisData?.raw_response || project?.analysis_data?.raw_response) && 
+       (analysisData?.raw_response?.includes('safety guidelines') || 
+        project?.analysis_data?.raw_response?.includes('safety guidelines')) && (
         <div className="glass-prism rounded-2xl p-6 bg-yellow-500/10 border border-yellow-500/20">
           <div className="flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
@@ -325,12 +340,12 @@ const AnalysisResultsPanel = ({ project, onSeekTo }) => {
               <p className="text-yellow-400 text-sm mb-2">
                 The AI model flagged content safety concerns with this video.
               </p>
-              <details className="text-white/60 text-sm">
-                <summary className="cursor-pointer hover:text-white">View raw response</summary>
-                <div className="mt-2 p-2 bg-black/20 rounded text-xs">
-                  {analysisData.raw_response}
-                </div>
-              </details>
+                              <details className="text-white/60 text-sm">
+                  <summary className="cursor-pointer hover:text-white">View raw response</summary>
+                  <div className="mt-2 p-2 bg-black/20 rounded text-xs">
+                    {analysisData?.raw_response || project?.analysis_data?.raw_response}
+                  </div>
+                </details>
             </div>
           </div>
         </div>

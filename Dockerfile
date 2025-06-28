@@ -10,7 +10,7 @@ COPY tailwind.config.js ./
 COPY postcss.config.js ./
 
 # Install dependencies
-RUN npm ci --only=production
+RUN npm ci
 
 # Copy source code
 COPY src/ ./src/
@@ -27,7 +27,7 @@ FROM nginx:alpine AS production
 RUN apk add --no-cache curl
 
 # Copy custom nginx configuration
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY nginx/nginx-beta.conf /etc/nginx/nginx.conf
 
 # Copy built assets from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html

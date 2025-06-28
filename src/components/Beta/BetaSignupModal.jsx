@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { X, Star, Mail, User, Send, CheckCircle } from 'lucide-react';
 
 const BetaSignupModal = ({ isOpen, onClose }) => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -47,6 +49,16 @@ const BetaSignupModal = ({ isOpen, onClose }) => {
         });
       }
       
+      // Store beta signup locally
+      const betaUser = {
+        ...formData,
+        signupDate: new Date().toISOString(),
+        userId: `beta_${Date.now()}`,
+        hasAccess: true
+      };
+      
+      localStorage.setItem('openclip_beta_user', JSON.stringify(betaUser));
+      
       // Simulate API call - replace with actual endpoint
       await new Promise(resolve => setTimeout(resolve, 1000));
       setIsSuccess(true);
@@ -74,12 +86,23 @@ const BetaSignupModal = ({ isOpen, onClose }) => {
           <div className="text-center">
             <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-4" />
             <h3 className="text-2xl font-bold text-white mb-2">Welcome to Beta!</h3>
-            <p className="text-gray-300 mb-6">We'll send you access within 24-48 hours.</p>
+            <p className="text-gray-300 mb-6">🎉 Welcome to the beta! You now have access to upload videos and run real AI analysis.</p>
             <button
-              onClick={onClose}
+              onClick={async () => {
+                console.log('🚀 Beta user accessing dashboard...');
+                console.log('📝 Beta user data:', localStorage.getItem('openclip_beta_user'));
+                
+                onClose();
+                
+                // Small delay to ensure localStorage is set and modal closes
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                // Navigate to dashboard using React Router
+                navigate('/dashboard');
+              }}
               className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-3 rounded-lg font-medium"
             >
-              Got it!
+              Start Creating! 🚀
             </button>
           </div>
         </motion.div>

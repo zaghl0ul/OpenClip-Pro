@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Play, Sparkles, Zap, Target, ArrowRight, Star } from 'lucide-react';
 import GeometricPattern from '../components/Common/GeometricPattern';
 import AnimatedWaveBackground from '../components/Common/AnimatedWaveBackground';
+import OpenClipProImageLogo from '../components/Common/OpenClipProImageLogo';
 import BetaSignupModal from '../components/Beta/BetaSignupModal';
 import {
   detectDevicePerformance,
@@ -117,34 +118,21 @@ const Landing = () => {
         )}
 
         <div className="max-w-7xl mx-auto flex items-center justify-between relative">
-          <motion.div {...getAnimationProps(0)} className="flex items-center space-x-3">
-            <motion.div
-              className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center"
-              whileHover={
-                performanceSettings?.showAnimations
-                  ? {
-                      scale: 1.1,
-                      rotate: 10,
-                      boxShadow: '0 0 20px rgba(88, 166, 255, 0.3)',
-                    }
-                  : {}
-              }
-              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-            >
-              <Play className="w-5 h-5 text-white fill-current" />
-            </motion.div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              OpenClip Pro
-            </span>
+          <motion.div {...getAnimationProps(0)}>
+            <OpenClipProImageLogo 
+              size="small" 
+              animate={performanceSettings?.showAnimations}
+              showText={!isMobile}
+            />
           </motion.div>
 
           <motion.div {...getAnimationProps(0.1)} className="flex items-center space-x-6">
-            <Link
-              to="/dashboard"
+            <button
+              onClick={() => setShowBetaSignup(true)}
               className="btn-glass px-6 py-2.5 rounded-lg font-medium transition-all duration-300 hover:scale-105"
             >
-              Enter App
-            </Link>
+              Join Beta
+            </button>
           </motion.div>
         </div>
       </nav>
@@ -166,6 +154,19 @@ const Landing = () => {
               {...getAnimationProps(0.2)}
               className="space-y-8 max-w-4xl mx-auto relative"
             >
+              {/* Hero Logo */}
+              <motion.div 
+                {...getAnimationProps(0.1)}
+                className="flex justify-center mb-8"
+              >
+                <OpenClipProImageLogo 
+                  size={isMobile ? "xlarge" : "hero"} 
+                  animate={performanceSettings?.showAnimations}
+                  showText={false}
+                  className="drop-shadow-2xl"
+                />
+              </motion.div>
+
               <div className="space-y-6">
                 <motion.div
                   {...getAnimationProps(0.3)}
@@ -175,36 +176,30 @@ const Landing = () => {
                   AI-Powered Video Intelligence
                 </motion.div>
 
-                <h1 className="text-4xl sm:text-5xl lg:text-8xl font-bold leading-tight">
-                  Create
+                <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold leading-tight">
                   <span className="block bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-                    Viral Clips
+                    Transform Videos
                   </span>
-                  <span className="block text-secondary">Instantly</span>
+                  <span className="block text-secondary">Into Viral Clips</span>
+                  <span className="block text-3xl sm:text-4xl lg:text-5xl text-subtle font-medium mt-2">
+                    Instantly with AI
+                  </span>
                 </h1>
 
                 <p className="text-xl lg:text-2xl text-subtle leading-relaxed max-w-3xl mx-auto">
-                  Transform your long-form content into engaging short clips with AI-powered
+                  🚀 <strong>Join our exclusive beta!</strong> Transform your long-form content into engaging short clips with AI-powered
                   analysis. Perfect for YouTube Shorts, TikTok, Instagram Reels, and more.
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-6 justify-center">
+              <div className="flex justify-center">
                 <button
                   onClick={() => setShowBetaSignup(true)}
                   className="group bg-gradient-to-r from-primary to-accent text-white px-10 py-5 rounded-2xl font-bold text-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/25 flex items-center justify-center"
                 >
-                  Join Beta Program
+                  Get Early Access
                   <ArrowRight className="w-6 h-6 ml-3 group-hover:translate-x-1 transition-transform" />
                 </button>
-
-                <Link
-                  to="/dashboard"
-                  className="group border-2 border-primary/30 text-white px-10 py-5 rounded-2xl font-bold text-xl transition-all duration-300 hover:scale-105 hover:border-primary/60 flex items-center justify-center backdrop-blur-sm"
-                >
-                  Try Demo
-                  <Play className="w-6 h-6 ml-3" />
-                </Link>
               </div>
 
 
@@ -265,21 +260,14 @@ const Landing = () => {
             <p className="text-xl text-subtle mb-8 max-w-2xl mx-auto">
               Start transforming your content with AI-powered video analysis and automated clip generation.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex justify-center">
               <button
                 onClick={() => setShowBetaSignup(true)}
                 className="inline-flex items-center bg-gradient-to-r from-primary to-accent text-white px-10 py-5 rounded-2xl font-bold text-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/25"
               >
-                Join Beta Now
+                Get Beta Access
                 <ArrowRight className="w-6 h-6 ml-3" />
               </button>
-              <Link
-                to="/dashboard"
-                className="inline-flex items-center border-2 border-primary/30 text-white px-10 py-5 rounded-2xl font-bold text-xl transition-all duration-300 hover:scale-105 hover:border-primary/60 backdrop-blur-sm"
-              >
-                Demo Access
-                <Play className="w-6 h-6 ml-3" />
-              </Link>
             </div>
           </motion.div>
         </div>

@@ -11,6 +11,9 @@ let performanceMetrics = {
   slowOperations: [],
 };
 
+// Performance mode state
+let performanceModeEnabled = localStorage.getItem('openclip_performance_mode') === 'true';
+
 // Device performance detection
 export const detectDevicePerformance = () => {
   const navigator = window.navigator;
@@ -56,9 +59,25 @@ export const detectDevicePerformance = () => {
   return 'low';
 };
 
+// Auto-enable performance mode
+export const enablePerformanceMode = () => {
+  if (performanceModeEnabled) return; // Already enabled
+  
+  performanceModeEnabled = true;
+  console.log('🚀 Performance mode enabled automatically due to low FPS');
+  
+  // Dispatch a custom event to notify components
+  window.dispatchEvent(new CustomEvent('enablePerformanceMode', {
+    detail: { reason: 'low_fps' }
+  }));
+  
+  // Store preference in localStorage
+  localStorage.setItem('openclip_performance_mode', 'true');
+};
+
 // Performance monitoring
 export const startPerformanceMonitoring = () => {
-  // Monitor memory usage
+  // Monitor memory usage less frequently
   const monitorMemory = () => {
     if (performance.memory) {
       performanceMetrics.memoryUsage = {
@@ -70,47 +89,71 @@ export const startPerformanceMonitoring = () => {
     }
   };
 
-  // Monitor FPS with throttled warnings
+  // Throttled FPS monitoring to reduce console spam
+  let frameCount = 0;
   let lastTime = performance.now();
-  let frames = 0;
-  let lastFpsWarning = 0;
-  let fpsWarningCount = 0;
-  const MAX_FPS_WARNINGS = 3; // Limit FPS warnings
-  const FPS_WARNING_THROTTLE = 10000; // 10 seconds between warnings
+  let lastWarningTime = 0;
+  let warningCount = 0;
+  const WARNING_COOLDOWN = 10000; // 10 seconds between warnings
+  const MAX_WARNINGS = 3; // Maximum warnings before stopping
 
   const monitorFPS = () => {
-    frames++;
-    const now = performance.now();
-
-    if (now >= lastTime + 1000) {
-      performanceMetrics.fps = Math.round((frames * 1000) / (now - lastTime));
-      frames = 0;
-      lastTime = now;
-
-      // Only warn about consistently low FPS, with throttling
-      if (
-        performanceMetrics.fps < 20 && // Lower threshold (20 instead of 30)
-        fpsWarningCount < MAX_FPS_WARNINGS &&
-        now - lastFpsWarning > FPS_WARNING_THROTTLE
-      ) {
-        console.warn(
-          `Performance: Low FPS detected (${performanceMetrics.fps}fps). Consider enabling performance mode.`
-        );
-        lastFpsWarning = now;
-        fpsWarningCount++;
+    frameCount++;
+    const currentTime = performance.now();
+    
+    // Check FPS every 3 seconds instead of 2
+    if (currentTime - lastTime >= 3000) {
+      const fps = Math.round((frameCount * 1000) / (currentTime - lastTime));
+      performanceMetrics.fps = fps;
+      
+      // Only warn if FPS is critically low AND we haven't warned recently
+      const shouldWarn = fps < 10 && 
+                        frameCount > 20 && 
+                        (currentTime - lastWarningTime) > WARNING_COOLDOWN &&
+                        warningCount < MAX_WARNINGS;
+      
+      if (shouldWarn) {
+        console.warn(`Performance: Low FPS detected (${fps}fps). Consider enabling performance mode.`);
+        lastWarningTime = currentTime;
+        warningCount++;
+        
+        // Auto-enable performance mode if FPS is critically low
+        if (fps < 5) {
+          enablePerformanceMode();
+        }
       }
+      
+      frameCount = 0;
+      lastTime = currentTime;
     }
-
-    requestAnimationFrame(monitorFPS);
+    
+    // Reduce monitoring frequency significantly after warnings
+    const delay = warningCount >= MAX_WARNINGS ? 5000 : 1000;
+    setTimeout(() => {
+      if (document.visibilityState === 'visible') {
+        requestAnimationFrame(monitorFPS);
+      }
+    }, delay);
   };
 
-  // Start monitoring with delayed FPS monitoring to avoid initial spikes
-  setInterval(monitorMemory, 5000); // Every 5 seconds
+  // Start monitoring with delayed initialization
+  setInterval(monitorMemory, 10000); // Every 10 seconds instead of 5
 
-  // Delay FPS monitoring to let the app settle
+  // Delay FPS monitoring to let the app settle and only monitor when page is visible
   setTimeout(() => {
-    requestAnimationFrame(monitorFPS);
-  }, 2000); // Start FPS monitoring after 2 seconds
+    if (document.visibilityState === 'visible') {
+      requestAnimationFrame(monitorFPS);
+    }
+  }, 5000); // Start FPS monitoring after 5 seconds
+
+  // Pause monitoring when page is hidden
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      // Reset warning state when page becomes hidden
+      warningCount = 0;
+      lastWarningTime = 0;
+    }
+  });
 
   // Monitor page load time
   window.addEventListener('load', () => {
@@ -118,7 +161,7 @@ export const startPerformanceMonitoring = () => {
       const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
       performanceMetrics.pageLoadTime = loadTime;
 
-      if (loadTime > 3000) {
+      if (loadTime > 5000) { // Increased threshold
         console.warn(`Performance: Slow page load detected (${loadTime}ms)`);
       }
     }, 0);
@@ -134,8 +177,8 @@ export const withPerformanceTracking = (Component, name) => {
       const renderTime = performance.now() - startTime.current;
       performanceMetrics.componentRenderTimes[name] = renderTime;
 
-      if (renderTime > 100) {
-        // Warn about slow renders
+      // Increased threshold and reduce logging
+      if (renderTime > 200) {
         console.warn(`Slow component render: ${name} took ${renderTime.toFixed(2)}ms`);
       }
     });
@@ -287,4 +330,5 @@ export default {
   getOptimalAnimationSettings,
   getPerformanceMetrics,
   clearPerformanceMetrics,
+  enablePerformanceMode,
 };
