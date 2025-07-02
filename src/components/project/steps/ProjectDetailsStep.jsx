@@ -1,21 +1,8 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 
 const ProjectDetailsStep = ({ projectName, setProjectName, description, setDescription }) => {
-  const stepVariants = {
-    hidden: { opacity: 0, x: 20 },
-    visible: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: -20 },
-  };
-
   return (
-    <motion.div
-      variants={stepVariants}
-      initial="hidden"
-      animate="visible"
-      exit="exit"
-      className="space-y-6"
-    >
+    <div className="space-y-6">
       <div>
         <h3 className="text-lg font-semibold text-gray-100 mb-2">Project Details</h3>
         <p className="text-gray-400">Give your project a name and description</p>
@@ -47,7 +34,7 @@ const ProjectDetailsStep = ({ projectName, setProjectName, description, setDescr
           />
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 

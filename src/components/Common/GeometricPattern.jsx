@@ -1,5 +1,4 @@
 import React, { memo, useMemo, useCallback } from 'react';
-import { motion } from 'framer-motion';
 
 // Static objects moved outside to prevent recreation
 const SIZE_MAP = {
@@ -14,21 +13,15 @@ const COLOR_MAP = {
   secondary: '#8B5CF6',
 };
 
-// Optimized animation variants to reduce re-calculations
-const createAnimationVariant = (opacity, animate) => {
-  if (!animate) return {};
-
-  return {
-    opacity: [opacity * 0.4, opacity, opacity * 0.4],
-    transition: {
-      duration: 4,
-      repeat: Infinity,
-      ease: 'easeInOut',
-    },
-  };
+// CSS animation classes for better performance
+const createAnimationClass = (pattern, opacity, animate) => {
+  if (!animate) return '';
+  
+  const baseClass = `animate-pattern-${pattern}`;
+  return `${baseClass} opacity-${Math.floor(opacity * 100)}`;
 };
 
-// Simplified pattern generators
+// Simplified pattern generators with CSS animations
 const PatternGenerators = {
   dots: (svgSize, actualColor, opacity, animate) => {
     // Reduced from 6x6 (36 elements) to 4x4 (16 elements) for better performance
@@ -38,20 +31,36 @@ const PatternGenerators = {
     return [...Array(gridSize)]
       .map((_, row) =>
         [...Array(gridSize)].map((_, col) => (
-          <motion.circle
+          <circle
             key={`${row}-${col}`}
             cx={20 + col * spacing}
             cy={20 + row * spacing}
             r="2"
             fill={actualColor}
             opacity={opacity}
-            animate={animate ? createAnimationVariant(opacity, animate) : {}}
-            transition={{
-              duration: 3,
-              repeat: animate ? Infinity : 0,
-              ease: 'easeInOut',
-              delay: (row + col) * 0.2,
-            }}
+            className={animate ? `animate-pattern-dot delay-${(row + col) * 50}` : ''}
+          />
+        ))
+      )
+      .flat();
+  },
+
+  grid: (svgSize, actualColor, opacity, animate) => {
+    const gridSize = 6;
+    const spacing = (svgSize - 40) / (gridSize - 1);
+
+    return [...Array(gridSize)]
+      .map((_, row) =>
+        [...Array(gridSize)].map((_, col) => (
+          <rect
+            key={`${row}-${col}`}
+            x={20 + col * spacing - 1}
+            y={20 + row * spacing - 1}
+            width="2"
+            height="2"
+            fill={actualColor}
+            opacity={opacity}
+            className={animate ? `animate-pattern-grid delay-${(row + col) * 30}` : ''}
           />
         ))
       )
@@ -59,167 +68,130 @@ const PatternGenerators = {
   },
 
   lines: (svgSize, actualColor, opacity, animate) => {
-    // Reduced from 8 to 5 lines
-    return [...Array(5)].map((_, i) => (
-      <motion.line
+    const lineCount = 8;
+    const spacing = svgSize / (lineCount + 1);
+
+    return [...Array(lineCount)].map((_, i) => (
+      <line
         key={i}
-        x1={i % 2 === 0 ? 20 : 40}
-        y1={30 + i * 30}
-        x2={i % 2 === 0 ? svgSize - 20 : svgSize - 40}
-        y2={30 + i * 30}
+        x1={spacing * (i + 1)}
+        y1="20"
+        x2={spacing * (i + 1)}
+        y2={svgSize - 20}
         stroke={actualColor}
-        strokeWidth="1.5"
+        strokeWidth="1"
         opacity={opacity}
-        strokeDasharray="6 12"
-        animate={
-          animate
-            ? {
-                opacity: [opacity * 0.5, opacity, opacity * 0.5],
-                strokeDashoffset: [0, -18, 0],
-              }
-            : {}
-        }
-        transition={{
-          duration: 5,
-          repeat: animate ? Infinity : 0,
-          ease: 'linear',
-          delay: i * 0.3,
-        }}
+        className={animate ? `animate-pattern-line delay-${i * 100}` : ''}
       />
     ));
   },
 
-  grid: (svgSize, actualColor, opacity, animate) => {
-    const lines = [];
-    const spacing = 40;
-    const count = Math.floor(svgSize / spacing) - 1;
+  circles: (svgSize, actualColor, opacity, animate) => {
+    const circleCount = 5;
+    const maxRadius = svgSize / 4;
+    const centerX = svgSize / 2;
+    const centerY = svgSize / 2;
 
-    // Vertical lines (reduced count)
-    for (let i = 1; i <= count; i++) {
-      lines.push(
-        <motion.line
-          key={`v-${i}`}
-          x1={i * spacing}
-          y1={20}
-          x2={i * spacing}
-          y2={svgSize - 20}
+    return [...Array(circleCount)].map((_, i) => {
+      const radius = (maxRadius * (i + 1)) / circleCount;
+      return (
+        <circle
+          key={i}
+          cx={centerX}
+          cy={centerY}
+          r={radius}
+          fill="none"
           stroke={actualColor}
-          strokeWidth="0.8"
+          strokeWidth="1"
           opacity={opacity}
-          animate={animate ? createAnimationVariant(opacity, animate) : {}}
-          transition={{
-            duration: 6,
-            repeat: animate ? Infinity : 0,
-            ease: 'easeInOut',
-            delay: i * 0.2,
-          }}
+          className={animate ? `animate-pattern-circle delay-${i * 150}` : ''}
         />
       );
-    }
-
-    // Horizontal lines (reduced count)
-    for (let i = 1; i <= count; i++) {
-      lines.push(
-        <motion.line
-          key={`h-${i}`}
-          x1={20}
-          y1={i * spacing}
-          x2={svgSize - 20}
-          y2={i * spacing}
-          stroke={actualColor}
-          strokeWidth="0.8"
-          opacity={opacity}
-          animate={animate ? createAnimationVariant(opacity, animate) : {}}
-          transition={{
-            duration: 6,
-            repeat: animate ? Infinity : 0,
-            ease: 'easeInOut',
-            delay: 1 + i * 0.2,
-          }}
-        />
-      );
-    }
-
-    return lines;
+    });
   },
 
-  simple: (svgSize, actualColor, opacity) => {
-    // Ultra-simple pattern for low-performance devices
-    return [
-      <circle
-        key="center"
-        cx={svgSize / 2}
-        cy={svgSize / 2}
-        r="3"
-        fill={actualColor}
-        opacity={opacity}
-      />,
-      <circle
-        key="ring"
-        cx={svgSize / 2}
-        cy={svgSize / 2}
-        r="20"
-        fill="none"
-        stroke={actualColor}
-        strokeWidth="1"
-        opacity={opacity * 0.6}
-      />,
-    ];
+  triangles: (svgSize, actualColor, opacity, animate) => {
+    const triangleCount = 6;
+    const centerX = svgSize / 2;
+    const centerY = svgSize / 2;
+    const maxSize = svgSize / 3;
+
+    return [...Array(triangleCount)].map((_, i) => {
+      const size = (maxSize * (i + 1)) / triangleCount;
+      const angle = (i * 60 * Math.PI) / 180;
+      const x1 = centerX + size * Math.cos(angle);
+      const y1 = centerY + size * Math.sin(angle);
+      const x2 = centerX + size * Math.cos(angle + (2 * Math.PI) / 3);
+      const y2 = centerY + size * Math.sin(angle + (2 * Math.PI) / 3);
+      const x3 = centerX + size * Math.cos(angle + (4 * Math.PI) / 3);
+      const y3 = centerY + size * Math.sin(angle + (4 * Math.PI) / 3);
+
+      return (
+        <polygon
+          key={i}
+          points={`${x1},${y1} ${x2},${y2} ${x3},${y3}`}
+          fill="none"
+          stroke={actualColor}
+          strokeWidth="1"
+          opacity={opacity}
+          className={animate ? `animate-pattern-triangle delay-${i * 120}` : ''}
+        />
+      );
+    });
   },
 };
 
-const GeometricPattern = memo(
-  ({
-    variant = 'dots',
-    size = 'medium',
-    opacity = 0.3,
-    animate = true,
-    className = '',
-    color = 'primary',
-    performanceMode = false, // New prop for performance control
-  }) => {
-    const svgSize = SIZE_MAP[size];
-    const actualColor = COLOR_MAP[color] || COLOR_MAP.primary;
+const GeometricPattern = memo(({
+  pattern = 'dots',
+  size = 'medium',
+  color = 'primary',
+  opacity = 0.3,
+  animate = true,
+  className = '',
+  performanceMode = 'auto'
+}) => {
+  const svgSize = useMemo(() => SIZE_MAP[size] || SIZE_MAP.medium, [size]);
+  const actualColor = useMemo(() => COLOR_MAP[color] || COLOR_MAP.primary, [color]);
+  
+  // Performance mode detection
+  const shouldAnimate = useMemo(() => {
+    if (performanceMode === 'low') return false;
+    if (performanceMode === 'high') return animate;
+    
+    // Auto mode: check device capabilities
+    const isLowEndDevice = navigator.hardwareConcurrency <= 4 || 
+                          navigator.deviceMemory <= 4;
+    return animate && !isLowEndDevice;
+  }, [animate, performanceMode]);
 
-    // Use simple pattern in performance mode
-    const effectiveVariant = performanceMode ? 'simple' : variant;
-    const effectiveAnimate = performanceMode ? false : animate;
+  const patternElements = useMemo(() => {
+    const generator = PatternGenerators[pattern];
+    if (!generator) {
+      console.warn(`Unknown pattern: ${pattern}`);
+      return PatternGenerators.dots(svgSize, actualColor, opacity, shouldAnimate);
+    }
+    return generator(svgSize, actualColor, opacity, shouldAnimate);
+  }, [pattern, svgSize, actualColor, opacity, shouldAnimate]);
 
-    // Memoize pattern generation with all dependencies
-    const patternElements = useMemo(() => {
-      const generator = PatternGenerators[effectiveVariant] || PatternGenerators.simple;
-      return generator(svgSize, actualColor, opacity, effectiveAnimate);
-    }, [effectiveVariant, svgSize, actualColor, opacity, effectiveAnimate]);
+  const animationClass = useMemo(() => 
+    createAnimationClass(pattern, opacity, shouldAnimate), 
+    [pattern, opacity, shouldAnimate]
+  );
 
-    // Memoize container styles
-    const containerStyle = useMemo(
-      () => ({
-        width: svgSize,
-        height: svgSize,
-        minWidth: svgSize,
-        minHeight: svgSize,
-      }),
-      [svgSize]
-    );
-
-    return (
-      <div className={`pointer-events-none ${className}`} style={containerStyle}>
-        <svg
-          width={svgSize}
-          height={svgSize}
-          viewBox={`0 0 ${svgSize} ${svgSize}`}
-          className="w-full h-full"
-          style={{
-            overflow: 'visible',
-            isolation: 'isolate', // Create stacking context
-          }}
-        >
-          {patternElements}
-        </svg>
-      </div>
-    );
-  }
-);
+  return (
+    <div className={`relative pointer-events-none ${className}`}>
+      <svg
+        width={svgSize}
+        height={svgSize}
+        viewBox={`0 0 ${svgSize} ${svgSize}`}
+        className={`w-full h-full ${animationClass}`}
+        style={{ opacity }}
+      >
+        {patternElements}
+      </svg>
+    </div>
+  );
+});
 
 GeometricPattern.displayName = 'GeometricPattern';
 

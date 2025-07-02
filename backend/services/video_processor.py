@@ -9,6 +9,9 @@ import tempfile
 import shutil
 from urllib.parse import urlparse
 from datetime import datetime
+import cv2
+import numpy as np
+from PIL import Image
 
 # For YouTube processing
 try:
@@ -21,7 +24,7 @@ from models.project import Clip, VideoData
 logger = logging.getLogger(__name__)
 
 class VideoProcessor:
-    """Service for processing video files and extracting metadata"""
+    """Enhanced service for processing video files and extracting metadata"""
     
     def __init__(self):
         self.temp_dir = Path(tempfile.gettempdir()) / "openclip_temp"
@@ -447,3 +450,297 @@ class VideoProcessor:
     def is_supported_format(self, file_path: str) -> bool:
         """Check if file format is supported"""
         return Path(file_path).suffix.lower() in self.supported_formats
+    
+    async def extract_frames(self, video_path: str, num_frames: int = 10) -> List[Dict[str, Any]]:
+        """Extract frames from video for AI analysis"""
+        try:
+            if not os.path.exists(video_path):
+                raise FileNotFoundError(f"Video file not found: {video_path}")
+            
+            # Use OpenCV to extract frames
+            cap = cv2.VideoCapture(video_path)
+            if not cap.isOpened():
+                raise Exception(f"Could not open video file: {video_path}")
+            
+            total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+            fps = cap.get(cv2.CAP_PROP_FPS)
+            duration = total_frames / fps if fps > 0 else 0
+            
+            # Calculate frame intervals
+            if total_frames <= num_frames:
+                frame_indices = list(range(total_frames))
+            else:
+                frame_indices = [int(i * total_frames / num_frames) for i in range(num_frames)]
+            
+            frames = []
+            for i, frame_idx in enumerate(frame_indices):
+                cap.set(cv2.CAP_PROP_POS_FRAMES, frame_idx)
+                ret, frame = cap.read()
+                
+                if ret:
+                    # Convert BGR to RGB
+                    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                    
+                    # Resize for analysis (maintain aspect ratio)
+                    height, width = frame_rgb.shape[:2]
+                    max_size = 512
+                    if max(height, width) > max_size:
+                        scale = max_size / max(height, width)
+                        new_width = int(width * scale)
+                        new_height = int(height * scale)
+                        frame_rgb = cv2.resize(frame_rgb, (new_width, new_height))
+                    
+                    # Convert to PIL Image
+                    pil_image = Image.fromarray(frame_rgb)
+                    
+                    frames.append({
+                        'index': i,
+                        'frame_number': frame_idx,
+                        'timestamp': frame_idx / fps if fps > 0 else 0,
+                        'image': pil_image,
+                        'width': frame_rgb.shape[1],
+                        'height': frame_rgb.shape[0]
+                    })
+            
+            cap.release()
+            return frames
+            
+        except Exception as e:
+            logger.error(f"Error extracting frames from {video_path}: {e}")
+            return []
+    
+    async def extract_audio_segment(self, video_path: str, start_time: float, duration: float) -> Optional[str]:
+        """Extract audio segment from video for analysis"""
+        try:
+            if not self.ffmpeg_path:
+                raise Exception("FFmpeg not available")
+            
+            # Create temporary audio file
+            temp_audio = os.path.join(self.temp_dir, f"audio_segment_{start_time}_{duration}.wav")
+            
+            # Extract audio segment using FFmpeg
+            cmd = [
+                self.ffmpeg_path,
+                '-i', video_path,
+                '-ss', str(start_time),
+                '-t', str(duration),
+                '-vn',  # No video
+                '-acodec', 'pcm_s16le',  # PCM audio
+                '-ar', '16000',  # 16kHz sample rate
+                '-ac', '1',  # Mono
+                '-y',  # Overwrite output
+                temp_audio
+            ]
+            
+            process = await asyncio.create_subprocess_exec(
+                *cmd,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+            
+            stdout, stderr = await process.communicate()
+            
+            if process.returncode == 0 and os.path.exists(temp_audio):
+                return temp_audio
+            else:
+                logger.error(f"Audio extraction failed: {stderr.decode()}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Error extracting audio segment: {e}")
+            return None
+    
+    async def detect_scene_changes(self, video_path: str, threshold: float = 0.3) -> List[Dict[str, Any]]:
+        """Detect scene changes in video using computer vision"""
+        try:
+            if not os.path.exists(video_path):
+                raise FileNotFoundError(f"Video file not found: {video_path}")
+            
+            cap = cv2.VideoCapture(video_path)
+            if not cap.isOpened():
+                raise Exception(f"Could not open video file: {video_path}")
+            
+            fps = cap.get(cv2.CAP_PROP_FPS)
+            total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+            
+            scene_changes = []
+            prev_frame = None
+            frame_count = 0
+            
+            while True:
+                ret, frame = cap.read()
+                if not ret:
+                    break
+                
+                # Convert to grayscale for comparison
+                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                
+                if prev_frame is not None:
+                    # Calculate frame difference
+                    diff = cv2.absdiff(gray, prev_frame)
+                    mean_diff = np.mean(diff)
+                    
+                    # Normalize by frame size
+                    normalized_diff = mean_diff / (gray.shape[0] * gray.shape[1])
+                    
+                    # Detect scene change
+                    if normalized_diff > threshold:
+                        timestamp = frame_count / fps if fps > 0 else 0
+                        scene_changes.append({
+                            'frame_number': frame_count,
+                            'timestamp': timestamp,
+                            'confidence': min(normalized_diff / threshold, 1.0)
+                        })
+                
+                prev_frame = gray
+                frame_count += 1
+                
+                # Limit processing for performance
+                if frame_count > 10000:  # Process max 10k frames
+                    break
+            
+            cap.release()
+            return scene_changes
+            
+        except Exception as e:
+            logger.error(f"Error detecting scene changes: {e}")
+            return []
+    
+    async def analyze_video_quality(self, video_path: str) -> Dict[str, Any]:
+        """Analyze video quality metrics"""
+        try:
+            if not os.path.exists(video_path):
+                raise FileNotFoundError(f"Video file not found: {video_path}")
+            
+            # Get metadata
+            metadata = await self.extract_metadata(video_path)
+            
+            # Extract sample frames for quality analysis
+            frames = await self.extract_frames(video_path, num_frames=5)
+            
+            quality_metrics = {
+                'resolution_score': self._calculate_resolution_score(metadata.get('resolution', '')),
+                'bitrate_score': self._calculate_bitrate_score(metadata.get('bit_rate', 0)),
+                'duration_score': self._calculate_duration_score(metadata.get('duration', 0)),
+                'format_score': self._calculate_format_score(metadata.get('format', '')),
+                'frame_quality': []
+            }
+            
+            # Analyze frame quality
+            for frame in frames:
+                if 'image' in frame:
+                    pil_image = frame['image']
+                    # Convert to numpy array for analysis
+                    img_array = np.array(pil_image)
+                    
+                    # Calculate sharpness (Laplacian variance)
+                    gray = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)
+                    sharpness = cv2.Laplacian(gray, cv2.CV_64F).var()
+                    
+                    # Calculate brightness
+                    brightness = np.mean(gray)
+                    
+                    # Calculate contrast
+                    contrast = np.std(gray)
+                    
+                    quality_metrics['frame_quality'].append({
+                        'timestamp': frame.get('timestamp', 0),
+                        'sharpness': sharpness,
+                        'brightness': brightness,
+                        'contrast': contrast
+                    })
+            
+            # Calculate overall quality score
+            scores = [
+                quality_metrics['resolution_score'],
+                quality_metrics['bitrate_score'],
+                quality_metrics['duration_score'],
+                quality_metrics['format_score']
+            ]
+            
+            avg_score = sum(scores) / len(scores)
+            
+            if avg_score >= 0.8:
+                quality_metrics['overall_quality'] = 'excellent'
+            elif avg_score >= 0.6:
+                quality_metrics['overall_quality'] = 'good'
+            elif avg_score >= 0.4:
+                quality_metrics['overall_quality'] = 'fair'
+            else:
+                quality_metrics['overall_quality'] = 'poor'
+            
+            quality_metrics['quality_score'] = avg_score
+            
+            return quality_metrics
+            
+        except Exception as e:
+            logger.error(f"Error analyzing video quality: {e}")
+            return {
+                'error': str(e),
+                'overall_quality': 'unknown',
+                'quality_score': 0.0
+            }
+    
+    def _calculate_resolution_score(self, resolution: str) -> float:
+        """Calculate resolution quality score"""
+        if not resolution:
+            return 0.5
+        
+        try:
+            width, height = map(int, resolution.split('x'))
+            pixels = width * height
+            
+            if pixels >= 2073600:  # 1920x1080 or higher
+                return 1.0
+            elif pixels >= 921600:  # 1280x720 or higher
+                return 0.8
+            elif pixels >= 480000:  # 800x600 or higher
+                return 0.6
+            else:
+                return 0.4
+        except:
+            return 0.5
+    
+    def _calculate_bitrate_score(self, bitrate: int) -> float:
+        """Calculate bitrate quality score"""
+        if bitrate <= 0:
+            return 0.5
+        
+        # Convert to Mbps
+        mbps = bitrate / 1000000
+        
+        if mbps >= 10:
+            return 1.0
+        elif mbps >= 5:
+            return 0.8
+        elif mbps >= 2:
+            return 0.6
+        else:
+            return 0.4
+    
+    def _calculate_duration_score(self, duration: float) -> float:
+        """Calculate duration quality score"""
+        if duration <= 0:
+            return 0.0
+        elif duration <= 10:
+            return 0.3
+        elif duration <= 60:
+            return 0.7
+        elif duration <= 600:
+            return 1.0
+        else:
+            return 0.8
+    
+    def _calculate_format_score(self, format_name: str) -> float:
+        """Calculate format quality score"""
+        high_quality_formats = ['mp4', 'mov', 'avi']
+        medium_quality_formats = ['mkv', 'webm', 'm4v']
+        
+        format_lower = format_name.lower()
+        
+        if any(fmt in format_lower for fmt in high_quality_formats):
+            return 1.0
+        elif any(fmt in format_lower for fmt in medium_quality_formats):
+            return 0.8
+        else:
+            return 0.6

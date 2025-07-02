@@ -1,22 +1,82 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Play,
-  Pause,
-  SkipForward,
-  Eye,
-  Terminal,
-  Code,
-  Clock,
-  Zap,
-  Activity,
-  CheckCircle,
-  AlertTriangle,
-  Copy,
-  Download,
-  Maximize2,
-} from 'lucide-react';
 
+import {
+  TrendingUp as TrendingUpIcon,
+  Sparkles as SparklesIcon,
+  Brain as BrainIcon,
+  X as XIcon,
+  Video as VideoIcon,
+  Settings as SettingsIcon,
+  Loader as LoaderIcon,
+  Zap as ZapIcon,
+  Activity as ActivityIcon,
+  CheckCircle as CheckCircleIcon,
+  Play as PlayIcon,
+  Eye as EyeIcon,
+  AlertTriangle as AlertTriangleIcon,
+  XCircle as XCircleIcon,
+  RefreshCw as RefreshCwIcon,
+  Clock as ClockIcon,
+  Check as CheckIcon,
+  AlertCircle as AlertCircleIcon,
+  Link as LinkIcon,
+  Trash as TrashIcon,
+  Plus as PlusIcon,
+  Search as SearchIcon,
+  Grid3X3 as Grid3X3Icon,
+  List as ListIcon,
+  ArrowRight as ArrowRightIcon,
+  ChevronRight as ChevronRightIcon,
+  Upload as UploadIcon,
+  Download as DownloadIcon,
+  Share as ShareIcon,
+  FileText as FileTextIcon,
+  MoreVertical as MoreVerticalIcon,
+  Edit as EditIcon,
+  User as UserIcon,
+  Bell as BellIcon,
+  HelpCircle as HelpCircleIcon,
+  Menu as MenuIcon,
+  Folder as FolderIcon,
+  Film as FilmIcon,
+  Target as TargetIcon,
+  Palette as PaletteIcon,
+  VolumeX as VolumeXIcon,
+  Volume2 as Volume2Icon,
+  SkipBack as SkipBackIcon,
+  SkipForward as SkipForwardIcon,
+  Pause as PauseIcon,
+  Maximize as MaximizeIcon,
+  Scissors as ScissorsIcon,
+  Layers as LayersIcon,
+  TrendingDown as TrendingDownIcon,
+  Star as StarIcon,
+  Mail as MailIcon,
+  Send as SendIcon,
+  Users as UsersIcon,
+  MessageSquare as MessageSquareIcon,
+  Home as HomeIcon,
+  Youtube as YoutubeIcon,
+  BarChart2 as BarChart2Icon,
+  Key as KeyIcon,
+  Shield as ShieldIcon,
+  ArrowLeft as ArrowLeftIcon,
+  Terminal as TerminalIcon,
+  Code as CodeIcon,
+  Copy as CopyIcon,
+  Loader2 as Loader2Icon,
+  RotateCcw,
+  ChevronDown as ChevronDownIcon,
+  Brain,
+  Eye,
+  Zap,
+  CheckCircle,
+  XCircle,
+  Mail,
+  Send,
+  Upload,
+  PlayCircle as PlayCircleIcon
+} from 'lucide-react';
 const AnalysisResultsPanel = ({ project, onSeekTo }) => {
   const [showRawData, setShowRawData] = useState(false);
   const [showConsole, setShowConsole] = useState(false);
@@ -59,7 +119,7 @@ const AnalysisResultsPanel = ({ project, onSeekTo }) => {
       ];
       setConsoleLines(lines);
     }
-  }, [hasAnalysis, clips.length, analysisData]);
+  }, [hasAnalysis, clips.length, analysisData, project?.analysis_provider]);
 
   const formatTime = (seconds) => {
     if (typeof seconds !== 'number' || isNaN(seconds) || !isFinite(seconds)) {
@@ -79,7 +139,7 @@ const AnalysisResultsPanel = ({ project, onSeekTo }) => {
       <div className="glass-prism rounded-2xl p-6">
         <h2 className="text-xl font-semibold text-white mb-4">Analysis Results</h2>
         <div className="text-center py-8">
-          <Activity className="w-12 h-12 text-white/40 mx-auto mb-3" />
+          <ActivityIcon size={48} className="w-12 h-12 text-white/40 mx-auto mb-3" />
           <p className="text-white/60">No analysis completed yet</p>
           <p className="text-white/40 text-sm mt-2">Run AI analysis to see detailed results here</p>
         </div>
@@ -100,7 +160,7 @@ const AnalysisResultsPanel = ({ project, onSeekTo }) => {
                 showConsole ? 'bg-cyan-500/20 text-cyan-400' : 'text-white/60 hover:text-white'
               }`}
             >
-              <Terminal className="w-4 h-4" />
+              <TerminalIcon size={16} className="w-4 h-4" />
               Console
             </button>
             <button
@@ -109,7 +169,7 @@ const AnalysisResultsPanel = ({ project, onSeekTo }) => {
                 showRawData ? 'bg-purple-500/20 text-purple-400' : 'text-white/60 hover:text-white'
               }`}
             >
-              <Code className="w-4 h-4" />
+              <CodeIcon size={16} className="w-4 h-4" />
               Raw Data
             </button>
           </div>
@@ -119,7 +179,7 @@ const AnalysisResultsPanel = ({ project, onSeekTo }) => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="glass-shine rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
-              <CheckCircle className="w-5 h-5 text-green-400" />
+              <CheckCircleIcon size={20} className="w-5 h-5 text-green-400" />
               <span className="text-white/60 text-sm">Status</span>
             </div>
             <p className="text-white font-medium">Completed</p>
@@ -127,7 +187,7 @@ const AnalysisResultsPanel = ({ project, onSeekTo }) => {
 
           <div className="glass-shine rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
-              <Play className="w-5 h-5 text-blue-400" />
+              <PlayIcon size={20} className="w-5 h-5 text-blue-400" />
               <span className="text-white/60 text-sm">Clips Found</span>
             </div>
             <p className="text-white font-medium">{clips.length}</p>
@@ -135,7 +195,7 @@ const AnalysisResultsPanel = ({ project, onSeekTo }) => {
 
           <div className="glass-shine rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
-              <Eye className="w-5 h-5 text-purple-400" />
+              <EyeIcon size={20} className="w-5 h-5 text-purple-400" />
               <span className="text-white/60 text-sm">Frames</span>
             </div>
             <p className="text-white font-medium">{analysisData?.frames_analyzed || 'N/A'}</p>
@@ -143,7 +203,7 @@ const AnalysisResultsPanel = ({ project, onSeekTo }) => {
 
           <div className="glass-shine rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
-              <Zap className="w-5 h-5 text-yellow-400" />
+              <ZapIcon size={20} className="w-5 h-5 text-yellow-400" />
               <span className="text-white/60 text-sm">Provider</span>
             </div>
             <p className="text-white font-medium capitalize">
@@ -162,17 +222,12 @@ const AnalysisResultsPanel = ({ project, onSeekTo }) => {
       </div>
 
       {/* Console Panel */}
-      <AnimatePresence>
+      <div>
         {showConsole && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="glass-prism rounded-2xl overflow-hidden"
-          >
+          <div className="glass-prism rounded-2xl overflow-hidden">
             <div className="bg-black/50 p-4 border-b border-white/10">
               <div className="flex items-center gap-2">
-                <Terminal className="w-4 h-4 text-green-400" />
+                <TerminalIcon size={16} className="w-4 h-4 text-green-400" />
                 <span className="text-green-400 font-mono text-sm">Live Console Output</span>
               </div>
             </div>
@@ -199,23 +254,18 @@ const AnalysisResultsPanel = ({ project, onSeekTo }) => {
                 </div>
               ))}
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      </div>
 
       {/* Raw Data Panel */}
-      <AnimatePresence>
+      <div>
         {showRawData && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="glass-prism rounded-2xl overflow-hidden"
-          >
+          <div className="glass-prism rounded-2xl overflow-hidden">
             <div className="bg-purple-500/10 p-4 border-b border-purple-500/20">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Code className="w-4 h-4 text-purple-400" />
+                  <CodeIcon size={16} className="w-4 h-4 text-purple-400" />
                   <span className="text-purple-400 font-mono text-sm">Raw Analysis Data</span>
                 </div>
                 <button
@@ -227,7 +277,7 @@ const AnalysisResultsPanel = ({ project, onSeekTo }) => {
                   }, null, 2))}
                   className="text-purple-400 hover:text-purple-300 transition-colors"
                 >
-                  <Copy className="w-4 h-4" />
+                  <CopyIcon size={16} className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -242,9 +292,9 @@ const AnalysisResultsPanel = ({ project, onSeekTo }) => {
                 }, null, 2)}
               </pre>
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      </div>
 
       {/* Clips Grid */}
       <div className="glass-prism rounded-2xl p-6">
@@ -253,11 +303,8 @@ const AnalysisResultsPanel = ({ project, onSeekTo }) => {
         {clips.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {clips.map((clip, index) => (
-              <motion.div
+              <div
                 key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
                 className="glass-shine rounded-lg p-4 hover:bg-white/5 transition-colors group cursor-pointer"
                 onClick={() => {
                   if (
@@ -277,7 +324,7 @@ const AnalysisResultsPanel = ({ project, onSeekTo }) => {
                   <h4 className="font-medium text-white group-hover:text-cyan-400 transition-colors">
                     {clip.title || `Clip ${index + 1}`}
                   </h4>
-                  <Play className="w-4 h-4 text-white/60 group-hover:text-cyan-400 transition-colors opacity-0 group-hover:opacity-100" />
+                  <PlayIcon size={16} className="w-4 h-4 text-white/60 group-hover:text-cyan-400 transition-colors opacity-0 group-hover:opacity-100" />
                 </div>
 
                 <div className="space-y-2">
@@ -314,15 +361,15 @@ const AnalysisResultsPanel = ({ project, onSeekTo }) => {
                     <p className="text-white/60 text-xs mt-2 italic">{clip.reason}</p>
                   )}
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         ) : (
           <div className="text-center py-8">
-            <AlertTriangle className="w-12 h-12 text-yellow-400 mx-auto mb-3" />
+            <AlertTriangleIcon size={48} className="w-12 h-12 text-yellow-400 mx-auto mb-3" />
             <p className="text-white/60">No clips were generated</p>
             <p className="text-white/40 text-sm mt-2">
-              The AI analysis completed but didn't identify any suitable clips
+              The AI analysis completed but didn&apos;t identify any suitable clips
             </p>
           </div>
         )}
@@ -334,7 +381,7 @@ const AnalysisResultsPanel = ({ project, onSeekTo }) => {
         project?.analysis_data?.raw_response?.includes('safety guidelines')) && (
         <div className="glass-prism rounded-2xl p-6 bg-yellow-500/10 border border-yellow-500/20">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+            <AlertTriangleIcon size={20} className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
             <div>
               <h3 className="text-white font-medium mb-1">Content Safety Notice</h3>
               <p className="text-yellow-400 text-sm mb-2">

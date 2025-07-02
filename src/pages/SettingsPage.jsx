@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
-import SettingsSidebar from '../components/settings/SettingsSidebar';
-import SettingsHeader from '../components/settings/SettingsHeader';
-import ApiSettings from '../components/settings/ApiSettings';
 import AppSettings from '../components/settings/AppSettings';
+import ApiSettings from '../components/settings/ApiSettings';
+import LMStudioSettings from '../components/settings/LMStudioSettings';
 import PerformanceSettings from '../components/settings/PerformanceSettings';
 import SecuritySettings from '../components/settings/SecuritySettings';
-import { motion } from 'framer-motion';
-import { useSettingsStore } from '../stores/settingsStore';
+import SettingsHeader from '../components/settings/SettingsHeader';
+import SettingsSidebar from '../components/settings/SettingsSidebar';
+import { AnimatePresence, ScaleIn } from '../components/Common/LightweightMotion';
 
 const SettingsPage = () => {
   const [activeSection, setActiveSection] = useState('api');
-  const { initialize, isLoading } = useSettingsStore();
 
   const renderContent = () => {
     switch (activeSection) {
@@ -22,35 +21,26 @@ const SettingsPage = () => {
         return <PerformanceSettings />;
       case 'security':
         return <SecuritySettings />;
+      case 'lmstudio':
+        return <LMStudioSettings />;
       default:
         return <ApiSettings />;
     }
   };
 
   return (
-    <div className="flex h-screen bg-background">
-      {/* Sidebar */}
+    <div className="flex min-h-screen">
       <SettingsSidebar activeSection={activeSection} onSectionChange={setActiveSection} />
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col">
-        {/* Header */}
+      <main className="flex-1">
         <SettingsHeader />
-
-        {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-6">
-          <motion.div
-            key={activeSection}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-            className="max-w-4xl mx-auto"
-          >
-            {renderContent()}
-          </motion.div>
+        <div className="p-6">
+          <AnimatePresence>
+            <ScaleIn>
+              {renderContent()}
+            </ScaleIn>
+          </AnimatePresence>
         </div>
-      </div>
+      </main>
     </div>
   );
 };

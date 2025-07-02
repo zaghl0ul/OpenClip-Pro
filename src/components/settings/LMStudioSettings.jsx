@@ -1,17 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { 
-  Server, 
-  Check, 
-  X, 
-  Loader, 
-  AlertCircle, 
-  ExternalLink,
-  RefreshCw,
-  Cpu
-} from 'lucide-react';
+
 import { useSettingsStore } from '../../stores/settingsStore';
 import toast from 'react-hot-toast';
+import { 
+  TrendingUpIcon, SparklesIcon, BrainIcon, XIcon, VideoIcon, SettingsIcon, 
+  LoaderIcon, ZapIcon, ActivityIcon, CheckCircleIcon, PlayIcon, EyeIcon,
+  AlertTriangleIcon, XCircleIcon, RefreshCwIcon, ClockIcon, CheckIcon,
+  AlertCircleIcon, LinkIcon, TrashIcon, PlusIcon, SearchIcon, Grid3X3Icon,
+  ListIcon, ArrowRightIcon, ChevronRightIcon, UploadIcon, DownloadIcon,
+  ShareIcon, FileTextIcon, MoreVerticalIcon, EditIcon, UserIcon, BellIcon,
+  HelpCircleIcon, MenuIcon, FolderIcon, FilmIcon, TargetIcon, PaletteIcon,
+  VolumeXIcon, Volume2Icon, SkipBackIcon, SkipForwardIcon, PauseIcon,
+  MaximizeIcon, ScissorsIcon, LayersIcon, TrendingDownIcon, StarIcon,
+  MailIcon, SendIcon, UsersIcon, MessageSquareIcon, HomeIcon, YoutubeIcon,
+  BarChart2Icon, KeyIcon, ShieldIcon, ArrowLeftIcon
+} from '../Common/icons';
+
 
 const LMStudioSettings = () => {
   const { apiKeys, updateApiKey, testApiKey } = useSettingsStore();
@@ -78,17 +82,15 @@ const LMStudioSettings = () => {
   };
 
   const getConnectionStatusIcon = () => {
-    if (isTestingConnection) {
-      return <Loader className="w-4 h-4 animate-spin text-blue-400" />;
-    }
+    if (isTestingConnection) return <RefreshCwIcon size={16} className="w-4 h-4 animate-spin text-blue-400" />;
     
     switch (connectionStatus) {
       case 'success':
-        return <Check className="w-4 h-4 text-green-400" />;
+        return <CheckIcon size={16} className="w-4 h-4 text-green-400" />;
       case 'error':
-        return <X className="w-4 h-4 text-red-400" />;
+        return <XIcon size={16} className="w-4 h-4 text-red-400" />;
       default:
-        return <Server className="w-4 h-4 text-gray-400" />;
+        return <SettingsIcon size={16} className="w-4 h-4 text-gray-400" />;
     }
   };
 
@@ -119,15 +121,11 @@ const LMStudioSettings = () => {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-6"
-    >
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <div className="w-10 h-10 bg-purple-500/20 rounded-xl flex items-center justify-center">
-          <Cpu className="w-5 h-5 text-purple-400" />
+          <SettingsIcon size={20} className="w-5 h-5 text-purple-400" />
         </div>
         <div>
           <h3 className="text-lg font-semibold text-white">LM Studio Configuration</h3>
@@ -138,7 +136,7 @@ const LMStudioSettings = () => {
       {/* Info Card */}
       <div className="glass-card p-4 border-l-4 border-purple-500">
         <div className="flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-purple-400 mt-0.5 flex-shrink-0" />
+          <AlertCircleIcon size={20} className="w-5 h-5 text-purple-400 mt-0.5 flex-shrink-0" />
           <div className="text-sm">
             <p className="text-white font-medium mb-1">Local AI with LM Studio</p>
             <p className="text-gray-400 mb-2">
@@ -150,7 +148,7 @@ const LMStudioSettings = () => {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-purple-400 hover:text-purple-300 transition-colors"
             >
-              Download LM Studio <ExternalLink className="w-3 h-3" />
+              Download LM Studio <LinkIcon size={12} className="w-3 h-3" />
             </a>
           </div>
         </div>
@@ -198,11 +196,7 @@ const LMStudioSettings = () => {
 
       {/* Model Selection */}
       {connectionStatus === 'success' && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          className="glass-card p-6"
-        >
+        <div className="glass-card p-6">
           <div className="flex items-center justify-between mb-4">
             <h4 className="text-white font-medium">Available Models</h4>
             <button
@@ -210,13 +204,13 @@ const LMStudioSettings = () => {
               disabled={isLoadingModels}
               className="btn-ghost text-sm p-2"
             >
-              <RefreshCw className={`w-4 h-4 ${isLoadingModels ? 'animate-spin' : ''}`} />
+              <RefreshCwIcon className={`w-4 h-4 ${isLoadingModels ? 'animate-spin' : ''}`} />
             </button>
           </div>
 
           {isLoadingModels ? (
             <div className="flex items-center gap-2 text-gray-400">
-              <Loader className="w-4 h-4 animate-spin" />
+              <LoaderIcon size={16} className="w-4 h-4 animate-spin" />
               <span className="text-sm">Loading models...</span>
             </div>
           ) : availableModels.length > 0 ? (
@@ -243,7 +237,7 @@ const LMStudioSettings = () => {
                         )}
                       </div>
                       {selectedModel === model.id && (
-                        <Check className="w-5 h-5 text-purple-400" />
+                        <CheckIcon size={20} className="w-5 h-5 text-purple-400" />
                       )}
                     </div>
                   </div>
@@ -252,7 +246,7 @@ const LMStudioSettings = () => {
             </div>
           ) : (
             <div className="text-center py-6">
-              <AlertCircle className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
+              <AlertCircleIcon size={32} className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
               <p className="text-gray-400 text-sm">
                 No models loaded in LM Studio.
                 <br />
@@ -260,7 +254,7 @@ const LMStudioSettings = () => {
               </p>
             </div>
           )}
-        </motion.div>
+        </div>
       )}
 
       {/* Usage Tips */}
@@ -268,24 +262,24 @@ const LMStudioSettings = () => {
         <h4 className="text-white font-medium mb-3">Setup Instructions</h4>
         <div className="space-y-2 text-sm text-gray-400">
           <div className="flex items-start gap-2">
-            <span className="flex-shrink-0 w-5 h-5 bg-purple-500/20 text-purple-400 rounded text-xs flex items-center justify-center font-medium">1</span>
+            <span size={20} className="flex-shrink-0 w-5 h-5 bg-purple-500/20 text-purple-400 rounded text-xs flex items-center justify-center font-medium">1</span>
             <span>Download and install LM Studio from lmstudio.ai</span>
           </div>
           <div className="flex items-start gap-2">
-            <span className="flex-shrink-0 w-5 h-5 bg-purple-500/20 text-purple-400 rounded text-xs flex items-center justify-center font-medium">2</span>
+            <span size={20} className="flex-shrink-0 w-5 h-5 bg-purple-500/20 text-purple-400 rounded text-xs flex items-center justify-center font-medium">2</span>
             <span>Download a model (e.g., Llama 2, Mistral, etc.)</span>
           </div>
           <div className="flex items-start gap-2">
-            <span className="flex-shrink-0 w-5 h-5 bg-purple-500/20 text-purple-400 rounded text-xs flex items-center justify-center font-medium">3</span>
+            <span size={20} className="flex-shrink-0 w-5 h-5 bg-purple-500/20 text-purple-400 rounded text-xs flex items-center justify-center font-medium">3</span>
             <span>Start the local server in LM Studio</span>
           </div>
           <div className="flex items-start gap-2">
-            <span className="flex-shrink-0 w-5 h-5 bg-purple-500/20 text-purple-400 rounded text-xs flex items-center justify-center font-medium">4</span>
+            <span size={20} className="flex-shrink-0 w-5 h-5 bg-purple-500/20 text-purple-400 rounded text-xs flex items-center justify-center font-medium">4</span>
             <span>Test the connection above</span>
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 

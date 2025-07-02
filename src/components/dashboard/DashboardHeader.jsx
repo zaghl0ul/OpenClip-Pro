@@ -1,8 +1,6 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { Plus } from 'lucide-react';
 
-const DashboardHeader = ({ onCreateProject, createAdaptiveClickHandler, getAdaptiveClasses }) => {
+const DashboardHeader = ({ onCreateProject, createAdaptiveClickHandler, _getAdaptiveClasses }) => {
   const currentHour = new Date().getHours();
 
   // Determine greeting based on time of day
@@ -16,15 +14,13 @@ const DashboardHeader = ({ onCreateProject, createAdaptiveClickHandler, getAdapt
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
+    <div
       className="flex flex-col md:flex-row md:items-center justify-between gap-4"
     >
       <div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{greeting}</h1>
         <p className="mt-1 text-gray-600 dark:text-gray-400">
-          Here's an overview of your video projects and activities
+          Here&apos;s an overview of your video projects and activities
         </p>
       </div>
 
@@ -32,10 +28,10 @@ const DashboardHeader = ({ onCreateProject, createAdaptiveClickHandler, getAdapt
         onClick={createAdaptiveClickHandler('create_project', onCreateProject)}
         className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-sm"
       >
-        <Plus className="w-5 h-5" />
+        <PlusIcon size={20} className="w-5 h-5" />
         <span>New Project</span>
       </button>
-    </motion.div>
+    </div>
   );
 };
 

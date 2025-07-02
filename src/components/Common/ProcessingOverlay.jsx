@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LoaderIcon, SparklesIcon } from 'lucide-react';
+import { Loader as LoaderIcon, Sparkles as SparklesIcon } from 'lucide-react';
 
 const ProcessingOverlay = ({ isVisible, progress = 0, status = 'Processing...' }) => {
   return (

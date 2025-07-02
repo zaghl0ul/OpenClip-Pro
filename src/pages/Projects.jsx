@@ -1,27 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
-  FolderOpen,
-  Plus,
-  Search,
-  Filter,
-  Grid,
-  List,
-  Calendar,
-  Clock,
-  Video,
-  MoreVertical,
-  Edit,
-  Trash2,
-  Play,
-  Download,
-  Brain,
-  Target,
-  Sparkles,
-} from 'lucide-react';
+  FolderIcon,
+  PlusIcon,
+  SearchIcon,
+  CalendarIcon,
+  ClockIcon,
+  VideoIcon,
+  MoreVerticalIcon,
+  EditIcon,
+  TrashIcon,
+  PlayIcon,
+  BrainIcon,
+  GridIcon,
+  ListIcon,
+} from '../components/Common/icons';
 import useProjectStore from '../stores/projectStore';
 import CreateProjectModal from '../components/dashboard/CreateProjectModal';
+import ReactDOM from 'react-dom';
+import { 
+  TrendingUpIcon, SparklesIcon, BrainIcon, XIcon, VideoIcon, SettingsIcon, 
+  LoaderIcon, ZapIcon, ActivityIcon, CheckCircleIcon, PlayIcon, EyeIcon,
+  AlertTriangleIcon, XCircleIcon, RefreshCwIcon, ClockIcon, CheckIcon,
+  AlertCircleIcon, LinkIcon, TrashIcon, PlusIcon, SearchIcon, Grid3X3Icon,
+  ListIcon, ArrowRightIcon, ChevronRightIcon, UploadIcon, DownloadIcon,
+  ShareIcon, FileTextIcon, MoreVerticalIcon, EditIcon, UserIcon, BellIcon,
+  HelpCircleIcon, MenuIcon, FolderIcon, FilmIcon, TargetIcon, PaletteIcon,
+  VolumeXIcon, Volume2Icon, SkipBackIcon, SkipForwardIcon, PauseIcon,
+  MaximizeIcon, ScissorsIcon, LayersIcon, TrendingDownIcon, StarIcon,
+  MailIcon, SendIcon, UsersIcon, MessageSquareIcon, HomeIcon, YoutubeIcon,
+  BarChart2Icon, KeyIcon, ShieldIcon, ArrowLeftIcon
+} from '../Common/icons';
 
 const Projects = () => {
   const { projects, isLoading, deleteProject, initialize } = useProjectStore();
@@ -38,7 +47,7 @@ const Projects = () => {
 
   useEffect(() => {
     initialize();
-  }, []); // Remove initialize from dependencies to prevent loops
+  }, [initialize]);
 
   // Check if we should open the create modal from URL parameter
   useEffect(() => {
@@ -107,14 +116,7 @@ const Projects = () => {
   };
 
   const ProjectCard = ({ project }) => (
-    <motion.div
-      layout
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      className="glass-frosted rounded-2xl overflow-hidden hover:scale-[1.02] transition-transform cursor-pointer"
-      whileHover={{ y: -4 }}
-    >
+    <div className="glass-frosted rounded-2xl overflow-hidden hover:scale-[1.02] transition-transform cursor-pointer" style={{ transformOrigin: 'center' }}>
       <div className="relative z-10">
         {/* Project Thumbnail with Glass Enhancement */}
         <div className="aspect-video glass-frosted glass-button relative overflow-hidden">
@@ -126,60 +128,49 @@ const Projects = () => {
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <Video className="w-12 h-12 text-white/40" />
+              <VideoIcon size={48} className="w-12 h-12 text-white/40" />
             </div>
           )}
 
           {/* Enhanced Status Badge with Glass */}
           <div className="absolute top-3 left-3">
-            <motion.span
-              className={`px-3 py-1 rounded-full text-xs font-medium glass-frosted glass-button border ${getStatusColor(project.status)}`}
-              whileHover={{ scale: 1.05 }}
-            >
+            <div className="px-3 py-1 rounded-full text-xs font-medium glass-frosted glass-button border" style={{ backgroundColor: getStatusColor(project.status) }}>
               {project.status}
-            </motion.span>
+            </div>
           </div>
 
           {/* Enhanced Actions Menu */}
           <div className="absolute top-3 right-3">
             <div className="relative">
-              <motion.button
+              <button
                 onClick={() =>
                   setSelectedProject(selectedProject === project.id ? null : project.id)
                 }
                 className="p-2 glass-frosted glass-button text-white rounded-lg hover:bg-white/20 transition-colors"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
               >
-                <MoreVertical className="w-4 h-4" />
-              </motion.button>
+                <MoreVerticalIcon size={16} className="w-4 h-4" />
+              </button>
 
-              <AnimatePresence>
-                {selectedProject === project.id && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                    className="absolute top-full right-0 mt-2 w-48 glass-frosted rounded-lg p-2 z-20"
-                  >
+              {selectedProject === project.id &&
+                ReactDOM.createPortal(
+                  <div className="absolute top-full right-0 mt-2 w-48 glass-frosted rounded-lg p-2 z-[60]">
                     <Link
                       to={`/projects/${project.id}`}
                       className="flex items-center gap-2 px-3 py-2 text-sm text-white rounded-lg hover:bg-white/20 transition-colors"
                     >
-                      <Edit className="w-4 h-4" />
+                      <EditIcon size={16} className="w-4 h-4" />
                       Edit Project
                     </Link>
-                    <motion.button
+                    <button
                       onClick={() => handleDeleteProject(project.id)}
                       className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-300 rounded-lg hover:bg-red-500/20 transition-colors"
-                      whileHover={{ scale: 1.02 }}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <TrashIcon size={16} className="w-4 h-4" />
                       Delete Project
-                    </motion.button>
-                  </motion.div>
+                    </button>
+                  </div>,
+                  document.body
                 )}
-              </AnimatePresence>
             </div>
           </div>
         </div>
@@ -198,11 +189,11 @@ const Projects = () => {
 
           <div className="flex items-center justify-between text-xs text-white/50 mb-4">
             <div className="flex items-center gap-1">
-              <Calendar className="w-3 h-3" />
+              <CalendarIcon size={12} className="w-3 h-3" />
               <span>{formatDate(project.createdAt || project.created_at)}</span>
             </div>
             <div className="flex items-center gap-1">
-              <Clock className="w-3 h-3" />
+              <ClockIcon size={12} className="w-3 h-3" />
               <span>{formatDate(project.updatedAt || project.updated_at)}</span>
             </div>
           </div>
@@ -221,29 +212,20 @@ const Projects = () => {
 
           {/* Enhanced Action Button */}
           <Link to={`/projects/${project.id}`} className="w-full">
-            <motion.div
+            <div
               className="w-full glass-frosted glass-button py-3 rounded-xl text-white font-medium hover:bg-white/20 transition-colors flex items-center justify-center gap-2"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
             >
-              <Play className="w-4 h-4" />
+              <PlayIcon size={16} className="w-4 h-4" />
               Open Project
-            </motion.div>
+            </div>
           </Link>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 
   const ProjectListItem = ({ project }) => (
-    <motion.div
-      layout
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      className="glass-frosted rounded-xl p-6 hover:bg-white/10 transition-all"
-      whileHover={{ scale: 1.01 }}
-    >
+    <div className="glass-frosted rounded-xl p-6 hover:bg-white/10 transition-all" style={{ transformOrigin: 'center' }}>
       <div className="relative z-10">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-6 flex-1">
@@ -255,7 +237,7 @@ const Projects = () => {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <Video className="w-8 h-8 text-white/40" />
+                <VideoIcon size={32} className="w-8 h-8 text-white/40" />
               )}
             </div>
 
@@ -264,11 +246,9 @@ const Projects = () => {
                 <h3 className="font-semibold text-white text-lg">
                   {project.name || 'Untitled Project'}
                 </h3>
-                <span
-                  className={`px-3 py-1 rounded-full text-xs font-medium glass-frosted glass-button border ${getStatusColor(project.status)}`}
-                >
+                <div className="px-3 py-1 rounded-full text-xs font-medium glass-frosted glass-button border" style={{ backgroundColor: getStatusColor(project.status) }}>
                   {project.status}
-                </span>
+                </div>
               </div>
 
               {project.description && (
@@ -295,33 +275,27 @@ const Projects = () => {
               to={`/projects/${project.id}`}
               className="p-3 glass-frosted glass-button text-blue-300 hover:bg-blue-500/20 rounded-lg transition-colors"
             >
-              <Edit className="w-4 h-4" />
+              <EditIcon size={16} className="w-4 h-4" />
             </Link>
-            <motion.button
+            <button
               onClick={() => handleDeleteProject(project.id)}
               className="p-3 glass-frosted glass-button text-red-300 hover:bg-red-500/20 rounded-lg transition-colors"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
             >
-              <Trash2 className="w-4 h-4" />
-            </motion.button>
+              <TrashIcon size={16} className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-            className="w-16 h-16 mx-auto mb-4"
-          >
-            <Brain className="w-full h-full text-indigo-400" />
-          </motion.div>
+          <div size={64} className="w-16 h-16 mx-auto mb-4">
+            <BrainIcon className="w-full h-full text-indigo-400" />
+          </div>
           <p className="text-white/60">Loading projects...</p>
         </div>
       </div>
@@ -331,17 +305,12 @@ const Projects = () => {
   return (
     <div className="space-y-8">
       {/* Enhanced Header with Glass */}
-      <motion.div
-        className="glass-frosted rounded-2xl p-8"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
+      <div className="glass-frosted rounded-2xl p-8">
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-4xl font-bold text-white mb-2 flex items-center gap-3">
-                <FolderOpen className="w-10 h-10 text-indigo-300" />
+                <FolderIcon className="w-10 h-10 text-indigo-300" isOpen={true} />
                 Projects
               </h1>
               <p className="text-white/70 text-lg">
@@ -349,21 +318,19 @@ const Projects = () => {
               </p>
             </div>
 
-            <motion.button
+            <button
               onClick={() => setShowCreateModal(true)}
               className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl font-medium transition-all shadow-lg backdrop-blur-sm"
-              whileHover={{ scale: 1.05, boxShadow: '0 8px 25px rgba(99, 102, 241, 0.4)' }}
-              whileTap={{ scale: 0.95 }}
             >
-              <Plus className="w-5 h-5" />
+              <PlusIcon size={20} className="w-5 h-5" />
               New Project
-            </motion.button>
+            </button>
           </div>
 
           {/* Enhanced Filters and Search with Glass */}
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="flex-1 relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/40 w-5 h-5" />
+              <SearchIcon size={20} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/40 w-5 h-5" />
               <input
                 type="text"
                 placeholder="Search projects..."
@@ -396,38 +363,29 @@ const Projects = () => {
               </select>
 
               <div className="flex glass-frosted glass-button rounded-xl overflow-hidden">
-                <motion.button
+                <button
                   onClick={() => setViewMode('grid')}
                   className={`p-3 ${viewMode === 'grid' ? 'bg-indigo-500 text-white' : 'text-white/60'} hover:bg-indigo-500 hover:text-white transition-colors`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
                 >
-                  <Grid className="w-5 h-5" />
-                </motion.button>
-                <motion.button
+                  <GridIcon size={20} className="w-5 h-5" />
+                </button>
+                <button
                   onClick={() => setViewMode('list')}
                   className={`p-3 ${viewMode === 'list' ? 'bg-indigo-500 text-white' : 'text-white/60'} hover:bg-indigo-500 hover:text-white transition-colors`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
                 >
-                  <List className="w-5 h-5" />
-                </motion.button>
+                  <ListIcon size={20} className="w-5 h-5" />
+                </button>
               </div>
             </div>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Enhanced Projects Grid/List */}
       {filteredProjects.length === 0 ? (
-        <motion.div
-          className="glass-frosted rounded-2xl p-12 text-center"
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
-        >
+        <div className="glass-frosted rounded-2xl p-12 text-center">
           <div className="relative z-10">
-            <FolderOpen className="w-20 h-20 text-white/40 mx-auto mb-6" />
+            <FolderIcon className="w-20 h-20 text-white/40 mx-auto mb-6" isOpen={true} />
             <h3 className="text-2xl font-semibold text-white mb-3">
               {searchTerm ? 'No projects found' : 'No projects yet'}
             </h3>
@@ -437,45 +395,39 @@ const Projects = () => {
                 : 'Create your first project to get started with AI-powered video analysis and editing'}
             </p>
             {!searchTerm && (
-              <motion.button
+              <button
                 onClick={() => setShowCreateModal(true)}
                 className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl font-medium transition-all mx-auto shadow-lg backdrop-blur-sm"
-                whileHover={{ scale: 1.05, boxShadow: '0 8px 25px rgba(99, 102, 241, 0.4)' }}
-                whileTap={{ scale: 0.95 }}
               >
-                <Plus className="w-5 h-5" />
+                <PlusIcon size={20} className="w-5 h-5" />
                 Create Your First Project
-              </motion.button>
+              </button>
             )}
           </div>
-        </motion.div>
+        </div>
       ) : (
-        <motion.div
-          layout
+        <div
           className={
             viewMode === 'grid'
               ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
               : 'space-y-4'
           }
         >
-          <AnimatePresence>
-            {filteredProjects.map((project, index) =>
-              viewMode === 'grid' ? (
-                <ProjectCard key={`grid-${project.id}-${index}`} project={project} />
-              ) : (
-                <ProjectListItem key={`list-${project.id}-${index}`} project={project} />
-              )
-            )}
-          </AnimatePresence>
-        </motion.div>
+          {filteredProjects.map((project, index) =>
+            viewMode === 'grid' ? (
+              <ProjectCard key={`grid-${project.id}-${index}`} project={project} />
+            ) : (
+              <ProjectListItem key={`list-${project.id}-${index}`} project={project} />
+            )
+          )}
+        </div>
       )}
 
       {/* Enhanced Create Project Modal */}
       <CreateProjectModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
-        onProjectCreated={(project) => {
-          console.log('Project created callback called with project:', project);
+        onProjectCreated={(_project) => {
           initialize();
         }}
       />

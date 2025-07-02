@@ -261,7 +261,7 @@ export const getOptimalSettings = () => {
 };
 
 // Lazy loading utility
-export const createLazyComponent = (importFn, fallback = null) => {
+export const createLazyComponent = (importFn, _fallback = null) => {
   return React.lazy(() => {
     const startTime = performance.now();
 

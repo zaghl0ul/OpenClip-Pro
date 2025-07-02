@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Check, Palette, Sparkles } from 'lucide-react';
+import { 
+  Icon,
+  CheckIcon, 
+  PaletteIcon,
+  SparklesIcon
+} from './icons';
 import { themes, applyTheme, getCurrentTheme } from '../../config/themes';
 import { useSettingsStore } from '../../stores/settingsStore';
 
@@ -37,11 +42,11 @@ const ThemeSelector = ({ compact = false }) => {
           className="glass-panel p-2 rounded-lg hover:scale-105 transition-transform"
           aria-label="Change theme"
         >
-          <Palette className="w-5 h-5 text-current" />
+          <Icon icon={PaletteIcon} size={20} />
         </button>
 
         {isOpen && (
-          <div className="absolute right-0 top-12 w-72 glass-panel rounded-xl shadow-2xl p-2 z-50 animate-in">
+          <div className="absolute right-0 top-12 w-72 glass-panel rounded-xl shadow-2xl p-2 z-[60] animate-in">
             <div className="grid grid-cols-3 gap-2">
               {Object.entries(themes).map(([key, theme]) => (
                 <ThemePreview
@@ -63,7 +68,7 @@ const ThemeSelector = ({ compact = false }) => {
     <div className="theme-selector space-y-4">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-primary" />
+          <Icon icon={SparklesIcon} size={20} className="text-primary" />
           Theme Selection
         </h3>
         <span className="text-sm text-subtle">Current: {theme.name}</span>
@@ -100,11 +105,11 @@ const ThemePreview = ({ theme, isActive, onClick, compact = false }) => {
         <div className="flex flex-col items-center gap-1">
           <div className="flex gap-1">
             <div
-              className="w-3 h-3 rounded-full"
+              size={12} className="w-3 h-3 rounded-full"
               style={{ backgroundColor: theme.colors.primary }}
             />
             <div
-              className="w-3 h-3 rounded-full"
+              size={12} className="w-3 h-3 rounded-full"
               style={{ backgroundColor: theme.colors.accent }}
             />
           </div>
@@ -114,7 +119,7 @@ const ThemePreview = ({ theme, isActive, onClick, compact = false }) => {
         </div>
         {isActive && (
           <div className="absolute top-1 right-1">
-            <Check className="w-3 h-3" style={{ color: theme.colors.primary }} />
+            <Icon icon={CheckIcon} size={12} style={{ color: theme.colors.primary }} />
           </div>
         )}
       </button>
@@ -141,31 +146,31 @@ const ThemePreview = ({ theme, isActive, onClick, compact = false }) => {
             {theme.name}
           </h4>
           {isActive && (
-            <Check className="w-5 h-5 animate-in" style={{ color: theme.colors.primary }} />
+            <Icon icon={CheckIcon} size={20} className="animate-in" style={{ color: theme.colors.primary }} />
           )}
         </div>
 
         {/* Color palette preview */}
         <div className="flex gap-2">
           <div
-            className="w-8 h-8 rounded-lg shadow-sm"
+            size={32} className="w-8 h-8 rounded-lg shadow-sm"
             style={{ backgroundColor: theme.colors.primary }}
             title="Primary"
           />
           <div
-            className="w-8 h-8 rounded-lg shadow-sm"
+            size={32} className="w-8 h-8 rounded-lg shadow-sm"
             style={{ backgroundColor: theme.colors.accent }}
             title="Accent"
           />
           <div
-            className="w-8 h-8 rounded-lg shadow-sm"
+            size={32} className="w-8 h-8 rounded-lg shadow-sm"
             style={{
               background: `linear-gradient(135deg, ${theme.colors.gradientStart}, ${theme.colors.gradientEnd})`,
             }}
             title="Gradient"
           />
           <div
-            className="w-8 h-8 rounded-lg shadow-sm"
+            size={32} className="w-8 h-8 rounded-lg shadow-sm"
             style={{ backgroundColor: theme.colors.success }}
             title="Success"
           />

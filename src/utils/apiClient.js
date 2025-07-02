@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 // Custom API Error class to provide more context
 export class APIError extends Error {
@@ -58,25 +58,25 @@ apiClient.interceptors.response.use(
 );
 
 // Add API methods to the client
-apiClient.getProjects = () => apiClient.get('/api/projects');
-apiClient.getProject = (id) => apiClient.get(`/api/projects/${id}`);
+apiClient.getProjects = () => apiClient.get('/api/v1/projects');
+apiClient.getProject = (id) => apiClient.get(`/api/v1/projects/${id}`);
 apiClient.createProject = (data) => {
   if (data instanceof FormData) {
-    return apiClient.post('/api/projects', data, {
+    return apiClient.post('/api/v1/projects', data, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   }
-  return apiClient.post('/api/projects', data);
+  return apiClient.post('/api/v1/projects', data);
 };
-apiClient.updateProject = (id, data) => apiClient.put(`/api/projects/${id}`, data);
-apiClient.deleteProject = (id) => apiClient.delete(`/api/projects/${id}`);
+apiClient.updateProject = (id, data) => apiClient.put(`/api/v1/projects/${id}`, data);
+apiClient.deleteProject = (id) => apiClient.delete(`/api/v1/projects/${id}`);
 
 // Video methods
 apiClient.uploadVideo = async (projectId, file, onProgress) => {
   const formData = new FormData();
   formData.append('file', file);
 
-  return apiClient.post(`/api/projects/${projectId}/upload`, formData, {
+  return apiClient.post(`/api/v1/projects/${projectId}/upload`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
     onUploadProgress: (progressEvent) => {
       if (onProgress && progressEvent.total) {
@@ -87,17 +87,17 @@ apiClient.uploadVideo = async (projectId, file, onProgress) => {
   });
 };
 
-apiClient.getVideoStream = (projectId) => apiClient.get(`/api/projects/${projectId}/stream`);
+apiClient.getVideoStream = (projectId) => apiClient.get(`/api/v1/projects/${projectId}/stream`);
 
 // YouTube methods
-apiClient.getYouTubeInfo = (url) => apiClient.post('/api/youtube/info', { url });
+apiClient.getYouTubeInfo = (url) => apiClient.post('/api/v1/youtube/info', { url });
 apiClient.processYouTube = (projectId, youtubeUrl) => {
-  return apiClient.post(`/api/projects/${projectId}/youtube`, { youtube_url: youtubeUrl });
+  return apiClient.post(`/api/v1/projects/${projectId}/youtube`, { youtube_url: youtubeUrl });
 };
 
 // Analysis methods
 apiClient.analyzeVideo = (projectId, prompt, provider = 'openai', model = null) => {
-  return apiClient.post(`/api/projects/${projectId}/analyze`, {
+  return apiClient.post(`/api/v1/projects/${projectId}/analyze`, {
     prompt,
     provider,
     model,
@@ -105,37 +105,37 @@ apiClient.analyzeVideo = (projectId, prompt, provider = 'openai', model = null) 
 };
 
 // Clip methods
-apiClient.updateClip = (clipId, updates) => apiClient.put(`/api/clips/${clipId}`, updates);
-apiClient.deleteClip = (clipId) => apiClient.delete(`/api/clips/${clipId}`);
+apiClient.updateClip = (clipId, updates) => apiClient.put(`/api/v1/clips/${clipId}`, updates);
+apiClient.deleteClip = (clipId) => apiClient.delete(`/api/v1/clips/${clipId}`);
 apiClient.exportClips = (projectId, settings) =>
-  apiClient.post(`/api/projects/${projectId}/export`, settings);
+  apiClient.post(`/api/v1/projects/${projectId}/export`, settings);
 apiClient.exportClip = (clipId, settings) =>
-  apiClient.post(`/api/clips/${clipId}/export`, settings);
+  apiClient.post(`/api/v1/clips/${clipId}/export`, settings);
 
 // Search methods
 apiClient.searchProjects = (query, filters = {}) => {
-  return apiClient.post('/api/projects/search', { query, filters });
+  return apiClient.post('/api/v1/projects/search', { query, filters });
 };
 
 // Provider methods
-apiClient.getProviders = () => apiClient.get('/api/providers');
-apiClient.getModels = (provider) => apiClient.get(`/api/models/${provider}`);
+apiClient.getProviders = () => apiClient.get('/api/v1/providers');
+apiClient.getModels = (provider) => apiClient.get(`/api/v1/models/${provider}`);
 
 // Settings methods
-apiClient.getSettings = () => apiClient.get('/api/settings');
-apiClient.updateSettings = (settings) => apiClient.post('/api/settings', settings);
+apiClient.getSettings = () => apiClient.get('/api/v1/settings');
+apiClient.updateSettings = (settings) => apiClient.post('/api/v1/settings', settings);
 
 // API Key methods
 apiClient.saveApiKey = (provider, apiKey) => {
-  return apiClient.post('/api/settings/api-keys', { provider, api_key: apiKey });
+  return apiClient.post('/api/v1/settings/api-keys', { provider, api_key: apiKey });
 };
 
 apiClient.testApiKey = (provider, apiKey) => {
-  return apiClient.post('/api/settings/test-api-key', { provider, api_key: apiKey });
+  return apiClient.post('/api/v1/settings/test-api-key', { provider, api_key: apiKey });
 };
 
 apiClient.deleteApiKey = (provider) => {
-  return apiClient.delete(`/api/settings/api-keys/${provider}`);
+  return apiClient.delete(`/api/v1/settings/api-keys/${provider}`);
 };
 
 export default apiClient;

@@ -1,5 +1,4 @@
 import React from 'react';
-import { Key, Settings, Shield, Zap, ChevronRight } from 'lucide-react';
 
 const SettingsSidebar = ({ activeSection, onSectionChange }) => {
   const sections = [

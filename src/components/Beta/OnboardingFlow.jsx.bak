@@ -1,0 +1,101 @@
+import React, { useState } from 'react';
+import { ChevronRight, X, Upload, Zap, CheckCircle } from 'lucide-react';
+
+const OnboardingFlow = ({ isOpen, onClose, onComplete }) => {
+  const [currentStep, setCurrentStep] = useState(0);
+
+  const steps = [
+    {
+      title: 'Welcome to Beta!',
+      description: 'Transform your videos with AI-powered clipping',
+      icon: CheckCircle,
+      content: 'Get ready to experience the future of video editing with AI-powered analysis and automated clip generation.'
+    },
+    {
+      title: 'Upload Videos',
+      description: 'Start by uploading a video or YouTube URL',
+      icon: Upload,
+      content: 'Support for MP4, AVI, MOV up to 5GB or direct YouTube URLs. Our system handles the rest automatically.'
+    },
+    {
+      title: 'AI Analysis',
+      description: 'AI analyzes and finds the best moments',
+      icon: Zap,
+      content: 'Choose from multiple AI providers (OpenAI, Gemini, Anthropic) and write custom prompts for targeted analysis.'
+    }
+  ];
+
+  const handleNext = () => {
+    if (currentStep < steps.length - 1) {
+      setCurrentStep(currentStep + 1);
+    } else {
+      handleComplete();
+    }
+  };
+
+  const handleComplete = () => {
+    if (window.gtag) {
+      window.gtag('event', 'onboarding_completed', {
+        event_category: 'engagement',
+        value: 1
+      });
+    }
+    localStorage.setItem('onboarding_completed', 'true');
+    onComplete?.();
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  const step = steps[currentStep];
+  const isLastStep = currentStep === steps.length - 1;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl w-full max-w-md border border-primary/20">
+        <div className="flex items-center justify-between p-6 border-b border-gray-700">
+          <div className="flex gap-1">
+            {steps.map((_, index) => (
+              <div
+                key={index}
+                className={`w-2 h-2 rounded-full ${
+                  index <= currentStep ? 'bg-primary' : 'bg-gray-600'
+                }`}
+              />
+            ))}
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-white">
+            <X size={20} className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="p-6 text-center">
+          <div size={64} className="w-16 h-16 bg-primary/20 rounded-xl flex items-center justify-center mx-auto mb-4">
+            <step.icon size={32} className="w-8 h-8 text-primary" />
+          </div>
+          <h2 className="text-xl font-bold text-white mb-2">{step.title}</h2>
+          <p className="text-gray-400 text-sm mb-4">{step.description}</p>
+          <p className="text-gray-300 text-sm">{step.content}</p>
+        </div>
+
+        <div className="flex justify-between p-6 border-t border-gray-700">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-gray-400 hover:text-white"
+          >
+            Skip
+          </button>
+          <button
+            onClick={handleNext}
+            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-accent text-white rounded-lg font-medium"
+          >
+            {isLastStep ? 'Get Started' : 'Next'}
+            <ChevronRight size={16} className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default OnboardingFlow; 

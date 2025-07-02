@@ -1,5 +1,5 @@
 import React from 'react';
-import { DownloadIcon, UploadIcon } from 'lucide-react';
+import { Download as DownloadIcon, Upload as UploadIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useSettingsStore } from '../../stores/settingsStore';
 

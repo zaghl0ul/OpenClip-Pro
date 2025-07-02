@@ -1,16 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import {
-  Video,
-  Upload,
-  Sparkles,
-  Download,
-  Share2,
-  Settings,
-  ChevronLeft,
-  Loader,
-  AlertCircle,
-} from 'lucide-react';
 import VideoPlayer from '../components/Video/VideoPlayer';
 import VideoUpload from '../components/Video/VideoUpload';
 import ClipsList from '../components/Clips/ClipsList';
@@ -18,6 +7,19 @@ import ClipEditor from '../components/Clips/ClipEditor';
 import AnalysisModal from '../components/Analysis/AnalysisModal';
 import useProjectStore from '../stores/projectStore';
 import toast from 'react-hot-toast';
+import { 
+  TrendingUpIcon, SparklesIcon, BrainIcon, XIcon, VideoIcon, SettingsIcon, 
+  LoaderIcon, ZapIcon, ActivityIcon, CheckCircleIcon, PlayIcon, EyeIcon,
+  AlertTriangleIcon, XCircleIcon, RefreshCwIcon, ClockIcon, CheckIcon,
+  AlertCircleIcon, LinkIcon, TrashIcon, PlusIcon, SearchIcon, Grid3X3Icon,
+  ListIcon, ArrowRightIcon, ChevronRightIcon, UploadIcon, DownloadIcon,
+  ShareIcon, FileTextIcon, MoreVerticalIcon, EditIcon, UserIcon, BellIcon,
+  HelpCircleIcon, MenuIcon, FolderIcon, FilmIcon, TargetIcon, PaletteIcon,
+  VolumeXIcon, Volume2Icon, SkipBackIcon, SkipForwardIcon, PauseIcon,
+  MaximizeIcon, ScissorsIcon, LayersIcon, TrendingDownIcon, StarIcon,
+  MailIcon, SendIcon, UsersIcon, MessageSquareIcon, HomeIcon, YoutubeIcon,
+  BarChart2Icon, KeyIcon, ShieldIcon, ArrowLeftIcon
+} from '../Common/icons';
 
 const ProjectPage = () => {
   const { id } = useParams();
@@ -44,7 +46,7 @@ const ProjectPage = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <AlertCircle className="w-12 h-12 text-error mx-auto mb-4" />
+          <AlertCircleIcon size={48} className="w-12 h-12 text-error mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-white mb-2">Project not found</h2>
           <button onClick={() => navigate('/projects')} className="btn btn-primary mt-4">
             Back to Projects
@@ -132,9 +134,9 @@ const ProjectPage = () => {
   };
 
   const tabs = [
-    { id: 'video', label: 'Video', icon: Video },
-    { id: 'analysis', label: 'AI Analysis', icon: Sparkles },
-    { id: 'clips', label: 'Clips', icon: Video },
+    { id: 'video', label: 'Video', icon: VideoIcon },
+    { id: 'analysis', label: 'AI Analysis', icon: SparklesIcon },
+    { id: 'clips', label: 'Clips', icon: VideoIcon },
   ];
 
   return (
@@ -145,7 +147,7 @@ const ProjectPage = () => {
           onClick={() => navigate('/projects')}
           className="flex items-center gap-2 text-subtle hover:text-white transition-colors mb-4"
         >
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronLeftIcon size={16} className="w-4 h-4" />
           Back to Projects
         </button>
 
@@ -162,17 +164,17 @@ const ProjectPage = () => {
               className="btn btn-secondary flex items-center gap-2"
             >
               {isExporting ? (
-                <Loader className="w-4 h-4 animate-spin" />
+                <LoaderIcon size={16} className="w-4 h-4 animate-spin" />
               ) : (
-                <Download className="w-4 h-4" />
+                <DownloadIcon size={16} className="w-4 h-4" />
               )}
               Export All
             </button>
             <button className="btn btn-ghost">
-              <Share2 className="w-4 h-4" />
+              <ShareIcon size={16} className="w-4 h-4" />
             </button>
             <button className="btn btn-ghost">
-              <Settings className="w-4 h-4" />
+              <SettingsIcon size={16} className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -191,7 +193,7 @@ const ProjectPage = () => {
                   activeTab === tab.id ? 'text-primary' : 'text-subtle hover:text-white'
                 }`}
               >
-                <Icon className="w-4 h-4" />
+                <Icon size={16} className="w-4 h-4" />
                 {tab.label}
                 {activeTab === tab.id && (
                   <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
@@ -223,7 +225,7 @@ const ProjectPage = () => {
         {activeTab === 'analysis' && (
           <div className="space-y-6">
             <div className="glass-card p-6 text-center">
-              <Sparkles className="w-12 h-12 text-primary mx-auto mb-4" />
+              <SparklesIcon size={48} className="w-12 h-12 text-primary mx-auto mb-4" />
               <h2 className="text-xl font-semibold text-white mb-2">AI Video Analysis</h2>
               <p className="text-subtle mb-6">
                 Use AI to automatically detect and create clips from your video
@@ -231,7 +233,7 @@ const ProjectPage = () => {
 
               {isAnalyzing ? (
                 <div className="py-8">
-                  <Loader className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
+                  <LoaderIcon size={32} className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
                   <p className="text-subtle">Analyzing video...</p>
                 </div>
               ) : (
@@ -266,7 +268,7 @@ const ProjectPage = () => {
               />
             ) : (
               <div className="glass-card p-8 text-center">
-                <Video className="w-12 h-12 text-subtle mx-auto mb-4" />
+                <VideoIcon size={48} className="w-12 h-12 text-subtle mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-white mb-2">No clips yet</h3>
                 <p className="text-subtle mb-6">
                   Run AI analysis to generate clips from your video

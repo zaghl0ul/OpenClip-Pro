@@ -1,6 +1,15 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, X, Send, Star, Bug, Lightbulb, Heart } from 'lucide-react';
+
+import { AnimatePresence, ScaleIn } from '../Common/LightweightMotion';
+import { 
+  BugIcon, 
+  LightbulbIcon, 
+  HeartIcon, 
+  MessageSquareIcon, 
+  XIcon, 
+  StarIcon, 
+  SendIcon 
+} from '../Common/icons';
 
 const FeedbackWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -14,9 +23,9 @@ const FeedbackWidget = () => {
   const [isSuccess, setIsSuccess] = useState(false);
 
   const feedbackTypes = [
-    { id: 'bug', label: 'Bug Report', icon: Bug, color: 'text-red-400' },
-    { id: 'feature', label: 'Feature Request', icon: Lightbulb, color: 'text-yellow-400' },
-    { id: 'general', label: 'General Feedback', icon: Heart, color: 'text-green-400' }
+    { id: 'bug', label: 'Bug Report', icon: BugIcon, color: 'text-red-400' },
+    { id: 'feature', label: 'Feature Request', icon: LightbulbIcon, color: 'text-yellow-400' },
+    { id: 'general', label: 'General Feedback', icon: HeartIcon, color: 'text-green-400' }
   ];
 
   const handleSubmit = async () => {
@@ -50,137 +59,138 @@ const FeedbackWidget = () => {
     setIsSubmitting(false);
   };
 
+  const handleTypeSelect = (type) => {
+    setFeedbackData(prev => ({ ...prev, type }));
+  };
+
+  const handleRatingSelect = (rating) => {
+    setFeedbackData(prev => ({ ...prev, rating }));
+  };
+
+  const handleMessageChange = (e) => {
+    setFeedbackData(prev => ({ ...prev, message: e.target.value }));
+  };
+
   return (
     <>
       {/* Feedback Button */}
-      <motion.button
+      <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-40 bg-gradient-to-r from-primary to-accent text-white p-4 rounded-full shadow-lg hover:scale-110 transition-all"
-        whileHover={{ scale: 1.1 }}
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ delay: 2 }}
+        className="fixed bottom-6 right-6 z-40 p-3 bg-primary/20 hover:bg-primary/30 border border-primary/30 rounded-full text-primary transition-all duration-200 hover:scale-110 shadow-lg backdrop-blur-sm"
+        title="Send Feedback"
       >
-        <MessageSquare className="w-6 h-6" />
-      </motion.button>
+        <MessageSquareIcon size={24} className="w-6 h-6" />
+      </button>
 
       {/* Feedback Modal */}
       <AnimatePresence>
         {isOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-          >
-            <motion.div
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl w-full max-w-md border border-primary/20"
-            >
-              <div className="flex items-center justify-between p-6 border-b border-gray-700">
-                <div className="flex items-center gap-3">
-                  <MessageSquare className="w-6 h-6 text-primary" />
-                  <h3 className="font-semibold text-white">Feedback</h3>
-                </div>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <ScaleIn className="glass-card w-full max-w-md p-6">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-white">Send Feedback</h3>
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="text-gray-400 hover:text-white"
+                  className="p-1 text-gray-400 hover:text-white transition-colors"
                 >
-                  <X className="w-5 h-5" />
+                  <XIcon size={20} className="w-5 h-5" />
                 </button>
               </div>
 
-              <div className="p-6">
-                {isSuccess ? (
-                  <div className="text-center py-4">
-                    <Heart className="w-16 h-16 text-green-400 mx-auto mb-4" />
-                    <h4 className="text-white font-semibold mb-2">Thank you!</h4>
-                    <p className="text-gray-400 text-sm">Your feedback helps us improve.</p>
+              {isSuccess ? (
+                <div className="text-center py-8">
+                  <div size={64} className="w-16 h-16 mx-auto mb-4 bg-green-500/20 rounded-full flex items-center justify-center">
+                    <HeartIcon size={32} className="w-8 h-8 text-green-400" />
                   </div>
-                ) : (
-                  <div className="space-y-4">
-                    {!feedbackData.type ? (
-                      <>
-                        <h4 className="text-white font-medium mb-4">What type of feedback?</h4>
-                        {feedbackTypes.map((type) => (
+                  <h4 className="text-lg font-semibold text-white mb-2">Thank You!</h4>
+                  <p className="text-gray-400">Your feedback has been submitted successfully.</p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* Feedback Type */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-3">
+                      What type of feedback is this?
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {feedbackTypes.map((type) => {
+                        const Icon = type.icon;
+                        return (
                           <button
                             key={type.id}
-                            onClick={() => setFeedbackData(prev => ({ ...prev, type: type.id }))}
-                            className="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-700 hover:border-primary/50 text-left"
+                            onClick={() => handleTypeSelect(type.id)}
+                            className={`p-3 rounded-lg border transition-all ${
+                              feedbackData.type === type.id
+                                ? 'border-primary bg-primary/20 text-primary'
+                                : 'border-gray-600 text-gray-400 hover:border-gray-500 hover:text-gray-300'
+                            }`}
                           >
-                            <type.icon className={`w-5 h-5 ${type.color}`} />
-                            <span className="text-white">{type.label}</span>
+                            <Icon className={`w-5 h-5 mx-auto mb-1 ${type.color}`} />
+                            <span className="text-xs block">{type.label}</span>
                           </button>
-                        ))}
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Rating */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-3">
+                      How would you rate your experience?
+                    </label>
+                    <div className="flex justify-center gap-1">
+                      {[1, 2, 3, 4, 5].map((rating) => (
+                        <button
+                          key={rating}
+                          onClick={() => handleRatingSelect(rating)}
+                          className={`p-2 rounded transition-colors ${
+                            feedbackData.rating >= rating
+                              ? 'text-yellow-400'
+                              : 'text-gray-500 hover:text-gray-400'
+                          }`}
+                        >
+                          <StarIcon size={24} className="w-6 h-6 fill-current" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Message */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Your feedback
+                    </label>
+                    <textarea
+                      value={feedbackData.message}
+                      onChange={handleMessageChange}
+                      placeholder="Tell us what you think..."
+                      className="w-full h-32 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all resize-none"
+                    />
+                  </div>
+
+                  {/* Submit Button */}
+                  <button
+                    onClick={handleSubmit}
+                    disabled={!feedbackData.type || !feedbackData.message.trim() || isSubmitting}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary hover:bg-primary/80 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div size={16} className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Sending...
                       </>
                     ) : (
                       <>
-                        <div className="flex items-center gap-2 mb-4">
-                          <button
-                            onClick={() => setFeedbackData(prev => ({ ...prev, type: '' }))}
-                            className="text-gray-400 hover:text-white"
-                          >
-                            ←
-                          </button>
-                          <span className="text-white font-medium">
-                            {feedbackTypes.find(t => t.id === feedbackData.type)?.label}
-                          </span>
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-2">
-                            Rate your experience
-                          </label>
-                          <div className="flex gap-1">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <button
-                                key={star}
-                                onClick={() => setFeedbackData(prev => ({ ...prev, rating: star }))}
-                                className={`transition-colors ${
-                                  star <= feedbackData.rating ? 'text-yellow-400' : 'text-gray-600'
-                                }`}
-                              >
-                                <Star className="w-6 h-6 fill-current" />
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-2">
-                            Tell us more
-                          </label>
-                          <textarea
-                            value={feedbackData.message}
-                            onChange={(e) => setFeedbackData(prev => ({ ...prev, message: e.target.value }))}
-                            placeholder="Share your feedback..."
-                            className="w-full h-24 px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 resize-none"
-                          />
-                        </div>
-
-                        <button
-                          onClick={handleSubmit}
-                          disabled={!feedbackData.message.trim() || isSubmitting}
-                          className="w-full bg-gradient-to-r from-primary to-accent text-white px-4 py-3 rounded-lg font-medium disabled:opacity-50 flex items-center justify-center gap-2"
-                        >
-                          {isSubmitting ? (
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          ) : (
-                            <>
-                              <Send className="w-4 h-4" />
-                              Send Feedback
-                            </>
-                          )}
-                        </button>
+                        <SendIcon size={16} className="w-4 h-4" />
+                        Send Feedback
                       </>
                     )}
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          </motion.div>
+                  </button>
+                </div>
+              )}
+            </ScaleIn>
+          </div>
         )}
       </AnimatePresence>
     </>

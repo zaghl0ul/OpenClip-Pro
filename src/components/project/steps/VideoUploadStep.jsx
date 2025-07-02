@@ -1,6 +1,18 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { Upload as UploadIcon, FileText as FileTextIcon, CheckCircle } from 'lucide-react';
+import { UploadIcon, CheckCircleIcon, FileTextIcon } from '../../Common/icons';
+import { 
+  TrendingUpIcon, SparklesIcon, BrainIcon, XIcon, VideoIcon, SettingsIcon, 
+  LoaderIcon, ZapIcon, ActivityIcon, CheckCircleIcon, PlayIcon, EyeIcon,
+  AlertTriangleIcon, XCircleIcon, RefreshCwIcon, ClockIcon, CheckIcon,
+  AlertCircleIcon, LinkIcon, TrashIcon, PlusIcon, SearchIcon, Grid3X3Icon,
+  ListIcon, ArrowRightIcon, ChevronRightIcon, UploadIcon, DownloadIcon,
+  ShareIcon, FileTextIcon, MoreVerticalIcon, EditIcon, UserIcon, BellIcon,
+  HelpCircleIcon, MenuIcon, FolderIcon, FilmIcon, TargetIcon, PaletteIcon,
+  VolumeXIcon, Volume2Icon, SkipBackIcon, SkipForwardIcon, PauseIcon,
+  MaximizeIcon, ScissorsIcon, LayersIcon, TrendingDownIcon, StarIcon,
+  MailIcon, SendIcon, UsersIcon, MessageSquareIcon, HomeIcon, YoutubeIcon,
+  BarChart2Icon, KeyIcon, ShieldIcon, ArrowLeftIcon
+} from '../Common/icons';
 
 const VideoUploadStep = ({
   selectedFile,
@@ -13,35 +25,16 @@ const VideoUploadStep = ({
   uploadProgress = 0,
   isUploading = false,
 }) => {
-  const stepVariants = {
-    hidden: { opacity: 0, x: 20 },
-    visible: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: -20 },
-  };
-
   // Ensure we're handling file selection correctly
   const onFileChange = (e) => {
     if (e.target.files?.[0]) {
       // Pass the actual File object, not an array
       handleFileSelect(e.target.files[0]);
-
-      // Log file details for debugging
-      console.log('File selected:', {
-        name: e.target.files[0].name,
-        type: e.target.files[0].type,
-        size: e.target.files[0].size,
-      });
     }
   };
 
   return (
-    <motion.div
-      variants={stepVariants}
-      initial="hidden"
-      animate="visible"
-      exit="exit"
-      className="space-y-6"
-    >
+    <div className="space-y-6">
       <div>
         <h3 className="text-lg font-semibold text-gray-100 mb-2">Upload Video</h3>
         <p className="text-gray-400">Select a video file from your device</p>
@@ -52,11 +45,11 @@ const VideoUploadStep = ({
           <div className="flex items-center gap-4">
             <div className="p-3 rounded-lg bg-primary-500/20 text-primary-400">
               {isUploading ? (
-                <div className="w-6 h-6 border-2 border-primary-400 border-t-transparent rounded-full animate-spin" />
+                <div size={24} className="w-6 h-6 border-2 border-primary-400 border-t-transparent rounded-full animate-spin" />
               ) : uploadProgress === 100 ? (
-                <CheckCircle className="w-6 h-6 text-green-400" />
+                <CheckCircleIcon size={24} className="w-6 h-6 text-green-400" />
               ) : (
-                <FileTextIcon className="w-6 h-6" />
+                <FileTextIcon size={24} className="w-6 h-6" />
               )}
             </div>
             <div className="flex-1 min-w-0">
@@ -75,11 +68,9 @@ const VideoUploadStep = ({
                     <span className="text-xs text-gray-400">{uploadProgress}%</span>
                   </div>
                   <div className="w-full bg-gray-700 rounded-full h-1.5">
-                    <motion.div
+                    <div
                       className="bg-primary-500 h-1.5 rounded-full"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${uploadProgress}%` }}
-                      transition={{ duration: 0.3 }}
+                      style={{ width: `${uploadProgress}%` }}
                     />
                   </div>
                 </div>
@@ -148,7 +139,7 @@ const VideoUploadStep = ({
           {error}
         </div>
       )}
-    </motion.div>
+    </div>
   );
 };
 

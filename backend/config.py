@@ -4,7 +4,7 @@ Uses environment variables with sensible fallbacks.
 """
 
 import os
-from typing import Optional
+from typing import Optional, List
 from pydantic_settings import BaseSettings
 from pydantic import field_validator
 from pathlib import Path
@@ -13,30 +13,36 @@ class Settings(BaseSettings):
     """Application settings with validation"""
     
     # Application
-    APP_NAME: str = "OpenClip Pro"
-    APP_VERSION: str = "1.0.0"
+    PROJECT_NAME: str = "OpenClip Pro API"
+    VERSION: str = "1.0.0"
+    DESCRIPTION: str = "AI-powered video analysis and processing API"
     ENVIRONMENT: str = "development"  # development, staging, production
-    DEBUG: bool = False
+    DEBUG: bool = True
     
     # Server
     HOST: str = "0.0.0.0"
     PORT: int = 8000
     WORKERS: int = 4
     
+    # API
+    API_V1_STR: str = "/api/v1"
+    
     # Database
+    # The DATABASE_URL to connect to.
+    # By default, this is a local SQLite database.
+    # To use PostgreSQL, set this in your .env file:
+    # DATABASE_URL="postgresql://user:password@host:port/dbname"
     DATABASE_URL: str = "sqlite:///./app.db"
     DATABASE_POOL_SIZE: int = 10
     DATABASE_MAX_OVERFLOW: int = 20
     
     # Redis
-    REDIS_HOST: str = "localhost"
-    REDIS_PORT: int = 6379
-    REDIS_DB: int = 0
+    REDIS_URL: str = "redis://localhost:6379"
     REDIS_PASSWORD: Optional[str] = None
     
     # Security
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "CHANGE-THIS-IN-PRODUCTION-" + os.urandom(32).hex())
-    JWT_ALGORITHM: str = "HS256"
+    SECRET_KEY: str = "CHANGE-THIS-IN-PRODUCTION-DO-NOT-USE-THIS-SECRET-KEY"
+    ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 30
     
@@ -48,21 +54,18 @@ class Settings(BaseSettings):
     PASSWORD_REQUIRE_SPECIAL: bool = True
     
     # Rate Limiting
-    RATE_LIMIT_ENABLED: bool = True
-    RATE_LIMIT_DEFAULT: str = "100/hour"
-    RATE_LIMIT_AUTH: str = "10/hour"
-    RATE_LIMIT_UPLOAD: str = "50/day"
+    RATE_LIMIT_PER_MINUTE: int = 60
     
     # CORS
-    CORS_ORIGINS: list = ["http://localhost:3000", "http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "*"]
+    ALLOWED_HOSTS: List[str] = ["*"]
     CORS_ALLOW_CREDENTIALS: bool = True
     
     # File Storage
-    UPLOAD_DIR: Path = Path("./uploads")
-    TEMP_DIR: Path = Path("./temp")
-    OUTPUTS_DIR: Path = Path("./outputs")
-    MAX_UPLOAD_SIZE: int = 5 * 1024 * 1024 * 1024  # 5GB
-    ALLOWED_VIDEO_EXTENSIONS: list = [".mp4", ".avi", ".mov", ".mkv", ".webm"]
+    UPLOAD_DIR: str = "uploads"
+    VIDEOS_DIR: str = "uploads/videos"
+    THUMBNAILS_DIR: str = "uploads/thumbnails"
+    MAX_FILE_SIZE: int = 500 * 1024 * 1024  # 500MB
+    ALLOWED_VIDEO_EXTENSIONS: List[str] = [".mp4", ".avi", ".mov", ".mkv", ".webm"]
     
     # AI Providers
     OPENAI_API_KEY: Optional[str] = None
@@ -83,7 +86,7 @@ class Settings(BaseSettings):
     SMTP_PORT: int = 587
     SMTP_USERNAME: Optional[str] = None
     SMTP_PASSWORD: Optional[str] = None
-    SMTP_FROM_EMAIL: str = "noreply@openclippro.com"
+    FROM_EMAIL: str = "noreply@openclippro.com"
     SMTP_FROM_NAME: str = "OpenClip Pro"
     
     # Frontend
@@ -92,6 +95,7 @@ class Settings(BaseSettings):
     # Monitoring
     SENTRY_DSN: Optional[str] = None
     LOG_LEVEL: str = "INFO"
+    LOG_FILE: str = "logs/app.log"
     
     # Feature Flags
     ENABLE_REGISTRATION: bool = True
@@ -105,7 +109,7 @@ class Settings(BaseSettings):
     FREE_TIER_PROJECTS: int = 10
     FREE_TIER_API_CALLS: int = 1000
     
-    @field_validator("UPLOAD_DIR", "TEMP_DIR", "OUTPUTS_DIR")
+    @field_validator("UPLOAD_DIR", "VIDEOS_DIR", "THUMBNAILS_DIR")
     @classmethod
     def create_directories(cls, v):
         """Ensure directories exist"""
@@ -113,14 +117,7 @@ class Settings(BaseSettings):
         path.mkdir(parents=True, exist_ok=True)
         return path
     
-    @field_validator("DATABASE_URL")
-    @classmethod
-    def validate_database_url(cls, v):
-        """Add async support for SQLite"""
-        if v.startswith("sqlite:///"):
-            # Add check_same_thread=False for SQLite
-            return v + "?check_same_thread=False"
-        return v
+    
     
     @field_validator("SECRET_KEY")
     @classmethod
@@ -135,12 +132,16 @@ class Settings(BaseSettings):
         env_file_encoding = "utf-8"
         case_sensitive = True
 
-# Create settings instance
+# Global settings instance
 settings = Settings()
 
 # Export commonly used settings
 SECRET_KEY = settings.SECRET_KEY
 DATABASE_URL = settings.DATABASE_URL
-REDIS_URL = f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}/{settings.REDIS_DB}"
+REDIS_URL = settings.REDIS_URL
 if settings.REDIS_PASSWORD:
-    REDIS_URL = f"redis://:{settings.REDIS_PASSWORD}@{settings.REDIS_HOST}:{settings.REDIS_PORT}/{settings.REDIS_DB}"
+    REDIS_URL = f"redis://:{settings.REDIS_PASSWORD}@{settings.REDIS_URL.split('@')[1]}"
+
+# Ensure log directory exists
+log_dir = Path(settings.LOG_FILE).parent
+log_dir.mkdir(exist_ok=True)

@@ -363,3 +363,39 @@ const useSettingsStore = create(
 );
 
 export { useSettingsStore };
+
+const THEME_KEY = 'openclip-theme';
+
+const getInitialTheme = () => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem(THEME_KEY) || 'default';
+  }
+  return 'default';
+};
+
+export const useThemeStore = create((set) => ({
+  theme: getInitialTheme(),
+  setTheme: (theme) => {
+    set({ theme });
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(THEME_KEY, theme);
+      // Apply theme class to body
+      if (theme === 'win98') {
+        document.body.classList.add('theme-win98');
+      } else {
+        document.body.classList.remove('theme-win98');
+      }
+    }
+  },
+  initializeTheme: () => {
+    if (typeof window !== 'undefined') {
+      const theme = localStorage.getItem(THEME_KEY) || 'default';
+      if (theme === 'win98') {
+        document.body.classList.add('theme-win98');
+      } else {
+        document.body.classList.remove('theme-win98');
+      }
+      set({ theme });
+    }
+  }
+}));

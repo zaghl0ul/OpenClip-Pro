@@ -1,5 +1,4 @@
 import React, { useRef, useState } from 'react';
-import { Upload as UploadIcon, FileText as FileTextIcon } from 'lucide-react';
 
 const VideoUpload = ({ selectedFile, onFileSelect }) => {
   const [dragActive, setDragActive] = useState(false);
@@ -31,7 +30,7 @@ const VideoUpload = ({ selectedFile, onFileSelect }) => {
         <div className="p-6 border border-gray-700 bg-gray-800/50 rounded-lg">
           <div className="flex items-center gap-4">
             <div className="p-3 rounded-lg bg-primary-500/20 text-primary-400">
-              <FileTextIcon className="w-6 h-6" />
+              <FileTextIcon size={24} className="w-6 h-6" />
             </div>
             <div className="flex-1 min-w-0">
               <h4 className="font-medium text-gray-100 truncate">{selectedFile.name}</h4>

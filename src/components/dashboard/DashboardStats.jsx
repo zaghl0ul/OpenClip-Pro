@@ -1,6 +1,18 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { FolderOpen, Film, Clock, TrendingUp } from 'lucide-react';
+import { StaggerContainer } from '../Common/LightweightMotion';
+import { 
+  TrendingUpIcon, SparklesIcon, BrainIcon, XIcon, VideoIcon, SettingsIcon, 
+  LoaderIcon, ZapIcon, ActivityIcon, CheckCircleIcon, PlayIcon, EyeIcon,
+  AlertTriangleIcon, XCircleIcon, RefreshCwIcon, ClockIcon, CheckIcon,
+  AlertCircleIcon, LinkIcon, TrashIcon, PlusIcon, SearchIcon, Grid3X3Icon,
+  ListIcon, ArrowRightIcon, ChevronRightIcon, UploadIcon, DownloadIcon,
+  ShareIcon, FileTextIcon, MoreVerticalIcon, EditIcon, UserIcon, BellIcon,
+  HelpCircleIcon, MenuIcon, FolderIcon, FilmIcon, TargetIcon, PaletteIcon,
+  VolumeXIcon, Volume2Icon, SkipBackIcon, SkipForwardIcon, PauseIcon,
+  MaximizeIcon, ScissorsIcon, LayersIcon, TrendingDownIcon, StarIcon,
+  MailIcon, SendIcon, UsersIcon, MessageSquareIcon, HomeIcon, YoutubeIcon,
+  BarChart2Icon, KeyIcon, ShieldIcon, ArrowLeftIcon
+} from '../Common/icons';
 
 const DashboardStats = ({ stats }) => {
   const statCards = [
@@ -35,13 +47,10 @@ const DashboardStats = ({ stats }) => {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {statCards.map((card, index) => (
-        <motion.div
+    <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" staggerDelay={0.1}>
+      {statCards.map((card) => (
+        <div
           key={card.title}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 * index }}
           className="glass-frosted p-6"
         >
           <div className="flex items-center justify-between">
@@ -53,9 +62,9 @@ const DashboardStats = ({ stats }) => {
               <card.icon className={`w-6 h-6 ${card.iconColor}`} />
             </div>
           </div>
-        </motion.div>
+        </div>
       ))}
-    </div>
+    </StaggerContainer>
   );
 };
 

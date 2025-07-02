@@ -1,20 +1,96 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
-  Home,
-  Folder,
-  Settings,
-  TrendingUp,
-  Play,
-  Scissors,
-  Download,
+  TrendingUp as TrendingUpIcon,
+  Sparkles as SparklesIcon,
+  Brain as BrainIcon,
+  X as XIcon,
+  Video as VideoIcon,
+  Settings as SettingsIcon,
+  Loader as LoaderIcon,
+  Zap as ZapIcon,
+  Activity as ActivityIcon,
+  CheckCircle as CheckCircleIcon,
+  Play as PlayIcon,
+  Eye as EyeIcon,
+  AlertTriangle as AlertTriangleIcon,
+  XCircle as XCircleIcon,
+  RefreshCw as RefreshCwIcon,
+  Clock as ClockIcon,
+  Check as CheckIcon,
+  AlertCircle as AlertCircleIcon,
+  Link as LinkIcon,
+  Trash as TrashIcon,
+  Plus as PlusIcon,
+  Search as SearchIcon,
+  Grid3X3 as Grid3X3Icon,
+  List as ListIcon,
+  ArrowRight as ArrowRightIcon,
+  ChevronRight as ChevronRightIcon,
+  Upload as UploadIcon,
+  Download as DownloadIcon,
+  Share as ShareIcon,
+  FileText as FileTextIcon,
+  MoreVertical as MoreVerticalIcon,
+  Edit as EditIcon,
+  User as UserIcon,
+  Bell as BellIcon,
+  HelpCircle as HelpCircleIcon,
+  Menu as MenuIcon,
+  Folder as FolderIcon,
+  Film as FilmIcon,
+  Target as TargetIcon,
+  Palette as PaletteIcon,
+  VolumeX as VolumeXIcon,
+  Volume2 as Volume2Icon,
+  SkipBack as SkipBackIcon,
+  SkipForward as SkipForwardIcon,
+  Pause as PauseIcon,
+  Maximize as MaximizeIcon,
+  Scissors as ScissorsIcon,
+  Layers as LayersIcon,
+  TrendingDown as TrendingDownIcon,
+  Star as StarIcon,
+  Mail as MailIcon,
+  Send as SendIcon,
+  Users as UsersIcon,
+  MessageSquare as MessageSquareIcon,
+  Home as HomeIcon,
+  Youtube as YoutubeIcon,
+  BarChart2 as BarChart2Icon,
+  Key as KeyIcon,
+  Shield as ShieldIcon,
+  ArrowLeft as ArrowLeftIcon,
+  Terminal as TerminalIcon,
+  Code as CodeIcon,
+  Copy as CopyIcon,
+  Loader2 as Loader2Icon,
+  RotateCcw,
+  ChevronDown as ChevronDownIcon,
+  Brain,
+  Eye,
   Zap,
-  Clock,
-  Star,
-  ChevronRight,
-  Plus,
+  CheckCircle,
+  XCircle,
+  Mail,
+  Send,
+  Upload,
+  PlayCircle as PlayCircleIcon
 } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import {
+  HomeIcon as Home,
+  FolderIcon as Folder,
+  SettingsIcon as Settings,
+  TrendingUpIcon as TrendingUp,
+  PlayIcon as Play,
+  ScissorsIcon as Scissors,
+  DownloadIcon as Download,
+  ZapIcon as Zap,
+  ChevronRightIcon as ChevronRight,
+  PlusIcon
+} from "./icons";
 import useProjectStore from '../../stores/projectStore';
+import ReactDOM from 'react-dom';
 
 const Win98Menu = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -22,7 +98,7 @@ const Win98Menu = () => {
   const menuRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
-  const { projects, getRecentProjects } = useProjectStore();
+  const { getRecentProjects } = useProjectStore();
 
   const recentProjects = getRecentProjects ? getRecentProjects(5) : [];
 
@@ -53,7 +129,7 @@ const Win98Menu = () => {
       path: '/projects',
       submenu: [
         { label: 'All Projects', path: '/projects', icon: Folder },
-        { label: 'New Project', path: '/projects?create=true', icon: Plus },
+        { label: 'New Project', path: '/projects?create=true', icon: PlusIcon },
         ...(recentProjects.length > 0
           ? [
               { separator: true },
@@ -148,17 +224,19 @@ const Win98Menu = () => {
           onClick={() => handleMenuClick(item)}
           onMouseEnter={() => hasSubmenu && setActiveSubmenu(item.label)}
         >
-          {Icon && <Icon className="w-4 h-4" />}
+          {Icon && <Icon size={16} className="w-4 h-4" />}
           <span>{item.label}</span>
-          {hasSubmenu && <ChevronRight className="w-3 h-3 ml-auto" />}
+          {hasSubmenu && <ChevronRightIcon size={12} className="w-3 h-3 ml-auto" />}
         </button>
 
         {/* Submenu */}
-        {hasSubmenu && activeSubmenu === item.label && (
-          <div className="win98-submenu">
-            {item.submenu.map((subItem, subIndex) => renderMenuItem(subItem, subIndex))}
-          </div>
-        )}
+        {hasSubmenu && activeSubmenu === item.label &&
+          ReactDOM.createPortal(
+            <div className="win98-submenu">
+              {item.submenu.map((subItem, subIndex) => renderMenuItem(subItem, subIndex))}
+            </div>,
+            document.body
+          )}
       </div>
     );
   };
@@ -172,11 +250,13 @@ const Win98Menu = () => {
         <span className="win98-logo-name">OpenClip</span>
       </button>
 
-      {isOpen && (
-        <div className="win98-menu-dropdown">
-          {mainMenuItems.map((item, index) => renderMenuItem(item, index))}
-        </div>
-      )}
+      {isOpen &&
+        ReactDOM.createPortal(
+          <div className="win98-menu-dropdown">
+            {mainMenuItems.map((item, index) => renderMenuItem(item, index))}
+          </div>,
+          document.body
+        )}
     </div>
   );
 };

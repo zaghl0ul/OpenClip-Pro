@@ -88,7 +88,7 @@ const useProjectStore = create(
             const response = await apiClient.createProject(projectInfo);
             project = response.project || response;
 
-            const uploadResult = await apiClient.uploadVideo(
+            await apiClient.uploadVideo(
               project.id,
               projectData.file,
               (progress) => {

@@ -1,7 +1,96 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import {
+  TrendingUp as TrendingUpIcon,
+  Sparkles as SparklesIcon,
+  Brain as BrainIcon,
+  X as XIcon,
+  Video as VideoIcon,
+  Settings as SettingsIcon,
+  Loader as LoaderIcon,
+  Zap as ZapIcon,
+  Activity as ActivityIcon,
+  CheckCircle as CheckCircleIcon,
+  Play as PlayIcon,
+  Eye as EyeIcon,
+  AlertTriangle as AlertTriangleIcon,
+  XCircle as XCircleIcon,
+  RefreshCw as RefreshCwIcon,
+  Clock as ClockIcon,
+  Check as CheckIcon,
+  AlertCircle as AlertCircleIcon,
+  Link as LinkIcon,
+  Trash as TrashIcon,
+  Plus as PlusIcon,
+  Search as SearchIcon,
+  Grid3X3 as Grid3X3Icon,
+  List as ListIcon,
+  ArrowRight as ArrowRightIcon,
+  ChevronRight as ChevronRightIcon,
+  Upload as UploadIcon,
+  Download as DownloadIcon,
+  Share as ShareIcon,
+  FileText as FileTextIcon,
+  MoreVertical as MoreVerticalIcon,
+  Edit as EditIcon,
+  User as UserIcon,
+  Bell as BellIcon,
+  HelpCircle as HelpCircleIcon,
+  Menu as MenuIcon,
+  Folder as FolderIcon,
+  Film as FilmIcon,
+  Target as TargetIcon,
+  Palette as PaletteIcon,
+  VolumeX as VolumeXIcon,
+  Volume2 as Volume2Icon,
+  SkipBack as SkipBackIcon,
+  SkipForward as SkipForwardIcon,
+  Pause as PauseIcon,
+  Maximize as MaximizeIcon,
+  Scissors as ScissorsIcon,
+  Layers as LayersIcon,
+  TrendingDown as TrendingDownIcon,
+  Star as StarIcon,
+  Mail as MailIcon,
+  Send as SendIcon,
+  Users as UsersIcon,
+  MessageSquare as MessageSquareIcon,
+  Home as HomeIcon,
+  Youtube as YoutubeIcon,
+  BarChart2 as BarChart2Icon,
+  Key as KeyIcon,
+  Shield as ShieldIcon,
+  ArrowLeft as ArrowLeftIcon,
+  Terminal as TerminalIcon,
+  Code as CodeIcon,
+  Copy as CopyIcon,
+  Loader2 as Loader2Icon,
+  RotateCcw,
+  ChevronDown as ChevronDownIcon,
+  Brain,
+  Eye,
+  Zap,
+  CheckCircle,
+  XCircle,
+  Mail,
+  Send,
+  Upload,
+  PlayCircle as PlayCircleIcon
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { X, Star, Mail, User, Send, CheckCircle } from 'lucide-react';
+import { 
+  TrendingUpIcon, SparklesIcon, BrainIcon, XIcon, VideoIcon, SettingsIcon, 
+  LoaderIcon, ZapIcon, ActivityIcon, CheckCircleIcon, PlayIcon, EyeIcon,
+  AlertTriangleIcon, XCircleIcon, RefreshCwIcon, ClockIcon, CheckIcon,
+  AlertCircleIcon, LinkIcon, TrashIcon, PlusIcon, SearchIcon, Grid3X3Icon,
+  ListIcon, ArrowRightIcon, ChevronRightIcon, UploadIcon, DownloadIcon,
+  ShareIcon, FileTextIcon, MoreVerticalIcon, EditIcon, UserIcon, BellIcon,
+  HelpCircleIcon, MenuIcon, FolderIcon, FilmIcon, TargetIcon, PaletteIcon,
+  VolumeXIcon, Volume2Icon, SkipBackIcon, SkipForwardIcon, PauseIcon,
+  MaximizeIcon, ScissorsIcon, LayersIcon, TrendingDownIcon, StarIcon,
+  MailIcon, SendIcon, UsersIcon, MessageSquareIcon, HomeIcon, YoutubeIcon,
+  BarChart2Icon, KeyIcon, ShieldIcon, ArrowLeftIcon
+} from '../Common/icons';
+
 
 const BetaSignupModal = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
@@ -73,25 +162,14 @@ const BetaSignupModal = ({ isOpen, onClose }) => {
 
   if (isSuccess) {
     return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-      >
-        <motion.div
-          initial={{ scale: 0.9 }}
-          animate={{ scale: 1 }}
-          className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-8 w-full max-w-md border border-green-500/20"
-        >
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-8 w-full max-w-md border border-green-500/20">
           <div className="text-center">
-            <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-4" />
+            <CheckCircleIcon size={64} className="w-16 h-16 text-green-400 mx-auto mb-4" />
             <h3 className="text-2xl font-bold text-white mb-2">Welcome to Beta!</h3>
             <p className="text-gray-300 mb-6">🎉 Welcome to the beta! You now have access to upload videos and run real AI analysis.</p>
             <button
               onClick={async () => {
-                console.log('🚀 Beta user accessing dashboard...');
-                console.log('📝 Beta user data:', localStorage.getItem('openclip_beta_user'));
-                
                 onClose();
                 
                 // Small delay to ensure localStorage is set and modal closes
@@ -105,32 +183,24 @@ const BetaSignupModal = ({ isOpen, onClose }) => {
               Start Creating! 🚀
             </button>
           </div>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     );
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-    >
-      <motion.div
-        initial={{ scale: 0.9 }}
-        animate={{ scale: 1 }}
-        className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl w-full max-w-lg border border-primary/20"
-      >
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl w-full max-w-lg border border-primary/20">
         <div className="flex items-center justify-between p-6 border-b border-gray-700">
           <div className="flex items-center gap-3">
-            <Star className="w-8 h-8 text-primary" />
+            <StarIcon size={32} className="w-8 h-8 text-primary" />
             <div>
               <h2 className="text-xl font-bold text-white">Join Beta</h2>
               <p className="text-gray-400 text-sm">Early access to AI video clipping</p>
             </div>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-white">
-            <X className="w-5 h-5" />
+            <XIcon size={20} className="w-5 h-5" />
           </button>
         </div>
 
@@ -138,7 +208,7 @@ const BetaSignupModal = ({ isOpen, onClose }) => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                <User className="w-4 h-4 inline mr-1" />Name *
+                <UserIcon size={16} className="w-4 h-4 inline mr-1" />Name *
               </label>
               <input
                 type="text"
@@ -154,7 +224,7 @@ const BetaSignupModal = ({ isOpen, onClose }) => {
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                <Mail className="w-4 h-4 inline mr-1" />Email *
+                <Mail size={16} className="w-4 h-4 inline mr-1" />Email *
               </label>
               <input
                 type="email"
@@ -206,18 +276,18 @@ const BetaSignupModal = ({ isOpen, onClose }) => {
               className="flex-1 bg-gradient-to-r from-primary to-accent text-white px-6 py-3 rounded-lg font-medium disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <div size={16} className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : (
                 <>
-                  <Send className="w-4 h-4" />
+                  <Send size={16} className="w-4 h-4" />
                   Join Beta
                 </>
               )}
             </button>
           </div>
         </form>
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 };
 

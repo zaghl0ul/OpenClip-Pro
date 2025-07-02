@@ -1,6 +1,18 @@
 import React, { useState } from 'react';
 import LogoDisplay from './LogoDisplay';
-import { Palette, Settings, Zap, Sparkles } from 'lucide-react';
+import { 
+  TrendingUpIcon, SparklesIcon, BrainIcon, XIcon, VideoIcon, SettingsIcon, 
+  LoaderIcon, ZapIcon, ActivityIcon, CheckCircleIcon, PlayIcon, EyeIcon,
+  AlertTriangleIcon, XCircleIcon, RefreshCwIcon, ClockIcon, CheckIcon,
+  AlertCircleIcon, LinkIcon, TrashIcon, PlusIcon, SearchIcon, Grid3X3Icon,
+  ListIcon, ArrowRightIcon, ChevronRightIcon, UploadIcon, DownloadIcon,
+  ShareIcon, FileTextIcon, MoreVerticalIcon, EditIcon, UserIcon, BellIcon,
+  HelpCircleIcon, MenuIcon, FolderIcon, FilmIcon, TargetIcon, PaletteIcon,
+  VolumeXIcon, Volume2Icon, SkipBackIcon, SkipForwardIcon, PauseIcon,
+  MaximizeIcon, ScissorsIcon, LayersIcon, TrendingDownIcon, StarIcon,
+  MailIcon, SendIcon, UsersIcon, MessageSquareIcon, HomeIcon, YoutubeIcon,
+  BarChart2Icon, KeyIcon, ShieldIcon, ArrowLeftIcon
+} from '../Common/icons';
 
 const LogoDisplayDemo = () => {
   const [config, setConfig] = useState({
@@ -69,7 +81,7 @@ const LogoDisplayDemo = () => {
               {/* Size Controls */}
               <div className="mt-6 space-y-4">
                 <h3 className="text-lg font-semibold flex items-center">
-                  <Settings className="w-5 h-5 mr-2" />
+                  <SettingsIcon size={20} className="w-5 h-5 mr-2" />
                   Size Controls
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
@@ -109,7 +121,7 @@ const LogoDisplayDemo = () => {
             {/* Color Presets */}
             <div className="glass-card p-6 rounded-2xl">
               <h3 className="text-lg font-semibold mb-4 flex items-center">
-                <Palette className="w-5 h-5 mr-2" />
+                <PaletteIcon size={20} className="w-5 h-5 mr-2" />
                 Color Presets
               </h3>
               <div className="grid grid-cols-1 gap-2">
@@ -125,7 +137,7 @@ const LogoDisplayDemo = () => {
                         {Object.values(preset.colors).map((color, i) => (
                           <div
                             key={i}
-                            className="w-3 h-3 rounded-full border border-white/20"
+                            size={12} className="w-3 h-3 rounded-full border border-white/20"
                             style={{ backgroundColor: color }}
                           />
                         ))}
@@ -182,7 +194,7 @@ const LogoDisplayDemo = () => {
             {/* Animation Controls */}
             <div className="glass-card p-6 rounded-2xl">
               <h3 className="text-lg font-semibold mb-4 flex items-center">
-                <Zap className="w-5 h-5 mr-2" />
+                <ZapIcon size={20} className="w-5 h-5 mr-2" />
                 Animation Controls
               </h3>
               <div className="space-y-4">
@@ -238,7 +250,7 @@ const LogoDisplayDemo = () => {
             {/* Code Export */}
             <div className="glass-card p-6 rounded-2xl">
               <h3 className="text-lg font-semibold mb-4 flex items-center">
-                <Sparkles className="w-5 h-5 mr-2" />
+                <SparklesIcon size={20} className="w-5 h-5 mr-2" />
                 Export Code
               </h3>
               <div className="bg-black/50 p-4 rounded-lg font-mono text-sm overflow-x-auto">

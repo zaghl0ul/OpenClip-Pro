@@ -3,6 +3,19 @@ import { useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import { getCurrentTheme } from '../../config/themes';
+import { 
+  TrendingUpIcon, SparklesIcon, BrainIcon, XIcon, VideoIcon, SettingsIcon, 
+  LoaderIcon, ZapIcon, ActivityIcon, CheckCircleIcon, PlayIcon, EyeIcon,
+  AlertTriangleIcon, XCircleIcon, RefreshCwIcon, ClockIcon, CheckIcon,
+  AlertCircleIcon, LinkIcon, TrashIcon, PlusIcon, SearchIcon, Grid3X3Icon,
+  ListIcon, ArrowRightIcon, ChevronRightIcon, UploadIcon, DownloadIcon,
+  ShareIcon, FileTextIcon, MoreVerticalIcon, EditIcon, UserIcon, BellIcon,
+  HelpCircleIcon, MenuIcon, FolderIcon, FilmIcon, TargetIcon, PaletteIcon,
+  VolumeXIcon, Volume2Icon, SkipBackIcon, SkipForwardIcon, PauseIcon,
+  MaximizeIcon, ScissorsIcon, LayersIcon, TrendingDownIcon, StarIcon,
+  MailIcon, SendIcon, UsersIcon, MessageSquareIcon, HomeIcon, YoutubeIcon,
+  BarChart2Icon, KeyIcon, ShieldIcon, ArrowLeftIcon
+} from '../Common/icons';
 
 const Layout = ({ children }) => {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
@@ -20,6 +33,7 @@ const Layout = ({ children }) => {
       if (window.innerWidth < 1024) {
         setSidebarOpen(false);
       } else {
+        // Always show sidebar on desktop
         setSidebarOpen(true);
       }
     };
@@ -30,8 +44,20 @@ const Layout = ({ children }) => {
     // Add event listener
     window.addEventListener('resize', handleResize);
 
+    // Add keyboard shortcut for sidebar toggle (Ctrl+B or Cmd+B)
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+        e.preventDefault();
+        setSidebarOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
     // Clean up
-    return () => window.removeEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, [location]);
 
   // Create a subtle background pattern
@@ -50,7 +76,7 @@ const Layout = ({ children }) => {
 
       {/* Sidebar container (hidden in retro theme) */}
       {!isRetroTheme && (
-        <div className="fixed top-0 left-0 h-full z-50">
+        <div className="fixed top-16 left-0 bottom-0 z-[60]">
           <Sidebar isOpen={isSidebarOpen} setOpen={setSidebarOpen} />
         </div>
       )}
@@ -61,7 +87,7 @@ const Layout = ({ children }) => {
           !isRetroTheme && isSidebarOpen ? 'lg:ml-64 ml-0' : !isRetroTheme ? 'ml-20' : 'ml-0'
         }`}
       >
-        <Header onMenuClick={toggleSidebar} />
+        <Header onToggleSidebar={toggleSidebar} sidebarOpen={isSidebarOpen} />
 
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 mt-16">
           <div className="max-w-7xl mx-auto">{children}</div>

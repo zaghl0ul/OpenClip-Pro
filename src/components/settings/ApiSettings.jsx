@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckIcon, RefreshCwIcon, EyeIcon, EyeOffIcon, Play } from 'lucide-react';
+import { Check as CheckIcon, RefreshCw as RefreshCwIcon, Eye as EyeIcon, EyeOff as EyeOffIcon, Play } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { useSettingsStore } from '../../stores/settingsStore';

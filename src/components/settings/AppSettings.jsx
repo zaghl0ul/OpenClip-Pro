@@ -1,7 +1,19 @@
 import React, { useState } from 'react';
 import { useSettingsStore } from '../../stores/settingsStore';
 import ThemeSelector from '../Common/ThemeSelector';
-import { Moon, Sun, Monitor, Palette, Eye } from 'lucide-react';
+import { 
+  TrendingUpIcon, SparklesIcon, BrainIcon, XIcon, VideoIcon, SettingsIcon, 
+  LoaderIcon, ZapIcon, ActivityIcon, CheckCircleIcon, PlayIcon, EyeIcon,
+  AlertTriangleIcon, XCircleIcon, RefreshCwIcon, ClockIcon, CheckIcon,
+  AlertCircleIcon, LinkIcon, TrashIcon, PlusIcon, SearchIcon, Grid3X3Icon,
+  ListIcon, ArrowRightIcon, ChevronRightIcon, UploadIcon, DownloadIcon,
+  ShareIcon, FileTextIcon, MoreVerticalIcon, EditIcon, UserIcon, BellIcon,
+  HelpCircleIcon, MenuIcon, FolderIcon, FilmIcon, TargetIcon, PaletteIcon,
+  VolumeXIcon, Volume2Icon, SkipBackIcon, SkipForwardIcon, PauseIcon,
+  MaximizeIcon, ScissorsIcon, LayersIcon, TrendingDownIcon, StarIcon,
+  MailIcon, SendIcon, UsersIcon, MessageSquareIcon, HomeIcon, YoutubeIcon,
+  BarChart2Icon, KeyIcon, ShieldIcon, ArrowLeftIcon
+} from '../Common/icons';
 
 const AppSettings = () => {
   const {
@@ -12,7 +24,6 @@ const AppSettings = () => {
     export: exportSettings,
     updateExportSetting,
   } = useSettingsStore();
-  const [showGlassDemo, setShowGlassDemo] = useState(false);
 
   return (
     <div className="space-y-6">
@@ -26,7 +37,7 @@ const AppSettings = () => {
         <div className="flex items-center justify-between">
           <div>
             <h4 className="font-medium flex items-center gap-2">
-              <Palette className="w-4 h-4 text-primary" />
+              <PaletteIcon size={16} className="w-4 h-4 text-primary" />
               Glass Effects Showcase
             </h4>
             <p className="text-sm text-subtle mt-1">Explore all available glass effect styles</p>
@@ -39,7 +50,7 @@ const AppSettings = () => {
             }}
             className="btn btn-primary flex items-center gap-2"
           >
-            <Eye className="w-4 h-4" />
+            <EyeIcon size={16} className="w-4 h-4" />
             Show Demo
           </button>
         </div>

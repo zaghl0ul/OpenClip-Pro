@@ -1,6 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { Clock, FileText, Video, Upload, Edit3, Share2, Sparkles, Download } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
 import apiClient from '../../utils/apiClient';
+import { 
+  TrendingUpIcon, SparklesIcon, BrainIcon, XIcon, VideoIcon, SettingsIcon, 
+  LoaderIcon, ZapIcon, ActivityIcon, CheckCircleIcon, PlayIcon, EyeIcon,
+  AlertTriangleIcon, XCircleIcon, RefreshCwIcon, ClockIcon, CheckIcon,
+  AlertCircleIcon, LinkIcon, TrashIcon, PlusIcon, SearchIcon, Grid3X3Icon,
+  ListIcon, ArrowRightIcon, ChevronRightIcon, UploadIcon, DownloadIcon,
+  ShareIcon, FileTextIcon, MoreVerticalIcon, EditIcon, UserIcon, BellIcon,
+  HelpCircleIcon, MenuIcon, FolderIcon, FilmIcon, TargetIcon, PaletteIcon,
+  VolumeXIcon, Volume2Icon, SkipBackIcon, SkipForwardIcon, PauseIcon,
+  MaximizeIcon, ScissorsIcon, LayersIcon, TrendingDownIcon, StarIcon,
+  MailIcon, SendIcon, UsersIcon, MessageSquareIcon, HomeIcon, YoutubeIcon,
+  BarChart2Icon, KeyIcon, ShieldIcon, ArrowLeftIcon
+} from '../Common/icons';
 
 const getActivityIcon = (type) => {
   switch (type) {
@@ -43,11 +55,7 @@ const RecentActivity = ({ limit = 10 }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    loadRecentActivity();
-  }, [limit]);
-
-  const loadRecentActivity = async () => {
+  const loadRecentActivity = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -123,7 +131,11 @@ const RecentActivity = ({ limit = 10 }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [limit]);
+
+  useEffect(() => {
+    loadRecentActivity();
+  }, [limit, loadRecentActivity]);
 
   if (isLoading) {
     return (
@@ -132,7 +144,7 @@ const RecentActivity = ({ limit = 10 }) => {
         <div className="space-y-3">
           {[...Array(3)].map((_, i) => (
             <div key={i} className="flex items-center space-x-3 animate-pulse">
-              <div className="w-8 h-8 bg-gray-600 rounded-lg"></div>
+              <div size={32} className="w-8 h-8 bg-gray-600 rounded-lg"></div>
               <div className="flex-1">
                 <div className="h-4 bg-gray-600 rounded w-3/4 mb-1"></div>
                 <div className="h-3 bg-gray-700 rounded w-1/2"></div>
@@ -173,7 +185,7 @@ const RecentActivity = ({ limit = 10 }) => {
 
       {activities.length === 0 ? (
         <div className="text-center py-8">
-          <Clock className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+          <ClockIcon size={48} className="w-12 h-12 text-gray-600 mx-auto mb-3" />
           <p className="text-gray-400 mb-2">No recent activity</p>
           <p className="text-gray-500 text-sm">
             Start by creating a new project to see activity here
@@ -212,7 +224,7 @@ const RecentActivity = ({ limit = 10 }) => {
                   }
                 `}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon size={16} className="w-4 h-4" />
                 </div>
 
                 <div className="flex-1 min-w-0">

@@ -1,0 +1,547 @@
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useMemo,
+  useCallback,
+  forwardRef,
+  useImperativeHandle,
+} from 'react';
+import ReactPlayer from 'react-player/lazy';
+import {
+  PlayIcon,
+  PauseIcon,
+  Volume2Icon,
+  VolumeXIcon,
+  MaximizeIcon,
+  SkipForwardIcon,
+  SkipBackIcon,
+  AlertOctagonIcon,
+  AlertCircleIcon,
+  MinimizeIcon,
+} from '../components/Common/icons';
+
+const VideoPlayer = React.memo(forwardRef(
+  (
+    {
+      videoUrl,
+      projectId,
+      showControls = true,
+      autoPlay = false,
+      onProgress,
+      onDuration,
+      className = '',
+      title,
+    },
+    ref
+  ) => {
+    const [playing, setPlaying] = useState(autoPlay);
+    const [volume, setVolume] = useState(0.7);
+    const [muted, setMuted] = useState(false);
+    const [currentTime, setCurrentTime] = useState(0);
+    const [duration, setDuration] = useState(0);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [actualVideoUrl, setActualVideoUrl] = useState(null);
+    const [thumbnailUrl, setThumbnailUrl] = useState(null);
+    const playerRef = useRef(null);
+    const containerRef = useRef(null);
+    const videoRef = useRef(null);
+
+    // Memoize the functions used in useImperativeHandle to prevent infinite loops
+    const seekTo = useCallback((seconds) => {
+      // Validate the seconds parameter to prevent HTMLMediaElement errors
+      if (
+        playerRef.current &&
+        typeof seconds === 'number' &&
+        !isNaN(seconds) &&
+        isFinite(seconds) &&
+        seconds >= 0
+      ) {
+        playerRef.current.seekTo(seconds);
+      } else {
+        console.warn('Invalid seek time:', seconds);
+      }
+    }, []);
+
+    const getCurrentTime = useCallback(() => currentTime, [currentTime]);
+
+    const getDuration = useCallback(() => duration, [duration]);
+
+    const play = useCallback(() => setPlaying(true), []);
+
+    const pause = useCallback(() => setPlaying(false), []);
+
+    // Expose methods to parent components with memoized functions
+    useImperativeHandle(
+      ref,
+      () => ({
+        seekTo,
+        getCurrentTime,
+        getDuration,
+        play,
+        pause,
+      }),
+      [seekTo, getCurrentTime, getDuration, play, pause]
+    );
+
+    // Fetch video URL and thumbnail from backend when using projectId (memoized to prevent excessive calls)
+    useEffect(() => {
+      let isMounted = true;
+
+      const fetchVideoData = async () => {
+        if (!projectId || videoUrl?.startsWith('blob:') || videoUrl?.startsWith('http')) {
+          if (isMounted) setActualVideoUrl(videoUrl);
+          return;
+        }
+
+        try {
+          // First get project data (includes thumbnail)
+          const projectResponse = await fetch(`http://localhost:8000/api/projects/${projectId}`);
+          if (!isMounted) return;
+
+          if (!projectResponse.ok) {
+            throw new Error(`Project not found: ${projectResponse.status}`);
+          }
+
+          const projectData = await projectResponse.json();
+          
+          if (isMounted) {
+            // Check for thumbnail in different possible locations
+            const thumbnail =
+              projectData.project?.thumbnail_url || projectData.project?.video_data?.thumbnail_url;
+
+            if (thumbnail) {
+              setThumbnailUrl(`http://localhost:8000${thumbnail}`);
+            }
+
+            // Check if project has video data before trying to fetch stream
+            const hasVideoData = projectData.project?.video_data && 
+                                Object.keys(projectData.project.video_data).length > 0 &&
+                                projectData.project.status !== 'created';
+
+            if (!hasVideoData) {
+              // Project doesn't have video content yet
+              setError(null); // Clear any previous errors
+              setLoading(false);
+              return;
+            }
+          }
+
+          // Only try to get video stream URL if project has video data
+          const streamResponse = await fetch(
+            `http://localhost:8000/api/projects/${projectId}/stream`
+          );
+          if (!isMounted) return;
+
+          if (!streamResponse.ok) {
+            if (streamResponse.status === 404) {
+              // Video file not found - this is expected for new projects
+              setError(null);
+              setLoading(false);
+              return;
+            }
+            throw new Error(`Stream not available: ${streamResponse.status}`);
+          }
+
+          const streamData = await streamResponse.json();
+
+          if (isMounted) {
+            if (streamData.video_url) {
+              // Check if URL already has base URL
+              const videoUrl = streamData.video_url.startsWith('http')
+                ? streamData.video_url
+                : `http://localhost:8000${streamData.video_url}`;
+              setActualVideoUrl(videoUrl);
+              setLoading(false);
+            } else {
+              setError('No video URL available');
+              setLoading(false);
+            }
+          }
+        } catch (err) {
+          if (isMounted) {
+            setError(null); // Don't show error for expected missing video
+            setLoading(false);
+          }
+        }
+      };
+
+      fetchVideoData();
+
+      return () => {
+        isMounted = false;
+      };
+    }, [projectId, videoUrl]); // Keep videoUrl in dependencies but handle it properly in the effect
+
+    // Memoized video source to prevent excessive re-calculations
+    const videoSource = useMemo(() => {
+      if (videoUrl?.startsWith('blob:') || videoUrl?.startsWith('http')) {
+        return videoUrl;
+      }
+
+      if (actualVideoUrl) {
+        return actualVideoUrl;
+      }
+
+      return null;
+    }, [videoUrl, actualVideoUrl]);
+
+    const handleProgress = useCallback(
+      (state) => {
+        setCurrentTime(state.playedSeconds);
+        if (onProgress) onProgress(state);
+      },
+      [onProgress]
+    );
+
+    const handleDuration = useCallback(
+      (duration) => {
+        setDuration(duration);
+        if (onDuration) onDuration(duration);
+      },
+      [onDuration]
+    );
+
+    const formatTime = useCallback((seconds) => {
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }, []);
+
+    const handleFullscreen = useCallback(() => {
+      if (containerRef.current) {
+        if (document.fullscreenElement) {
+          document.exitFullscreen();
+        } else {
+          containerRef.current.requestFullscreen();
+        }
+      }
+    }, []);
+
+    const handleSeek = useCallback(
+      (e) => {
+        const progressBar = e.currentTarget;
+        const bounds = progressBar.getBoundingClientRect();
+        const x = e.clientX - bounds.left;
+        const percent = x / bounds.width;
+        const seekTo = percent * duration;
+
+        if (playerRef.current) {
+          playerRef.current.seekTo(seekTo);
+        }
+      },
+      [duration]
+    );
+
+    const handleSkipForward = useCallback(() => {
+      const newTime = Math.min(currentTime + 10, duration);
+      if (playerRef.current) {
+        playerRef.current.seekTo(newTime);
+      }
+    }, [currentTime, duration]);
+
+    const handleSkipBackward = useCallback(() => {
+      const newTime = Math.max(currentTime - 10, 0);
+      if (playerRef.current) {
+        playerRef.current.seekTo(newTime);
+      }
+    }, [currentTime]);
+
+    // Update playing state when autoPlay prop changes
+    useEffect(() => {
+      setPlaying(autoPlay);
+    }, [autoPlay]);
+
+    // Memoize the keyboard event handler to prevent re-creating it on every render
+    const handleKeyPress = useCallback(
+      (e) => {
+        // Only handle events when this player is focused or no specific element is focused
+        if (
+          !containerRef.current?.contains(document.activeElement) &&
+          document.activeElement !== document.body
+        ) {
+          return;
+        }
+
+        switch (e.code) {
+          case 'Space':
+            setPlaying((prev) => !prev);
+            e.preventDefault();
+            break;
+          case 'ArrowRight':
+            if (playerRef.current) {
+              const newTime = Math.min(currentTime + 10, duration);
+              playerRef.current.seekTo(newTime);
+            }
+            e.preventDefault();
+            break;
+          case 'ArrowLeft':
+            if (playerRef.current) {
+              const newTime = Math.max(currentTime - 10, 0);
+              playerRef.current.seekTo(newTime);
+            }
+            e.preventDefault();
+            break;
+          case 'KeyM':
+            setMuted((prev) => !prev);
+            e.preventDefault();
+            break;
+          case 'KeyF':
+            if (containerRef.current) {
+              if (document.fullscreenElement) {
+                document.exitFullscreen();
+              } else {
+                containerRef.current.requestFullscreen();
+              }
+            }
+            e.preventDefault();
+            break;
+          default:
+            break;
+        }
+      },
+      [currentTime, duration]
+    );
+
+    // Set up keyboard event listeners
+    useEffect(() => {
+      window.addEventListener('keydown', handleKeyPress);
+      return () => {
+        window.removeEventListener('keydown', handleKeyPress);
+      };
+    }, [handleKeyPress]);
+
+    const handleLoadedMetadata = useCallback(() => {
+      setLoading(false);
+    }, []);
+
+    const handleTimeUpdate = useCallback(() => {
+      if (videoRef.current) {
+        setCurrentTime(videoRef.current.currentTime);
+      }
+    }, []);
+
+    const handleEnded = useCallback(() => {
+      setPlaying(false);
+    }, []);
+
+    const handlePlay = useCallback(() => {
+      setPlaying(true);
+    }, []);
+
+    const handlePause = useCallback(() => {
+      setPlaying(false);
+    }, []);
+
+    const handleSeeked = useCallback(() => {
+      // Video seek operation completed
+    }, []);
+
+    const handleError = useCallback((e) => {
+      console.error('Video error:', e);
+      setError('Failed to load video. Please check your connection or try another video file.');
+      setLoading(false);
+    }, []);
+
+    const handleRetry = useCallback(() => {
+      setError(null);
+      setLoading(true);
+      if (videoRef.current) {
+        videoRef.current.load();
+      }
+    }, []);
+
+    const handlePlayPause = useCallback(() => {
+      if (videoRef.current) {
+        if (playing) {
+          videoRef.current.pause();
+        } else {
+          videoRef.current.play();
+        }
+      }
+    }, [playing]);
+
+    const handleMute = useCallback(() => {
+      if (videoRef.current) {
+        videoRef.current.muted = !muted;
+        setMuted(!muted);
+      }
+    }, [muted]);
+
+    const isPlaying = playing;
+    const isLoading = loading;
+    const isFullscreen = document.fullscreenElement;
+    const isMuted = muted;
+
+    return (
+      <div className="relative w-full h-full group" ref={containerRef}>
+        {/* Enhanced Video Container */}
+        <div className="relative w-full h-full rounded-xl overflow-hidden glass-shine">
+          <video
+            ref={videoRef}
+            className="w-full h-full object-cover"
+            src={videoSource}
+            onLoadedMetadata={handleLoadedMetadata}
+            onTimeUpdate={handleTimeUpdate}
+            onEnded={handleEnded}
+            onPlay={handlePlay}
+            onPause={handlePause}
+            onSeeked={handleSeeked}
+            onError={handleError}
+            preload="metadata"
+            aria-label={`Video player for ${title || 'video'}`}
+          >
+            Your browser does not support the video tag.
+          </video>
+
+          {/* Enhanced Loading Overlay */}
+          {isLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+              <div className="text-center">
+                <div size={48} className="w-12 h-12 border-4 border-white/20 border-t-white rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-white/80 text-sm">Loading video...</p>
+              </div>
+            </div>
+          )}
+
+          {/* Enhanced Error Overlay */}
+          {error && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+              <div className="text-center p-6">
+                <AlertCircleIcon size={48} className="w-12 h-12 text-red-400 mx-auto mb-4" />
+                <h3 className="text-white font-semibold mb-2">Video Error</h3>
+                <p className="text-white/70 text-sm mb-4">{error}</p>
+                <button
+                  onClick={handleRetry}
+                  className="glass-button px-4 py-2 bg-red-500/20 text-red-300 rounded-lg hover:bg-red-500/30 transition-colors"
+                  aria-label="Retry loading video"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Enhanced Controls Overlay */}
+          <div className={`absolute inset-0 transition-opacity duration-300 ${
+            showControls ? 'opacity-100' : 'opacity-0'
+          }`}>
+            {/* Enhanced Top Controls */}
+            <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/50 to-transparent">
+              <div className="flex items-center justify-between">
+                <h3 className="text-white font-semibold truncate flex-1 mr-4">
+                  {title || 'Video Player'}
+                </h3>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleFullscreen}
+                    className="glass-button p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                    aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+                  >
+                    {isFullscreen ? (
+                      <MinimizeIcon size={20} className="w-5 h-5 text-white" />
+                    ) : (
+                      <MaximizeIcon size={20} className="w-5 h-5 text-white" />
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Enhanced Center Play Button */}
+            {!isPlaying && !isLoading && !error && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <button
+                  onClick={handlePlayPause}
+                  className="glass-button p-6 rounded-full bg-black/50 hover:bg-black/70 transition-all duration-200 group"
+                  aria-label="Play video"
+                >
+                  <PlayIcon size={48} className="w-12 h-12 text-white group-hover:scale-110 transition-transform duration-200" />
+                </button>
+              </div>
+            )}
+
+            {/* Enhanced Bottom Controls */}
+            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent">
+              <div className="space-y-3">
+                {/* Enhanced Progress Bar */}
+                <div className="relative">
+                  <input
+                    type="range"
+                    min="0"
+                    max={duration || 0}
+                    value={currentTime}
+                    onChange={handleSeek}
+                    className="w-full h-2 bg-white/20 rounded-full appearance-none cursor-pointer slider"
+                    style={{
+                      background: `linear-gradient(to right, rgba(59, 130, 246, 0.8) 0%, rgba(59, 130, 246, 0.8) ${(currentTime / (duration || 1)) * 100}%, rgba(255, 255, 255, 0.2) ${(currentTime / (duration || 1)) * 100}%, rgba(255, 255, 255, 0.2) 100%)`
+                    }}
+                    aria-label="Video progress"
+                  />
+                  <div className="absolute top-0 left-0 h-2 bg-indigo-500/80 rounded-full transition-all duration-100"
+                       style={{ width: `${(currentTime / (duration || 1)) * 100}%` }} />
+                </div>
+
+                {/* Enhanced Control Buttons */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={handlePlayPause}
+                      className="glass-button p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                      aria-label={isPlaying ? 'Pause video' : 'Play video'}
+                    >
+                      {isPlaying ? (
+                        <PauseIcon size={20} className="w-5 h-5 text-white" />
+                      ) : (
+                        <PlayIcon size={20} className="w-5 h-5 text-white" />
+                      )}
+                    </button>
+                    
+                    <button
+                      onClick={handleSkipBackward}
+                      className="glass-button p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                      aria-label="Skip backward 10 seconds"
+                    >
+                      <SkipBackIcon size={20} className="w-5 h-5 text-white" />
+                    </button>
+                    
+                    <button
+                      onClick={handleSkipForward}
+                      className="glass-button p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                      aria-label="Skip forward 10 seconds"
+                    >
+                      <SkipForwardIcon size={20} className="w-5 h-5 text-white" />
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div className="text-white/80 text-sm font-mono">
+                      {formatTime(currentTime)} / {formatTime(duration)}
+                    </div>
+                    
+                    <button
+                      onClick={handleMute}
+                      className="glass-button p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                      aria-label={isMuted ? 'Unmute video' : 'Mute video'}
+                    >
+                      {isMuted ? (
+                        <VolumeXIcon size={20} className="w-5 h-5 text-white" />
+                      ) : (
+                        <Volume2Icon size={20} className="w-5 h-5 text-white" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+));
+
+VideoPlayer.displayName = 'VideoPlayer';
+
+export default VideoPlayer;

@@ -1,6 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import Node from './Node';
-import { motion } from 'framer-motion';
 
 // Helper: spiral initial positions (larger radius)
 function getSpiralPositions(count, width, height, radiusStep = 200) {
@@ -36,7 +35,7 @@ const useForceLayout = (nodes, width, height) => {
 
     function step() {
       setPositions((prev) => {
-        const next = prev.map((p, i) => ({ ...p }));
+        const next = prev.map((p, _i) => ({ ...p }));
         // Repulsion
         for (let i = 0; i < next.length; i++) {
           for (let j = 0; j < next.length; j++) {
@@ -90,7 +89,7 @@ const useForceLayout = (nodes, width, height) => {
     }
     animation = requestAnimationFrame(step);
     return () => cancelAnimationFrame(animation);
-  }, [nodes, width, height]);
+  }, [nodes, width, height, nodeRadii]);
 
   return positions;
 };
@@ -98,11 +97,11 @@ const useForceLayout = (nodes, width, height) => {
 const getConnections = (nodes) => {
   // Example: connect actions to all projects, stats to all projects
   const connections = [];
-  nodes.forEach((a, i) => {
+  nodes.forEach((a, _i) => {
     if (a.type === 'action' || a.type === 'stat') {
       nodes.forEach((b, j) => {
         if (b.type === 'project') {
-          connections.push([i, j]);
+          connections.push([_i, j]);
         }
       });
     }
@@ -121,17 +120,13 @@ const NodeCanvas = ({ nodes }) => {
       {/* SVG for animated connections */}
       <svg width={width} height={height} className="absolute left-0 top-0 pointer-events-none z-0">
         {connections.map(([a, b], i) => (
-          <motion.line
+          <div
             key={i}
             x1={positions[a]?.x}
             y1={positions[a]?.y}
             x2={positions[b]?.x}
             y2={positions[b]?.y}
-            stroke="#38bdf8"
-            strokeWidth={2}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.25 }}
-            transition={{ duration: 1, delay: i * 0.03 }}
+            className="stroke-blue-500 stroke-2"
           />
         ))}
       </svg>

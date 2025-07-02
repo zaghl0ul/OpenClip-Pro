@@ -1,5 +1,18 @@
 import React from 'react';
-import { Play } from 'lucide-react';
+import { PlayIcon } from './icons';
+import { 
+  TrendingUpIcon, SparklesIcon, BrainIcon, XIcon, VideoIcon, SettingsIcon, 
+  LoaderIcon, ZapIcon, ActivityIcon, CheckCircleIcon, EyeIcon,
+  AlertTriangleIcon, XCircleIcon, RefreshCwIcon, ClockIcon, CheckIcon,
+  AlertCircleIcon, LinkIcon, TrashIcon, PlusIcon, SearchIcon, Grid3X3Icon,
+  ListIcon, ArrowRightIcon, ChevronRightIcon, UploadIcon, DownloadIcon,
+  ShareIcon, FileTextIcon, MoreVerticalIcon, EditIcon, UserIcon, BellIcon,
+  HelpCircleIcon, MenuIcon, FolderIcon, FilmIcon, TargetIcon, PaletteIcon,
+  VolumeXIcon, Volume2Icon, SkipBackIcon, SkipForwardIcon, PauseIcon,
+  MaximizeIcon, ScissorsIcon, LayersIcon, TrendingDownIcon, StarIcon,
+  MailIcon, SendIcon, UsersIcon, MessageSquareIcon, HomeIcon, YoutubeIcon,
+  BarChart2Icon, KeyIcon, ShieldIcon, ArrowLeftIcon
+} from '../Common/icons';
 
 const LogoDisplay = ({
   width = 800,
@@ -618,30 +631,30 @@ const LogoDisplay = ({
           <svg
             className="absolute inset-0 w-full h-full"
             viewBox={`0 0 ${width} ${height}`}
-            style={{ filter: `drop-shadow(0 0 ${20 * glowIntensity}px ${accentColor}80)` }}
+            style={{ filter: `drop-shadow(0 0 ${20 * glowIntensity}px var(--color-accent, #BBA8DD80))` }}
           >
             <defs>
               <linearGradient id="liquidGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style={{ stopColor: accentColor, stopOpacity: 0.9 }}>
+                <stop offset="0%" style={{ stopColor: 'var(--color-accent, #BBA8DD)', stopOpacity: 0.9 }}>
                   <animate
                     attributeName="stop-color"
-                    values={`${accentColor};${primaryColor};${secondaryColor};${accentColor}`}
+                    values={`var(--color-accent, #BBA8DD);var(--color-primary, #7A7084);var(--color-bg, #2B292E);var(--color-accent, #BBA8DD)`}
                     dur={`${6 / animationSpeed}s`}
                     repeatCount="indefinite"
                   />
                 </stop>
-                <stop offset="50%" style={{ stopColor: primaryColor, stopOpacity: 0.7 }}>
+                <stop offset="50%" style={{ stopColor: 'var(--color-primary, #7A7084)', stopOpacity: 0.7 }}>
                   <animate
                     attributeName="stop-color"
-                    values={`${primaryColor};${secondaryColor};${accentColor};${primaryColor}`}
+                    values={`var(--color-primary, #7A7084);var(--color-bg, #2B292E);var(--color-accent, #BBA8DD);var(--color-primary, #7A7084)`}
                     dur={`${6 / animationSpeed}s`}
                     repeatCount="indefinite"
                   />
                 </stop>
-                <stop offset="100%" style={{ stopColor: secondaryColor, stopOpacity: 0.9 }}>
+                <stop offset="100%" style={{ stopColor: 'var(--color-bg, #2B292E)', stopOpacity: 0.9 }}>
                   <animate
                     attributeName="stop-color"
-                    values={`${secondaryColor};${accentColor};${primaryColor};${secondaryColor}`}
+                    values={`var(--color-bg, #2B292E);var(--color-accent, #BBA8DD);var(--color-primary, #7A7084);var(--color-bg, #2B292E)`}
                     dur={`${6 / animationSpeed}s`}
                     repeatCount="indefinite"
                   />
@@ -701,7 +714,7 @@ const LogoDisplay = ({
             <div
               className="relative group z-10 mb-8"
               style={{
-                filter: `drop-shadow(0 0 ${20 * glowIntensity}px ${accentColor}60)`,
+                filter: `drop-shadow(0 0 ${20 * glowIntensity}px var(--color-accent, #BBA8DD60))`,
               }}
             >
               {/* Icon background with soft glow */}
@@ -717,7 +730,7 @@ const LogoDisplay = ({
                   border: `1px solid rgba(0,255,255,0.3)`,
                 }}
               >
-                <Play
+                <PlayIcon
                   className="text-white fill-current transform group-hover:scale-110 transition-transform duration-300"
                   style={{
                     width: Math.min(width * 0.1, 70),

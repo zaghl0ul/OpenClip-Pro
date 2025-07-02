@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TrashIcon, AlertTriangleIcon } from 'lucide-react';
+import { Trash as TrashIcon, AlertTriangle as AlertTriangleIcon } from 'lucide-react';
 import { useSettingsStore } from '../../stores/settingsStore';
 import useProjectStore from '../../stores/projectStore';
 import { useErrorHandler } from '../../hooks/useErrorHandler';

@@ -2,7 +2,7 @@
 import debug from '../utils/debug';
 import apiClient from '../utils/apiClient';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 class ApiService {
   constructor() {
@@ -80,22 +80,22 @@ class ApiService {
 
   // Projects
   async getProjects() {
-    return this.request('/api/projects');
+    return this.request('/api/v1/projects');
   }
 
   async getProject(id) {
-    return this.request(`/api/projects/${id}`);
+    return this.request(`/api/v1/projects/${id}`);
   }
 
   async createProject(projectData) {
-    return this.request('/api/projects', {
+    return this.request('/api/v1/projects', {
       method: 'POST',
       body: JSON.stringify(projectData),
     });
   }
 
   async deleteProject(id) {
-    return this.request(`/api/projects/${id}`, {
+    return this.request(`/api/v1/projects/${id}`, {
       method: 'DELETE',
     });
   }
@@ -117,10 +117,10 @@ class ApiService {
 
     console.log(
       '📤 Sending upload request to:',
-      `${this.baseURL}/api/projects/${projectId}/upload`
+      `${this.baseURL}/api/v1/projects/${projectId}/upload`
     );
 
-    return fetch(`${this.baseURL}/api/projects/${projectId}/upload`, {
+    return fetch(`${this.baseURL}/api/v1/projects/${projectId}/upload`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -153,7 +153,7 @@ class ApiService {
   }
 
   async downloadYouTubeVideo(projectId, url, analyze = true, analysisTypes = []) {
-    return this.request(`/api/projects/${projectId}/youtube`, {
+    return this.request(`/api/v1/projects/${projectId}/youtube`, {
       method: 'POST',
       body: JSON.stringify({
         youtube_url: url,
@@ -193,7 +193,7 @@ class ApiService {
       }
     }
 
-    return this.request(`/api/projects/${projectId}/analyze`, {
+    return this.request(`/api/v1/projects/${projectId}/analyze`, {
       method: 'POST',
       body: JSON.stringify({
         project_id: projectId,
@@ -239,14 +239,14 @@ const apiService = new ApiService();
 export default apiService;
 
 // Project endpoints
-export const getProjects = () => apiClient.get('/api/projects');
-export const getProject = (id) => apiClient.get(`/api/projects/${id}`);
-export const createProject = (formData) => apiClient.post('/api/projects', formData);
-export const updateProject = (id, data) => apiClient.put(`/api/projects/${id}`, data);
-export const deleteProject = (id) => apiClient.delete(`/api/projects/${id}`);
+export const getProjects = () => apiClient.get('/api/v1/projects');
+export const getProject = (id) => apiClient.get(`/api/v1/projects/${id}`);
+export const createProject = (formData) => apiClient.post('/api/v1/projects', formData);
+export const updateProject = (id, data) => apiClient.put(`/api/v1/projects/${id}`, data);
+export const deleteProject = (id) => apiClient.delete(`/api/v1/projects/${id}`);
 
 // Video endpoints
-export const getVideoStream = (projectId) => apiClient.get(`/api/projects/${projectId}/stream`);
+export const getVideoStream = (projectId) => apiClient.get(`/api/v1/projects/${projectId}/stream`);
 
 // Analysis endpoints
 export const analyzeVideo = (projectId, prompt, provider = 'openai', model = null) => {
@@ -270,7 +270,7 @@ export const analyzeVideo = (projectId, prompt, provider = 'openai', model = nul
     }
   }
 
-  return apiClient.post(`/api/projects/${projectId}/analyze`, {
+  return apiClient.post(`/api/v1/projects/${projectId}/analyze`, {
     prompt,
     provider,
     model,

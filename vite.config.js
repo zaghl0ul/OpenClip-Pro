@@ -6,7 +6,7 @@ import { visualizer } from 'rollup-plugin-visualizer'
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  const apiBaseUrl = env.API_BASE_URL || 'http://localhost:8001'
+  const apiBaseUrl = env.API_BASE_URL || 'http://localhost:8000'
   
   return {
     plugins: [
@@ -38,7 +38,7 @@ export default defineConfig(({ mode }) => {
     },
     
     server: {
-      port: 5173,
+      port: 3000,
       host: true,
       proxy: {
         '/api': {
@@ -72,13 +72,8 @@ export default defineConfig(({ mode }) => {
             // Vendor chunk for React and core libraries
             vendor: ['react', 'react-dom', 'react-router-dom'],
             
-            // UI chunk for UI libraries - removed unused deps
-            ui: [
-              'lucide-react'
-            ],
-            
-            // Motion chunk for animation libraries (separate for performance)
-            motion: ['framer-motion'],
+            // UI chunk for UI libraries
+            ui: ['lucide-react'],
             
             // Utils chunk for utility libraries
             utils: [
@@ -129,8 +124,7 @@ export default defineConfig(({ mode }) => {
         'react-dom',
         'react-router-dom',
         'axios',
-        'zustand',
-        'framer-motion'
+        'zustand'
       ],
       exclude: [
         '@ffmpeg/ffmpeg',

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 
 const Win98ProgressBar = ({
   isVisible = false,
-  progress = 0,
   title = 'Progress',
   status = 'Working...',
   onComplete = null,
@@ -52,7 +51,7 @@ const Win98ProgressBar = ({
 
       return () => clearInterval(interval);
     }
-  }, [isVisible, duration, onComplete, isAnimating]);
+  }, [isVisible, duration, onComplete, isAnimating, title]);
 
   if (!isVisible) return null;
 

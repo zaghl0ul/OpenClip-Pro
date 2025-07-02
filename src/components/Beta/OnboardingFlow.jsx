@@ -1,7 +1,83 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, X, Upload, Zap, CheckCircle } from 'lucide-react';
 
+
+import {
+  TrendingUp as TrendingUpIcon,
+  Sparkles as SparklesIcon,
+  Brain as BrainIcon,
+  X as XIcon,
+  Video as VideoIcon,
+  Settings as SettingsIcon,
+  Loader as LoaderIcon,
+  Zap as ZapIcon,
+  Activity as ActivityIcon,
+  CheckCircle as CheckCircleIcon,
+  Play as PlayIcon,
+  Eye as EyeIcon,
+  AlertTriangle as AlertTriangleIcon,
+  XCircle as XCircleIcon,
+  RefreshCw as RefreshCwIcon,
+  Clock as ClockIcon,
+  Check as CheckIcon,
+  AlertCircle as AlertCircleIcon,
+  Link as LinkIcon,
+  Trash as TrashIcon,
+  Plus as PlusIcon,
+  Search as SearchIcon,
+  Grid3X3 as Grid3X3Icon,
+  List as ListIcon,
+  ArrowRight as ArrowRightIcon,
+  ChevronRight as ChevronRightIcon,
+  Upload as UploadIcon,
+  Download as DownloadIcon,
+  Share as ShareIcon,
+  FileText as FileTextIcon,
+  MoreVertical as MoreVerticalIcon,
+  Edit as EditIcon,
+  User as UserIcon,
+  Bell as BellIcon,
+  HelpCircle as HelpCircleIcon,
+  Menu as MenuIcon,
+  Folder as FolderIcon,
+  Film as FilmIcon,
+  Target as TargetIcon,
+  Palette as PaletteIcon,
+  VolumeX as VolumeXIcon,
+  Volume2 as Volume2Icon,
+  SkipBack as SkipBackIcon,
+  SkipForward as SkipForwardIcon,
+  Pause as PauseIcon,
+  Maximize as MaximizeIcon,
+  Scissors as ScissorsIcon,
+  Layers as LayersIcon,
+  TrendingDown as TrendingDownIcon,
+  Star as StarIcon,
+  Mail as MailIcon,
+  Send as SendIcon,
+  Users as UsersIcon,
+  MessageSquare as MessageSquareIcon,
+  Home as HomeIcon,
+  Youtube as YoutubeIcon,
+  BarChart2 as BarChart2Icon,
+  Key as KeyIcon,
+  Shield as ShieldIcon,
+  ArrowLeft as ArrowLeftIcon,
+  Terminal as TerminalIcon,
+  Code as CodeIcon,
+  Copy as CopyIcon,
+  Loader2 as Loader2Icon,
+  RotateCcw,
+  ChevronDown as ChevronDownIcon,
+  Brain,
+  Eye,
+  Zap,
+  CheckCircle,
+  XCircle,
+  Mail,
+  Send,
+  Upload,
+  PlayCircle as PlayCircleIcon
+} from 'lucide-react';
 const OnboardingFlow = ({ isOpen, onClose, onComplete }) => {
   const [currentStep, setCurrentStep] = useState(0);
 
@@ -52,18 +128,8 @@ const OnboardingFlow = ({ isOpen, onClose, onComplete }) => {
   const isLastStep = currentStep === steps.length - 1;
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-    >
-      <motion.div
-        initial={{ scale: 0.9 }}
-        animate={{ scale: 1 }}
-        exit={{ scale: 0.9 }}
-        className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl w-full max-w-md border border-primary/20"
-      >
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl w-full max-w-md border border-primary/20">
         <div className="flex items-center justify-between p-6 border-b border-gray-700">
           <div className="flex gap-1">
             {steps.map((_, index) => (
@@ -76,26 +142,17 @@ const OnboardingFlow = ({ isOpen, onClose, onComplete }) => {
             ))}
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-white">
-            <X className="w-5 h-5" />
+            <XIcon size={20} className="w-5 h-5" />
           </button>
         </div>
 
         <div className="p-6 text-center">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentStep}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-            >
-              <div className="w-16 h-16 bg-primary/20 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <step.icon className="w-8 h-8 text-primary" />
-              </div>
-              <h2 className="text-xl font-bold text-white mb-2">{step.title}</h2>
-              <p className="text-gray-400 text-sm mb-4">{step.description}</p>
-              <p className="text-gray-300 text-sm">{step.content}</p>
-            </motion.div>
-          </AnimatePresence>
+          <div size={64} className="w-16 h-16 bg-primary/20 rounded-xl flex items-center justify-center mx-auto mb-4">
+            <step.icon size={32} className="w-8 h-8 text-primary" />
+          </div>
+          <h2 className="text-xl font-bold text-white mb-2">{step.title}</h2>
+          <p className="text-gray-400 text-sm mb-4">{step.description}</p>
+          <p className="text-gray-300 text-sm">{step.content}</p>
         </div>
 
         <div className="flex justify-between p-6 border-t border-gray-700">
@@ -110,11 +167,11 @@ const OnboardingFlow = ({ isOpen, onClose, onComplete }) => {
             className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-accent text-white rounded-lg font-medium"
           >
             {isLastStep ? 'Get Started' : 'Next'}
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRightIcon size={16} className="w-4 h-4" />
           </button>
         </div>
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 };
 

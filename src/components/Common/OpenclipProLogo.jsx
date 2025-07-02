@@ -50,8 +50,6 @@ const OpenclipProLogo = ({
   width = 600,
   height = 600,
   className = '',
-  mainColor = '#4fd1ff',
-  bgColor = '#0a101a',
   lineColor = '#3ec6ff',
   textColor = '#6ed6ff',
   starColor = '#b3e6ff',
@@ -113,15 +111,15 @@ const OpenclipProLogo = ({
         background: 'none',
         borderRadius: '16px',
         mixBlendMode: 'screen',
-        filter: 'drop-shadow(0 0 32px #3ec6ff44) drop-shadow(0 0 64px #0a101a88)',
+        filter: 'drop-shadow(0 0 32px var(--color-accent, #3ec6ff44)) drop-shadow(0 0 64px var(--color-bg, #0a101a88))',
       }}
     >
       {/* Radial gradient for blending */}
       <defs>
         <radialGradient id="logoBg" cx="50%" cy="50%" r="60%">
-          <stop offset="0%" stopColor="#0a101a" stopOpacity="0.7" />
-          <stop offset="80%" stopColor="#0a101a" stopOpacity="0.1" />
-          <stop offset="100%" stopColor="#0a101a" stopOpacity="0" />
+          <stop offset="0%" stopColor="var(--color-bg, #0a101a)" stopOpacity="0.7" />
+          <stop offset="80%" stopColor="var(--color-bg, #0a101a)" stopOpacity="0.1" />
+          <stop offset="100%" stopColor="var(--color-bg, #0a101a)" stopOpacity="0" />
         </radialGradient>
         <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
           <feGaussianBlur stdDeviation="16" result="blur" />

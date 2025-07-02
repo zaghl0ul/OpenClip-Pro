@@ -1,0 +1,242 @@
+import React, { useState, useEffect } from 'react';
+import { CheckIcon as Check, PaletteIcon as Palette, SparklesIcon as Sparkles } from './icons';
+import { themes, applyTheme, getCurrentTheme } from '../../config/themes';
+import { useSettingsStore } from '../../stores/settingsStore';
+
+const ThemeSelector = ({ compact = false }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [currentTheme, setCurrentTheme] = useState(getCurrentTheme());
+  const { updateAppSetting } = useSettingsStore();
+
+  useEffect(() => {
+    // Close on click outside
+    const handleClickOutside = (e) => {
+      if (!e.target.closest('.theme-selector')) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
+  const handleThemeChange = (themeName) => {
+    setCurrentTheme(themeName);
+    applyTheme(themeName);
+    updateAppSetting('theme', themeName);
+    setIsOpen(false);
+  };
+
+  const theme = themes[currentTheme];
+
+  if (compact) {
+    return (
+      <div className="theme-selector relative">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="glass-panel p-2 rounded-lg hover:scale-105 transition-transform"
+          aria-label="Change theme"
+        >
+          <Palette size={20} className="w-5 h-5 text-current" />
+        </button>
+
+        {isOpen && (
+          <div className="absolute right-0 top-12 w-72 glass-panel rounded-xl shadow-2xl p-2 z-[60] animate-in">
+            <div className="grid grid-cols-3 gap-2">
+              {Object.entries(themes).map(([key, theme]) => (
+                <ThemePreview
+                  key={key}
+                  theme={theme}
+                  isActive={currentTheme === key}
+                  onClick={() => handleThemeChange(key)}
+                  compact
+                />
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="theme-selector space-y-4">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold flex items-center gap-2">
+          <Sparkles size={20} className="w-5 h-5 text-primary" />
+          Theme Selection
+        </h3>
+        <span className="text-sm text-subtle">Current: {theme.name}</span>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {Object.entries(themes).map(([key, theme]) => (
+          <ThemePreview
+            key={key}
+            theme={theme}
+            isActive={currentTheme === key}
+            onClick={() => handleThemeChange(key)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const ThemePreview = ({ theme, isActive, onClick, compact = false }) => {
+  if (compact) {
+    return (
+      <button
+        onClick={onClick}
+        className={`
+          relative p-3 rounded-lg transition-all duration-200
+          ${isActive ? 'ring-2 ring-primary scale-105' : 'hover:scale-105'}
+        `}
+        style={{
+          background: `linear-gradient(135deg, ${theme.colors.surface}, ${theme.colors.background})`,
+          borderColor: theme.colors.border,
+        }}
+      >
+        <div className="flex flex-col items-center gap-1">
+          <div className="flex gap-1">
+            <div
+              size={12} className="w-3 h-3 rounded-full"
+              style={{ backgroundColor: theme.colors.primary }}
+            />
+            <div
+              size={12} className="w-3 h-3 rounded-full"
+              style={{ backgroundColor: theme.colors.accent }}
+            />
+          </div>
+          <span className="text-xs font-medium" style={{ color: theme.colors.secondary }}>
+            {theme.name}
+          </span>
+        </div>
+        {isActive && (
+          <div className="absolute top-1 right-1">
+            <Check size={12} className="w-3 h-3" style={{ color: theme.colors.primary }} />
+          </div>
+        )}
+      </button>
+    );
+  }
+
+  return (
+    <button
+      onClick={onClick}
+      className={`
+        group relative overflow-hidden rounded-xl transition-all duration-300
+        ${isActive ? 'ring-2 ring-primary shadow-lg scale-105' : 'hover:scale-105 hover:shadow-xl'}
+      `}
+      style={{
+        background: `linear-gradient(135deg, ${theme.colors.surface}, ${theme.colors.background})`,
+        borderWidth: '1px',
+        borderColor: isActive ? theme.colors.primary : theme.colors.border,
+      }}
+    >
+      <div className="p-4 space-y-3">
+        {/* Theme name */}
+        <div className="flex items-center justify-between">
+          <h4 className="font-semibold" style={{ color: theme.colors.secondary }}>
+            {theme.name}
+          </h4>
+          {isActive && (
+            <Check size={20} className="w-5 h-5 animate-in" style={{ color: theme.colors.primary }} />
+          )}
+        </div>
+
+        {/* Color palette preview */}
+        <div className="flex gap-2">
+          <div
+            size={32} className="w-8 h-8 rounded-lg shadow-sm"
+            style={{ backgroundColor: theme.colors.primary }}
+            title="Primary"
+          />
+          <div
+            size={32} className="w-8 h-8 rounded-lg shadow-sm"
+            style={{ backgroundColor: theme.colors.accent }}
+            title="Accent"
+          />
+          <div
+            size={32} className="w-8 h-8 rounded-lg shadow-sm"
+            style={{
+              background: `linear-gradient(135deg, ${theme.colors.gradientStart}, ${theme.colors.gradientEnd})`,
+            }}
+            title="Gradient"
+          />
+          <div
+            size={32} className="w-8 h-8 rounded-lg shadow-sm"
+            style={{ backgroundColor: theme.colors.success }}
+            title="Success"
+          />
+        </div>
+
+        {/* Mini preview */}
+        <div
+          className="rounded-lg p-3 space-y-2"
+          style={{
+            backgroundColor: theme.colors.surface + '80',
+            borderWidth: '1px',
+            borderColor: theme.colors.border,
+            backdropFilter: `blur(${theme.glass.blur})`,
+          }}
+        >
+          <div className="flex items-center gap-2">
+            <div
+              className="w-12 h-1 rounded-full"
+              style={{ backgroundColor: theme.colors.subtle }}
+            />
+            <div
+              className="w-20 h-1 rounded-full"
+              style={{ backgroundColor: theme.colors.subtle + '60' }}
+            />
+          </div>
+          <div className="flex gap-2">
+            <div
+              className="h-6 px-2 rounded flex items-center justify-center"
+              style={{
+                backgroundColor: theme.colors.primary + '20',
+                borderWidth: '1px',
+                borderColor: theme.colors.primary + '40',
+              }}
+            >
+              <span className="text-xs font-medium" style={{ color: theme.colors.primary }}>
+                Button
+              </span>
+            </div>
+            <div
+              className="flex-1 h-6 rounded"
+              style={{
+                backgroundColor: theme.colors.background + '40',
+                borderWidth: '1px',
+                borderColor: theme.colors.border,
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Glass effect info */}
+        <div className="text-xs" style={{ color: theme.colors.subtle }}>
+          <div className="flex justify-between">
+            <span>Blur</span>
+            <span>{theme.glass.blur}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Opacity</span>
+            <span>{(parseFloat(theme.glass.opacity) * 100).toFixed(0)}%</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Hover effect */}
+      <div
+        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+        style={{
+          background: `radial-gradient(circle at 50% 50%, ${theme.colors.primary}20 0%, transparent 70%)`,
+        }}
+      />
+    </button>
+  );
+};
+
+export default ThemeSelector;

@@ -1,31 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Icon,
+  UserIcon, 
+  HomeIcon as Home, 
+  FolderIcon as Folder, 
+  PlayIcon as Play, 
+  TrendingUpIcon as TrendingUp, 
+  SettingsIcon as Settings, 
+  ScissorsIcon as Scissors, 
+  DownloadIcon as Download,
+  ZapIcon,
+  ChevronDownIcon,
+  ChevronRightIcon,
+  ClockIcon,
+  StarIcon,
+  UsersIcon
+} from '../Common/icons';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import {
-  Home,
-  Folder,
-  Settings,
-  TrendingUp,
-  Clock,
-  Star,
-  ChevronRight,
-  ChevronDown,
-  Play,
-  Scissors,
-  Download,
-  Users,
-  Zap,
-} from 'lucide-react';
 import useProjectStore from '../../stores/projectStore';
 import toast from 'react-hot-toast';
 import { useErrorHandler } from '../../hooks/useErrorHandler';
 import apiClient from '../../utils/apiClient';
+import { AnimatePresence, ScaleIn } from '../Common/LightweightMotion';
 
 const Sidebar = ({ isOpen, setOpen }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { projects, getRecentProjects, getProjectStats } = useProjectStore();
-  const { handleError, withErrorHandling } = useErrorHandler();
+  const { withErrorHandling } = useErrorHandler();
 
   const [expandedSections, setExpandedSections] = useState({
     recent: true,
@@ -89,102 +91,75 @@ const Sidebar = ({ isOpen, setOpen }) => {
 
   const handleQuickAnalyze = withErrorHandling(
     async () => {
-      try {
-        // Check if there are any projects with videos but no analysis
-        const unanalyzedProjects = projects.filter(
-          (p) => p.video && (!p.clips || p.clips.length === 0) && p.status !== 'analyzing'
-        );
-
-        if (unanalyzedProjects.length === 0) {
-          toast('No projects available for quick analysis. Upload a video first!', { icon: 'ℹ️' });
-          navigate('/projects');
-          setOpen(false);
-          return;
-        }
-
-        // If there's only one project, analyze it directly
-        if (unanalyzedProjects.length === 1) {
-          const project = unanalyzedProjects[0];
-          navigate(`/projects/${project.id}?action=analyze`);
-          setOpen(false);
-          return;
-        }
-
-        // If multiple projects, show selection or navigate to projects page
-        navigate('/projects?filter=unanalyzed');
+      // Check if there are any projects with videos but no analysis
+      const unanalyzedProjects = projects.filter(
+        (p) => p.video && (!p.clips || p.clips.length === 0) && p.status !== 'analyzing'
+      );
+      if (unanalyzedProjects.length === 0) {
+        toast('No projects available for quick analysis. Upload a video first!', { icon: '\u2139\ufe0f' });
+        navigate('/projects');
         setOpen(false);
-        toast('Select a project to analyze from the list', { icon: 'ℹ️' });
-      } catch (error) {
-        throw error;
+        return;
       }
+      if (unanalyzedProjects.length === 1) {
+        const project = unanalyzedProjects[0];
+        navigate(`/projects/${project.id}?action=analyze`);
+        setOpen(false);
+        return;
+      }
+      navigate('/projects?filter=unanalyzed');
+      setOpen(false);
+      toast('Select a project to analyze from the list', { icon: '\u2139\ufe0f' });
     },
     { operation: 'quick_analyze' }
   );
 
   const handleTrimClips = withErrorHandling(
     async () => {
-      try {
-        // Find projects with clips that can be trimmed
-        const projectsWithClips = projects.filter((p) => p.clips && p.clips.length > 0);
-
-        if (projectsWithClips.length === 0) {
-          toast('No clips available for trimming. Analyze a video first!', { icon: 'ℹ️' });
-          navigate('/projects');
-          setOpen(false);
-          return;
-        }
-
-        // Navigate to clips page with trim mode
-        navigate('/clips?mode=trim');
+      // Find projects with clips that can be trimmed
+      const projectsWithClips = projects.filter((p) => p.clips && p.clips.length > 0);
+      if (projectsWithClips.length === 0) {
+        toast('No clips available for trimming. Analyze a video first!', { icon: '\u2139\ufe0f' });
+        navigate('/projects');
         setOpen(false);
-        toast('Select clips to trim from the list', { icon: 'ℹ️' });
-      } catch (error) {
-        throw error;
+        return;
       }
+      navigate('/clips?mode=trim');
+      setOpen(false);
+      toast('Select clips to trim from the list', { icon: '\u2139\ufe0f' });
     },
     { operation: 'trim_clips' }
   );
 
   const handleQuickExport = withErrorHandling(
     async () => {
-      try {
-        // Find projects with completed clips
-        const projectsWithClips = projects.filter(
-          (p) => p.clips && p.clips.length > 0 && p.status === 'completed'
-        );
-
-        if (projectsWithClips.length === 0) {
-          toast('No completed projects available for export!', { icon: 'ℹ️' });
-          navigate('/projects');
-          setOpen(false);
-          return;
-        }
-
-        // If there's only one project, export it directly
-        if (projectsWithClips.length === 1) {
-          const project = projectsWithClips[0];
-
-          const exportSettings = {
-            format: 'mp4',
-            quality: 'high',
-            includeAll: true,
-          };
-
-          await apiClient.exportClips(project.id, exportSettings);
-          toast.success(
-            `Exporting clips from "${project.name}". You'll receive a download link shortly.`
-          );
-          setOpen(false);
-          return;
-        }
-
-        // If multiple projects, navigate to projects page with export filter
-        navigate('/projects?filter=completed');
+      // Find projects with completed clips
+      const projectsWithClips = projects.filter(
+        (p) => p.clips && p.clips.length > 0 && p.status === 'completed'
+      );
+      if (projectsWithClips.length === 0) {
+        toast('No completed projects available for export!', { icon: '\u2139\ufe0f' });
+        navigate('/projects');
         setOpen(false);
-        toast('Select a project to export from the list', { icon: 'ℹ️' });
-      } catch (error) {
-        throw error;
+        return;
       }
+      if (projectsWithClips.length === 1) {
+        const project = projectsWithClips[0];
+        const exportSettings = {
+          format: 'mp4',
+          quality: 'high',
+          includeAll: true,
+        };
+        await apiClient.exportClips(project.id, exportSettings);
+        toast.success(
+          `Exporting clips from "${project.name}". You'll receive a download link shortly.`
+        );
+        setOpen(false);
+        return;
+      }
+      navigate('/projects?filter=completed');
+      setOpen(false);
+      toast('Select a project to export from the list', { icon: '\u2139\ufe0f' });
     },
     { operation: 'trim_clips' }
   );
@@ -267,6 +242,11 @@ const Sidebar = ({ isOpen, setOpen }) => {
     border: '1px solid rgba(255, 255, 255, 0.05)',
     width: isOpen ? '16rem' : '5rem',
     transition: 'width 0.3s ease',
+    minHeight: '100vh',
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    zIndex: 9999,
   };
 
   return (
@@ -274,10 +254,7 @@ const Sidebar = ({ isOpen, setOpen }) => {
       {/* Overlay for mobile */}
       <AnimatePresence>
         {isOpen && window.innerWidth < 1024 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+          <div
             className="fixed inset-0 bg-black bg-opacity-50 z-40 backdrop-blur-sm"
             onClick={() => setOpen(false)}
           />
@@ -285,12 +262,9 @@ const Sidebar = ({ isOpen, setOpen }) => {
       </AnimatePresence>
 
       {/* Sidebar */}
-      <motion.aside
+      <div
         className={`h-full z-50 flex flex-col`}
         style={glassStyle}
-        variants={mobileSidebarVariants}
-        initial={false}
-        animate={window.innerWidth < 1024 ? (isOpen ? 'open' : 'closed') : {}}
       >
         {/* Reflective top edge */}
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
@@ -325,12 +299,9 @@ const Sidebar = ({ isOpen, setOpen }) => {
                 const isActive = location.pathname === item.path;
 
                 return (
-                  <motion.div
+                  <div
                     key={`nav-item-${item.path}`}
-                    custom={i}
-                    initial="hidden"
-                    animate="visible"
-                    variants={itemVariants}
+                    className="..."
                   >
                     <Link
                       to={item.path}
@@ -355,7 +326,7 @@ const Sidebar = ({ isOpen, setOpen }) => {
                         <div className="absolute top-0 left-0 right-0 h-px bg-primary/30"></div>
                       )}
 
-                      <Icon className={`w-5 h-5 ${isActive ? 'text-primary' : ''}`} />
+                      <Icon icon={item.icon} size={24} className={isActive ? 'text-primary' : ''} />
                       {isOpen && <span>{item.label}</span>}
 
                       {/* Active indicator */}
@@ -363,7 +334,7 @@ const Sidebar = ({ isOpen, setOpen }) => {
                         <div className="absolute right-3 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-primary"></div>
                       )}
                     </Link>
-                  </motion.div>
+                  </div>
                 );
               })}
             </nav>
@@ -376,40 +347,31 @@ const Sidebar = ({ isOpen, setOpen }) => {
                     className="flex items-center justify-between w-full px-3 py-2 text-sm font-medium text-subtle hover:text-secondary group"
                   >
                     <div className="flex items-center gap-2">
-                      <Zap className="w-4 h-4 group-hover:text-primary transition-colors" />
+                      <Icon icon={ZapIcon} size={24} className="group-hover:text-primary transition-colors" />
                       <span>Quick Tools</span>
                     </div>
                     {expandedSections.tools ? (
-                      <ChevronDown className="w-4 h-4" />
+                      <Icon icon={ChevronDownIcon} size={16} />
                     ) : (
-                      <ChevronRight className="w-4 h-4" />
+                      <Icon icon={ChevronRightIcon} size={16} />
                     )}
                   </button>
 
-                  <AnimatePresence>
-                    {expandedSections.tools && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="pl-4 pr-2 py-2 space-y-1">
-                          {quickTools.map((tool) => (
-                            <button
-                              key={tool.id}
-                              onClick={tool.action}
-                              className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-subtle hover:text-white hover:bg-white/5 transition-all relative overflow-hidden group"
-                            >
-                              <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                              <tool.icon className="w-4 h-4 group-hover:text-primary transition-colors" />
-                              <span>{tool.label}</span>
-                            </button>
-                          ))}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                  {expandedSections.tools && (
+                    <div className="pl-4 pr-2 py-2 space-y-1">
+                      {quickTools.map((tool) => (
+                        <button
+                          key={tool.id}
+                          onClick={tool.action}
+                          className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-subtle hover:text-white hover:bg-white/5 transition-all relative overflow-hidden group"
+                        >
+                          <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                          <Icon icon={tool.icon} size={24} className="group-hover:text-primary transition-colors" />
+                          <span>{tool.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className="mb-2">
@@ -418,49 +380,40 @@ const Sidebar = ({ isOpen, setOpen }) => {
                     className="flex items-center justify-between w-full px-3 py-2 text-sm font-medium text-subtle hover:text-secondary group"
                   >
                     <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 group-hover:text-primary transition-colors" />
+                      <Icon icon={ClockIcon} size={24} className="group-hover:text-primary transition-colors" />
                       <span>Recent Projects</span>
                     </div>
                     {expandedSections.recent ? (
-                      <ChevronDown className="w-4 h-4" />
+                      <Icon icon={ChevronDownIcon} size={16} />
                     ) : (
-                      <ChevronRight className="w-4 h-4" />
+                      <Icon icon={ChevronRightIcon} size={16} />
                     )}
                   </button>
 
-                  <AnimatePresence>
-                    {expandedSections.recent && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="pl-4 pr-2 py-2 space-y-1">
-                          {recentProjects && recentProjects.length > 0 ? (
-                            recentProjects.map((project) => (
-                              <Link
-                                key={`recent-project-${project.id}`}
-                                to={`/projects/${project.id}`}
-                                className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm text-subtle hover:text-white hover:bg-white/5 transition-all relative overflow-hidden group"
-                                onClick={() => {
-                                  if (window.innerWidth < 1024) {
-                                    setOpen(false);
-                                  }
-                                }}
-                              >
-                                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                                <div className="w-2 h-2 rounded-full bg-primary"></div>
-                                <span className="truncate">{project.name}</span>
-                              </Link>
-                            ))
-                          ) : (
-                            <div className="px-3 py-2 text-sm text-subtle">No recent projects</div>
-                          )}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                  {expandedSections.recent && (
+                    <div className="pl-4 pr-2 py-2 space-y-1">
+                      {recentProjects && recentProjects.length > 0 ? (
+                        recentProjects.map((project) => (
+                          <Link
+                            key={`recent-project-${project.id}`}
+                            to={`/projects/${project.id}`}
+                            className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm text-subtle hover:text-white hover:bg-white/5 transition-all relative overflow-hidden group"
+                            onClick={() => {
+                              if (window.innerWidth < 1024) {
+                                setOpen(false);
+                              }
+                            }}
+                          >
+                            <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            <div className="w-2 h-2 rounded-full bg-primary"></div>
+                            <span className="truncate">{project.name}</span>
+                          </Link>
+                        ))
+                      ) : (
+                        <div className="px-3 py-2 text-sm text-subtle">No recent projects</div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -469,48 +422,39 @@ const Sidebar = ({ isOpen, setOpen }) => {
                     className="flex items-center justify-between w-full px-3 py-2 text-sm font-medium text-subtle hover:text-secondary group"
                   >
                     <div className="flex items-center gap-2">
-                      <Star className="w-4 h-4 group-hover:text-primary transition-colors" />
+                      <Icon icon={StarIcon} size={24} className="group-hover:text-primary transition-colors" />
                       <span>Quick Stats</span>
                     </div>
                     {expandedSections.stats ? (
-                      <ChevronDown className="w-4 h-4" />
+                      <Icon icon={ChevronDownIcon} size={16} />
                     ) : (
-                      <ChevronRight className="w-4 h-4" />
+                      <Icon icon={ChevronRightIcon} size={16} />
                     )}
                   </button>
 
-                  <AnimatePresence>
-                    {expandedSections.stats && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="pl-4 pr-2 py-2 space-y-3">
-                          {stats && Object.keys(stats).length > 0 ? (
-                            quickStats.map((stat) => (
-                              <div
-                                key={stat.id}
-                                className="px-3 py-2 rounded-lg bg-white/5 backdrop-blur-lg relative overflow-hidden"
-                              >
-                                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent"></div>
-                                <div className="absolute top-0 left-0 right-0 h-px bg-white/10"></div>
-                                <div className="relative">
-                                  <div className="text-xs text-subtle">{stat.label}</div>
-                                  <div className="text-lg font-semibold text-white">
-                                    {stat.value}
-                                  </div>
-                                </div>
+                  {expandedSections.stats && (
+                    <div className="pl-4 pr-2 py-2 space-y-3">
+                      {stats && Object.keys(stats).length > 0 ? (
+                        quickStats.map((stat) => (
+                          <div
+                            key={stat.id}
+                            className="px-3 py-2 rounded-lg bg-white/5 backdrop-blur-lg relative overflow-hidden"
+                          >
+                            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent"></div>
+                            <div className="absolute top-0 left-0 right-0 h-px bg-white/10"></div>
+                            <div className="relative">
+                              <div className="text-xs text-subtle">{stat.label}</div>
+                              <div className="text-lg font-semibold text-white">
+                                {stat.value}
                               </div>
-                            ))
-                          ) : (
-                            <div className="px-3 py-2 text-sm text-subtle">No stats available</div>
-                          )}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="px-3 py-2 text-sm text-subtle">No stats available</div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </>
             )}
@@ -527,7 +471,7 @@ const Sidebar = ({ isOpen, setOpen }) => {
               <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent"></div>
                 <div className="absolute top-0 left-0 right-0 h-px bg-white/20"></div>
-                <Users className="w-5 h-5 text-primary relative z-10" />
+                <Icon icon={UsersIcon} size={24} className="text-primary relative z-10" />
               </div>
               <div>
                 <div className="text-sm font-medium text-white">Creator</div>
@@ -536,7 +480,7 @@ const Sidebar = ({ isOpen, setOpen }) => {
             </div>
           </div>
         )}
-      </motion.aside>
+      </div>
     </>
   );
 };

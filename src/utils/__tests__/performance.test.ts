@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { detectDevicePerformance, getOptimalSettings } from '../performance';
+import { detectDevicePerformance, getOptimalSettings } from '../performance.js';
 
 describe('Performance Utils', () => {
   describe('detectDevicePerformance', () => {

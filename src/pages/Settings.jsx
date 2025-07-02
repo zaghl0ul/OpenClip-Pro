@@ -1,38 +1,45 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import {
-  Settings as SettingsIcon,
-  Key,
-  Server,
-  Shield,
-  Monitor,
-  Save,
-  TestTube,
-  CheckCircle,
-  AlertCircle,
-  Eye,
-  EyeOff,
-  RefreshCw,
-  Bug,
-} from 'lucide-react';
 import { useSettingsStore } from '../stores/settingsStore';
 import TestingPanel from '../components/TestingPanel';
+import ThemeSelector from '../components/settings/ThemeSelector';
+import { 
+import { 
+  TrendingUpIcon, SparklesIcon, BrainIcon, XIcon, VideoIcon, SettingsIcon, 
+  LoaderIcon, ZapIcon, ActivityIcon, CheckCircleIcon, PlayIcon, EyeIcon,
+  AlertTriangleIcon, XCircleIcon, RefreshCwIcon, ClockIcon, CheckIcon,
+  AlertCircleIcon, LinkIcon, TrashIcon, PlusIcon, SearchIcon, Grid3X3Icon,
+  ListIcon, ArrowRightIcon, ChevronRightIcon, UploadIcon, DownloadIcon,
+  ShareIcon, FileTextIcon, MoreVerticalIcon, EditIcon, UserIcon, BellIcon,
+  HelpCircleIcon, MenuIcon, FolderIcon, FilmIcon, TargetIcon, PaletteIcon,
+  VolumeXIcon, Volume2Icon, SkipBackIcon, SkipForwardIcon, PauseIcon,
+  MaximizeIcon, ScissorsIcon, LayersIcon, TrendingDownIcon, StarIcon,
+  MailIcon, SendIcon, UsersIcon, MessageSquareIcon, HomeIcon, YoutubeIcon,
+  BarChart2Icon, KeyIcon, ShieldIcon, ArrowLeftIcon
+} from '../Common/icons';
+  CheckIcon, 
+  AlertCircleIcon, 
+  EyeOffIcon, 
+  EyeIcon, 
+  RefreshCwIcon, 
+  SaveIcon, 
+  BugIcon, 
+  SettingsIcon,
+  KeyIcon,
+  ShieldIcon
+} from '../components/Common/icons';
 
 const Settings = () => {
   const {
     apiKeys,
-    modelSettings,
     security,
     appSettings,
     backendUrl,
     isBackendConnected,
     availableProviders,
     setApiKey,
-    updateModelSettings,
     updateSecurity,
     updateAppSettings,
     setBackendUrl,
-    loadProviders,
     testApiConnection,
     initialize,
   } = useSettingsStore();
@@ -63,7 +70,7 @@ const Settings = () => {
   const handleTestConnection = async (provider) => {
     setTestingConnection(provider);
     try {
-      const result = await testApiConnection(provider);
+      await testApiConnection(provider);
       setTestResults((prev) => ({
         ...prev,
         [provider]: { success: true, message: 'Connection successful!' },
@@ -82,7 +89,7 @@ const Settings = () => {
     setSaving(true);
     try {
       setBackendUrl(localBackendUrl);
-      await initialize(); // Reinitialize with new URL
+      await initialize();
     } catch (error) {
       console.error('Failed to update backend URL:', error);
     } finally {
@@ -91,10 +98,10 @@ const Settings = () => {
   };
 
   const tabs = [
-    { id: 'api', label: 'API Keys', icon: Key },
-    { id: 'backend', label: 'Backend', icon: Server },
-    { id: 'security', label: 'Security', icon: Shield },
-    { id: 'app', label: 'Application', icon: Monitor },
+    { id: 'api', label: 'API Keys', icon: KeyIcon },
+    { id: 'backend', label: 'Backend', icon: ShieldIcon },
+    { id: 'security', label: 'Security', icon: ShieldIcon },
+    { id: 'app', label: 'Application', icon: EyeIcon },
   ];
 
   const renderApiKeysTab = () => (
@@ -129,9 +136,9 @@ const Settings = () => {
                   {label} API Key
                 </label>
                 <div className="flex items-center gap-2">
-                  {isConnected && <CheckCircle className="w-4 h-4 text-green-500" />}
+                  {isConnected && <CheckIcon size={16} className="w-4 h-4 text-green-500" />}
                   {testResults[provider] && !testResults[provider].success && (
-                    <AlertCircle className="w-4 h-4 text-red-500" />
+                    <AlertCircleIcon size={16} className="w-4 h-4 text-red-500" />
                   )}
                 </div>
               </div>
@@ -150,7 +157,7 @@ const Settings = () => {
                     onClick={() => toggleApiKeyVisibility(provider)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                   >
-                    {isVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {isVisible ? <EyeOffIcon size={16} className="w-4 h-4" /> : <EyeIcon size={16} className="w-4 h-4" />}
                   </button>
                 </div>
 
@@ -160,9 +167,9 @@ const Settings = () => {
                   className="px-3 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 dark:disabled:bg-gray-600 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
                 >
                   {isTesting ? (
-                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <RefreshCwIcon size={16} className="w-4 h-4 animate-spin" />
                   ) : (
-                    <TestTube className="w-4 h-4" />
+                    <CheckIcon size={16} className="w-4 h-4" />
                   )}
                   Test
                 </button>
@@ -226,7 +233,7 @@ const Settings = () => {
                 type="url"
                 value={localBackendUrl}
                 onChange={(e) => setLocalBackendUrl(e.target.value)}
-                placeholder="http://localhost:8001"
+                placeholder="http://localhost:8000"
                 className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
               <button
@@ -235,9 +242,9 @@ const Settings = () => {
                 className="px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 dark:disabled:bg-gray-600 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
               >
                 {saving ? (
-                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <RefreshCwIcon size={16} className="w-4 h-4 animate-spin" />
                 ) : (
-                  <Save className="w-4 h-4" />
+                  <SaveIcon size={16} className="w-4 h-4" />
                 )}
                 Save
               </button>
@@ -272,7 +279,7 @@ const Settings = () => {
               onClick={() => setShowTestingPanel(true)}
               className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-lg font-medium transition-all duration-200 transform hover:-translate-y-0.5"
             >
-              <Bug className="w-5 h-5" />
+              <BugIcon size={20} className="w-5 h-5" />
               Run Authentication Tests
             </button>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
@@ -452,7 +459,7 @@ const Settings = () => {
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <SettingsIcon className="w-8 h-8 text-blue-500" />
+            <SettingsIcon size={32} className="w-8 h-8 text-blue-500" />
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Settings</h1>
           </div>
           <p className="text-gray-600 dark:text-gray-400">
@@ -476,7 +483,7 @@ const Settings = () => {
                         : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                     }`}
                   >
-                    <Icon className="w-5 h-5" />
+                    <Icon size={20} className="w-5 h-5" />
                     {tab.label}
                   </button>
                 );
@@ -486,14 +493,13 @@ const Settings = () => {
 
           {/* Content */}
           <div className="flex-1">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.2 }}
+            <div
+              className={`transition-transform duration-200 ${
+                activeTab === 'api' ? 'translate-x-0' : '-translate-x-full'
+              }`}
             >
               {renderTabContent()}
-            </motion.div>
+            </div>
           </div>
         </div>
       </div>

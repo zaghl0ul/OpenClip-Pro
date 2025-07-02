@@ -1,13 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import {
-  PlayIcon,
-  PauseIcon,
-  VolumeXIcon,
-  Volume2Icon,
-  MaximizeIcon,
-  SkipBackIcon,
-  SkipForwardIcon,
+  Play as PlayIcon,
+  Pause as PauseIcon,
+  VolumeX as VolumeXIcon,
+  Volume2 as Volume2Icon,
+  Maximize as MaximizeIcon,
+  SkipBack as SkipBackIcon,
+  SkipForward as SkipForwardIcon,
 } from 'lucide-react';
 
 const VideoControls = ({

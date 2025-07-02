@@ -51,14 +51,13 @@ export class ContentProcessingService {
    * Process file upload for a project
    */
   static async processFileUpload(projectId, file, callbacks = {}) {
-    const { onProgress, onStateChange, onSuccess, onError } = callbacks;
+    const { onStateChange, onSuccess, onError } = callbacks;
 
     try {
       onStateChange({ isProcessing: true, progress: 0, status: 'Uploading video...' });
 
       const { uploadVideoToProject } = useProjectStore.getState();
       const result = await uploadVideoToProject(projectId, file, (progress) => {
-        onProgress(progress);
         onStateChange({
           isProcessing: true,
           progress,
@@ -80,7 +79,7 @@ export class ContentProcessingService {
    * Process YouTube URL for a project
    */
   static async processYouTubeUrl(projectId, youtubeUrl, callbacks = {}) {
-    const { onProgress, onStateChange, onSuccess, onError } = callbacks;
+    const { onStateChange, onSuccess, onError } = callbacks;
 
     try {
       onStateChange({ isProcessing: true, progress: 0, status: 'Processing YouTube URL...' });
@@ -106,7 +105,6 @@ export class ContentProcessingService {
    */
   static async createProjectWithContent(projectData, content, callbacks = {}) {
     const {
-      onProgress = () => {},
       onStateChange = () => {},
       onSuccess = () => {},
       onError = () => {},

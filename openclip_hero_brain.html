@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenClip-Pro - AI-Powered Video Analysis</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #000000;
+            overflow-x: hidden;
+        }
+
+        .hero {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #000000 0%, #2B292E 50%, #4B4651 100%);
+        }
+
+        .brain-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.6;
+            z-index: 1;
+        }
+
+        .brain-image {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: min(500px, 50vw);
+            height: auto;
+            z-index: 2;
+            opacity: 0.8;
+            filter: drop-shadow(0 0 20px rgba(187, 168, 221, 0.4));
+            pointer-events: none;
+        }
+
+        .file-input-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        .upload-btn {
+            background: rgba(75, 70, 81, 0.8);
+            color: #BBA8DD;
+            border: 1px solid rgba(187, 168, 221, 0.3);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .upload-btn:hover {
+            background: rgba(187, 168, 221, 0.2);
+            border-color: rgba(187, 168, 221, 0.6);
+        }
+
+        .file-input-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        .upload-btn {
+            background: rgba(75, 70, 81, 0.8);
+            color: #BBA8DD;
+            border: 1px solid rgba(187, 168, 221, 0.3);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .upload-btn:hover {
+            background: rgba(187, 168, 221, 0.2);
+            border-color: rgba(187, 168, 221, 0.6);
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 3;
+            text-align: center;
+            max-width: 800px;
+            padding: 0 20px;
+        }
+
+        .hero-title {
+            font-size: clamp(3rem, 8vw, 6rem);
+            font-weight: 800;
+            background: linear-gradient(135deg, #BBA8DD 0%, #7A7084 50%, #4B4651 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1.5rem;
+            line-height: 1.1;
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1.2rem, 3vw, 1.8rem);
+            color: #BBA8DD;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .hero-description {
+            font-size: clamp(1rem, 2vw, 1.2rem);
+            color: #7A7084;
+            margin-bottom: 3rem;
+            line-height: 1.6;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-button {
+            background: linear-gradient(135deg, #BBA8DD 0%, #7A7084 100%);
+            border: none;
+            padding: 18px 36px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #000000;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 10px 30px rgba(187, 168, 221, 0.3);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(187, 168, 221, 0.5);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-top: 4rem;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .feature {
+            background: rgba(75, 70, 81, 0.2);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid rgba(187, 168, 221, 0.1);
+            backdrop-filter: blur(10px);
+            text-align: center;
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-title {
+            color: #BBA8DD;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-text {
+            color: #7A7084;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        @media (max-width: 768px) {
+            .hero {
+                height: 100vh;
+                padding: 2rem 0;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+                margin-top: 3rem;
+            }
+            
+            .brain-background {
+                opacity: 0.4;
+            }
+        }
+    </style>
+</head>
+<body>
+    <section class="hero">
+        <div class="brain-background" id="brain-container"></div>
+        <img id="brain-image" class="brain-image" style="display: none;" alt="Brain">
+        
+        <div class="file-input-container">
+            <label for="file-input" class="upload-btn">Upload Brain Image</label>
+            <input type="file" id="file-input" accept="image/*">
+        </div>
+        
+        <div class="hero-content">
+            <h1 class="hero-title">OpenClip-Pro</h1>
+            <p class="hero-subtitle">AI-Powered Video Analysis & Clipping</p>
+            <p class="hero-description">
+                Transform your video content with cutting-edge neural networks. 
+                Automatic clip generation powered by GPT-4 Vision, Google Gemini, and Anthropic Claude.
+            </p>
+            
+            <button class="cta-button">Start Creating</button>
+            
+            <div class="features-grid">
+                <div class="feature">
+                    <div class="feature-icon">🧠</div>
+                    <div class="feature-title">Neural Analysis</div>
+                    <div class="feature-text">Advanced AI models analyze video content</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">⚡</div>
+                    <div class="feature-title">Real-time Processing</div>
+                    <div class="feature-text">Live progress tracking and status updates</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🎬</div>
+                    <div class="feature-title">Auto Clipping</div>
+                    <div class="feature-text">Intelligent clip generation from long-form content</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        let numLines = 60;
+        let noiseScale = 0.01;
+        let baseNoiseStrength = 70;
+        let lineResolution = 6;
+        let noiseZ = 0;
+        let mouseInfluence = 1;
+        let colorShift = 1;
+        let rgbPulseTime = 0;
+        let waveTime = 0;
+
+        function setup() {
+            let canvas = createCanvas(windowWidth, windowHeight);
+            canvas.parent('brain-container');
+            background(0);
+        }
+
+        function draw() {
+            // Subtle background with your color palette
+            background(0, 0, 0, 60);
+            
+            rgbPulseTime += 0.015;
+            waveTime += 0.008;
+            noiseZ = waveTime * 0.5;
+            
+            // Gentle autonomous movement
+            mouseInfluence = 1 + sin(waveTime * 2) * 0.3;
+            colorShift = 1 + sin(waveTime * 1.5) * 0.2;
+            
+            let currentNoiseStrength = baseNoiseStrength * mouseInfluence;
+
+            drawHeroBrain(currentNoiseStrength);
+            drawSubtleGlow();
+        }
+
+        function drawHeroBrain(currentNoiseStrength) {
+            let brainMinY = height * 0.2;
+            let brainMaxY = height * 0.85;
+            let lineSpacing = (brainMaxY - brainMinY) / (numLines - 1);
+
+            for (let i = 0; i < numLines; i++) {
+                let centerDistance = abs(i - numLines/2) / (numLines/2);
+                
+                // Using your color palette with more noticeable RGB pulses
+                let rPulse = sin(rgbPulseTime * 0.8 + i * 0.12) * 0.4 + 0.6;
+                let gPulse = sin(rgbPulseTime * 1.1 + i * 0.15 + PI/3) * 0.4 + 0.6;
+                let bPulse = sin(rgbPulseTime * 0.9 + i * 0.1 + PI*2/3) * 0.4 + 0.6;
+                
+                // Base colors from your palette (#7A7084, #BBA8DD)
+                let baseR = 100 + (187 - 100) * colorShift * 0.8;
+                let baseG = 90 + (168 - 90) * colorShift * 0.8;
+                let baseB = 110 + (221 - 110) * colorShift * 0.8;
+                
+                let r = baseR * rPulse;
+                let g = baseG * gPulse;
+                let b = baseB * bPulse;
+                
+                let alpha = map(centerDistance, 0, 1, 120, 30) * mouseInfluence;
+                let strokeWeight_val = map(centerDistance, 0, 1, 1.8, 0.4);
+                
+                stroke(r, g, b, alpha);
+                strokeWeight(strokeWeight_val);
+                noFill();
+                
+                beginShape();
+                let y = brainMinY + i * lineSpacing;
+                
+                let curveFactor = sin(map(i, 0, numLines - 1, 0, PI));
+                curveFactor += sin(map(i, 0, numLines - 1, 0, PI * 2)) * 0.15;
+                curveFactor = abs(curveFactor);
+                
+                let normalizedPos = i / (numLines - 1);
+                let xSpan = map(curveFactor, 0, 1.15, width * 0.25, width * 0.7);
+                
+                if (normalizedPos < 0.3) {
+                    xSpan *= (0.75 + normalizedPos * 0.7);
+                }
+                if (normalizedPos > 0.7) {
+                    xSpan *= (1.15 - (normalizedPos - 0.7) * 0.4);
+                }
+                
+                let startX = (width - xSpan) / 2;
+                let verticalOffset = map(i, 0, numLines-1, -width*0.01, width*0.02);
+                startX += verticalOffset;
+
+                for (let x = startX; x <= startX + xSpan; x += lineResolution) {
+                    let nx = x * noiseScale;
+                    let ny = y * noiseScale;
+                    let nz = noiseZ;
+
+                    let primaryNoise = noise(nx, ny, nz);
+                    let secondaryNoise = noise(nx * 2, ny * 2, nz * 1.5);
+                    let flowNoise = noise(nx * 0.5, ny * 0.5, nz * 2);
+                    
+                    let primaryOffset = map(primaryNoise, 0, 1, -currentNoiseStrength, currentNoiseStrength);
+                    let secondaryOffset = map(secondaryNoise, 0, 1, -currentNoiseStrength * 0.3, currentNoiseStrength * 0.3);
+                    let flowOffset = map(flowNoise, 0, 1, -currentNoiseStrength * 0.4, currentNoiseStrength * 0.4);
+                    
+                    let totalOffset = (primaryOffset + secondaryOffset + flowOffset) * pow(curveFactor, 0.8);
+                    
+                    vertex(x, y + totalOffset);
+                }
+                endShape();
+            }
+        }
+
+        function drawSubtleGlow() {
+            // More noticeable RGB glow
+            for (let r = 300; r > 0; r -= 60) {
+                let alpha = map(r, 0, 300, 15, 0) * mouseInfluence * 0.8;
+                
+                // RGB pulses in the glow
+                let rGlow = sin(rgbPulseTime * 0.9) * 0.3 + 0.7;
+                let gGlow = sin(rgbPulseTime * 1.2 + PI/3) * 0.3 + 0.7;
+                let bGlow = sin(rgbPulseTime * 0.7 + PI*2/3) * 0.3 + 0.7;
+                
+                stroke(187 * rGlow, 168 * gGlow, 221 * bGlow, alpha);
+                strokeWeight(1);
+                noFill();
+                ellipse(width/2, height/2, r);
+            }
+        }
+
+        function windowResized() {
+            resizeCanvas(windowWidth, windowHeight);
+        }
+
+        // Handle file upload
+        document.getElementById('file-input').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.getElementById('brain-image');
+                    img.src = e.target.result;
+                    img.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Load brain image if available
+        async function loadBrainImage() {
+            try {
+                const imageData = await window.fs.readFile('brain_image.png');
+                const blob = new Blob([imageData], { type: 'image/png' });
+                const url = URL.createObjectURL(blob);
+                
+                const img = document.getElementById('brain-image');
+                img.src = url;
+                img.style.display = 'block';
+            } catch (error) {
+                console.log('Upload your brain image to complete the effect!');
+            }
+        }
+
+        window.addEventListener('load', loadBrainImage);
+
+        // Smooth scroll effect
+        document.querySelector('.cta-button').addEventListener('click', function() {
+            // Add your navigation logic here
+            console.log('Navigate to app');
+        });
+    </script>
+</body>
+</html>

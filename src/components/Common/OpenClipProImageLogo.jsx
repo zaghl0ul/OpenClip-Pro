@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { ScaleIn } from './LightweightMotion';
 
 const OpenClipProImageLogo = ({ 
   size = 'large', 
@@ -25,17 +25,7 @@ const OpenClipProImageLogo = ({
 
   return (
     <div className="flex items-center space-x-3">
-      <motion.div
-        className={`${sizeClasses[size]} ${className} relative`}
-        initial={animate ? { opacity: 0, scale: 0.8, rotate: -10 } : { opacity: 1, scale: 1, rotate: 0 }}
-        animate={animate ? { opacity: 1, scale: 1, rotate: 0 } : { opacity: 1, scale: 1, rotate: 0 }}
-        transition={animate ? { duration: 1, ease: "easeOut" } : {}}
-        whileHover={animate ? { 
-          scale: 1.05,
-          rotate: 5,
-          filter: "drop-shadow(0 0 25px rgba(88, 166, 255, 0.6))"
-        } : {}}
-      >
+      <ScaleIn className={`${sizeClasses[size]} ${className} relative`}>
         {/* Fallback to SVG if image not available */}
         <img 
           src="/openclip-logo-main.png" 
@@ -72,22 +62,17 @@ const OpenClipProImageLogo = ({
             </text>
           </svg>
         </div>
-      </motion.div>
+      </ScaleIn>
       
       {showText && (
-        <motion.div
-          initial={animate ? { opacity: 0, x: -20 } : { opacity: 1, x: 0 }}
-          animate={animate ? { opacity: 1, x: 0 } : { opacity: 1, x: 0 }}
-          transition={animate ? { duration: 0.6, delay: 0.8 } : {}}
-          className="flex flex-col"
-        >
+        <ScaleIn className="flex flex-col">
           <span className={`${textSizeClasses[size]} font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent`}>
             OpenClip
           </span>
           <span className={`${textSizeClasses[size]} font-bold text-accent opacity-80 -mt-1`}>
             Pro
           </span>
-        </motion.div>
+        </ScaleIn>
       )}
     </div>
   );

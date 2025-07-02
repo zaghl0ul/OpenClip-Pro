@@ -26,38 +26,40 @@ export const useCreateProjectModal = () => {
   const { createProject, uploadProgress: storeUploadProgress } = useProjectStore();
 
   // Validation rules
-  const validationRules = {
-    1: {
-      projectType: [{ required: true, message: 'Please select a project type' }],
+  const validationRules = useMemo(() => ({
+    step1: {
+      projectType: (value) => ({
+        isValid: !!value && ['upload', 'youtube'].includes(value),
+        error: !value ? 'Please select a project type' : null,
+      }),
     },
-    2: {
-      projectName: [
-        { required: true, message: 'Project name is required' },
-        {
-          validator: isValidProjectName,
-          message:
-            'Project name must be 1-100 characters, letters, numbers, spaces, hyphens, and underscores only',
-        },
-      ],
+    step2: {
+      projectName: (value) => ({
+        isValid: !!value && value.trim().length >= 3 && value.trim().length <= 100,
+        error: !value
+          ? 'Project name is required'
+          : value.trim().length < 3
+            ? 'Project name must be at least 3 characters'
+            : value.trim().length > 100
+              ? 'Project name must be less than 100 characters'
+              : null,
+      }),
+      description: (value) => ({
+        isValid: !value || (value.trim().length >= 0 && value.trim().length <= 500),
+        error: value && value.trim().length > 500 ? 'Description must be less than 500 characters' : null,
+      }),
     },
-    3:
-      projectType === 'youtube'
-        ? {
-            youtubeUrl: [
-              { required: true, message: 'YouTube URL is required' },
-              { validator: isValidYouTubeUrl, message: 'Please enter a valid YouTube URL' },
-            ],
-          }
-        : {
-            selectedFile: [
-              { required: true, message: 'Please select a video file' },
-              {
-                validator: isValidVideoFile,
-                message: 'Please select a valid video file (MP4, WebM, AVI, etc.) under 500MB',
-              },
-            ],
-          },
-  };
+    step3: {
+      youtubeUrl: (value) => ({
+        isValid: !!value && isValidYouTubeUrl(value),
+        error: !value ? 'YouTube URL is required' : !isValidYouTubeUrl(value) ? 'Please enter a valid YouTube URL' : null,
+      }),
+      selectedFile: (value) => ({
+        isValid: !!value && isValidVideoFile(value),
+        error: !value ? 'Please select a video file' : !isValidVideoFile(value) ? 'Please select a valid video file' : null,
+      }),
+    },
+  }), []);
 
   // Validate current step
   const validateCurrentStep = () => {
@@ -91,7 +93,7 @@ export const useCreateProjectModal = () => {
 
     const validation = validateForm(data, stepRules);
     return validation.isValid;
-  }, [step, projectType, projectName, youtubeUrl, selectedFile]);
+  }, [step, projectType, projectName, youtubeUrl, selectedFile, validationRules]);
 
   // Reset form
   const resetForm = () => {
@@ -182,7 +184,7 @@ export const useCreateProjectModal = () => {
   };
 
   // Project creation
-  const handleCreateProject = async (onProjectCreated, onClose) => {
+  const handleCreateProject = async (onProjectCreated, _onClose) => {
     if (isCreating) return;
 
     try {
@@ -200,10 +202,11 @@ export const useCreateProjectModal = () => {
       const sanitizedDescription = sanitizeText(description);
 
       // Prepare project data
+      const backendType = projectType === 'upload' ? 'video_upload' : projectType === 'youtube' ? 'youtube_url' : projectType;
       const projectData = {
         name: sanitizedName,
         description: sanitizedDescription,
-        type: projectType,
+        type: backendType,
       };
 
       // Add type-specific data
@@ -350,6 +353,7 @@ export const useCreateProjectModal = () => {
     setProjectName: setProjectNameWithValidation,
     setDescription: setDescriptionWithValidation,
     setYoutubeUrl: setYoutubeUrlWithValidation,
+    setErrors,
     resetForm,
     handleFileSelect,
     handleDrag,

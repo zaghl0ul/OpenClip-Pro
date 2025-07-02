@@ -1,8 +1,19 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Grid3X3, List, Search } from 'lucide-react';
 import ProjectCard from '../project/ProjectCard';
+import { 
+  TrendingUpIcon, SparklesIcon, BrainIcon, XIcon, VideoIcon, SettingsIcon, 
+  LoaderIcon, ZapIcon, ActivityIcon, CheckCircleIcon, PlayIcon, EyeIcon,
+  AlertTriangleIcon, XCircleIcon, RefreshCwIcon, ClockIcon, CheckIcon,
+  AlertCircleIcon, LinkIcon, TrashIcon, PlusIcon, SearchIcon, Grid3X3Icon,
+  ListIcon, ArrowRightIcon, ChevronRightIcon, UploadIcon, DownloadIcon,
+  ShareIcon, FileTextIcon, MoreVerticalIcon, EditIcon, UserIcon, BellIcon,
+  HelpCircleIcon, MenuIcon, FolderIcon, FilmIcon, TargetIcon, PaletteIcon,
+  VolumeXIcon, Volume2Icon, SkipBackIcon, SkipForwardIcon, PauseIcon,
+  MaximizeIcon, ScissorsIcon, LayersIcon, TrendingDownIcon, StarIcon,
+  MailIcon, SendIcon, UsersIcon, MessageSquareIcon, HomeIcon, YoutubeIcon,
+  BarChart2Icon, KeyIcon, ShieldIcon, ArrowLeftIcon
+} from '../Common/icons';
 
 const ProjectsSection = React.memo(
   ({
@@ -70,19 +81,6 @@ const ProjectsSection = React.memo(
       [onSearchChange]
     );
 
-    const containerVariants = React.useMemo(
-      () => ({
-        hidden: { opacity: 0 },
-        visible: {
-          opacity: 1,
-          transition: {
-            staggerChildren: 0.1,
-          },
-        },
-      }),
-      []
-    );
-
     if (isLoading) {
       return (
         <div className="space-y-6">
@@ -115,7 +113,7 @@ const ProjectsSection = React.memo(
           <div className="flex items-center gap-3">
             {/* Search */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-subtle" />
+              <SearchIcon size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-subtle" />
               <input
                 type="text"
                 placeholder="Search projects..."
@@ -133,7 +131,7 @@ const ProjectsSection = React.memo(
                   viewMode === 'grid' ? 'bg-primary text-white' : 'text-subtle hover:text-white'
                 }`}
               >
-                <Grid3X3 className="w-4 h-4" />
+                <Grid3X3 size={16} className="w-4 h-4" />
               </button>
               <button
                 onClick={() => setViewMode('list')}
@@ -141,7 +139,7 @@ const ProjectsSection = React.memo(
                   viewMode === 'list' ? 'bg-primary text-white' : 'text-subtle hover:text-white'
                 }`}
               >
-                <List className="w-4 h-4" />
+                <ListIcon size={16} className="w-4 h-4" />
               </button>
             </div>
 
@@ -150,7 +148,7 @@ const ProjectsSection = React.memo(
               onClick={handleCreateProject}
               className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/80 text-white rounded-lg transition-colors"
             >
-              <Plus className="w-4 h-4" />
+              <PlusIcon size={16} className="w-4 h-4" />
               New Project
             </button>
           </div>
@@ -159,8 +157,8 @@ const ProjectsSection = React.memo(
         {/* Projects Grid/List */}
         {processedProjects.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4">
-              <Plus className="w-8 h-8 text-subtle" />
+            <div size={64} className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4">
+              <PlusIcon size={32} className="w-8 h-8 text-subtle" />
             </div>
             <h3 className="text-xl font-semibold text-white mb-2">
               {searchQuery ? 'No projects found' : 'Create your first project'}
@@ -175,16 +173,13 @@ const ProjectsSection = React.memo(
                 onClick={handleCreateProject}
                 className="flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/80 text-white rounded-lg transition-colors"
               >
-                <Plus className="w-5 h-5" />
+                <PlusIcon size={20} className="w-5 h-5" />
                 Create Project
               </button>
             )}
           </div>
         ) : (
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
+          <div
             className={
               viewMode === 'grid'
                 ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
@@ -199,7 +194,7 @@ const ProjectsSection = React.memo(
                 index={index}
               />
             ))}
-          </motion.div>
+          </div>
         )}
       </div>
     );

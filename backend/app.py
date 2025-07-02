@@ -17,19 +17,63 @@ import tempfile
 import base64
 from io import BytesIO
 
-# AI Provider Imports
-import openai
-import google.generativeai as genai
-import anthropic
-import cv2
-import numpy as np
-from PIL import Image
-import ffmpeg
+# ------------------------------------------------------------
+# Optional AI/ML & Media libraries
+# ------------------------------------------------------------
+# These libraries are large and sometimes tricky to install in
+# constrained environments.  To ensure the backend can still
+# boot when they are missing, we import them lazily and fall
+# back to ``None`` when unavailable.  Runtime routes that rely
+# on these packages should handle the ``None`` case and return
+# a clear error message to the client.
 
-# Add these new imports at the top with other imports
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+try:
+    import openai  # type: ignore
+except ImportError:  # pragma: no cover
+    openai = None  # type: ignore
+    print("[startup] Warning: 'openai' package not available – AI analysis disabled.")
+
+try:
+    import google.generativeai as genai  # type: ignore
+except ImportError:  # pragma: no cover
+    genai = None  # type: ignore
+    print("[startup] Warning: 'google-generativeai' package not available.")
+
+try:
+    import anthropic  # type: ignore
+except ImportError:  # pragma: no cover
+    anthropic = None  # type: ignore
+    print("[startup] Warning: 'anthropic' package not available.")
+
+try:
+    import cv2  # type: ignore
+except ImportError:  # pragma: no cover
+    cv2 = None  # type: ignore
+    print("[startup] Warning: 'opencv-python' package not available – thumbnail extraction disabled.")
+
+try:
+    import numpy as np  # type: ignore
+except ImportError:  # pragma: no cover
+    np = None  # type: ignore
+    print("[startup] Warning: 'numpy' package not available.")
+
+try:
+    from PIL import Image  # type: ignore
+except ImportError:  # pragma: no cover
+    Image = None  # type: ignore
+    print("[startup] Warning: 'Pillow' package not available – image processing disabled.")
+
+try:
+    import ffmpeg  # type: ignore
+except ImportError:  # pragma: no cover
+    ffmpeg = None  # type: ignore
+    print("[startup] Warning: 'ffmpeg-python' package not available – video processing disabled.")
+
+try:
+    import httpx  # type: ignore
+except ImportError:  # pragma: no cover
+    httpx = None  # type: ignore
+    print("[startup] Warning: 'httpx' package not available – outgoing HTTP calls disabled.")
 
 # Initialize FastAPI app
 app = FastAPI(title="OpenClip Pro API", version="1.0.0")

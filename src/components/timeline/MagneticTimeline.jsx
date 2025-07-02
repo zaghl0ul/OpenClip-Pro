@@ -1,6 +1,18 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { motion, useSpring, useTransform } from 'framer-motion';
-import { Play, Pause, SkipForward, SkipBack, Volume2, Scissors, Layers } from 'lucide-react';
+import { useSpring, useTransform } from '../Common/LightweightMotion';
+import { 
+  TrendingUpIcon, SparklesIcon, BrainIcon, XIcon, VideoIcon, SettingsIcon, 
+  LoaderIcon, ZapIcon, ActivityIcon, CheckCircleIcon, PlayIcon, EyeIcon,
+  AlertTriangleIcon, XCircleIcon, RefreshCwIcon, ClockIcon, CheckIcon,
+  AlertCircleIcon, LinkIcon, TrashIcon, PlusIcon, SearchIcon, Grid3X3Icon,
+  ListIcon, ArrowRightIcon, ChevronRightIcon, UploadIcon, DownloadIcon,
+  ShareIcon, FileTextIcon, MoreVerticalIcon, EditIcon, UserIcon, BellIcon,
+  HelpCircleIcon, MenuIcon, FolderIcon, FilmIcon, TargetIcon, PaletteIcon,
+  VolumeXIcon, Volume2Icon, SkipBackIcon, SkipForwardIcon, PauseIcon,
+  MaximizeIcon, ScissorsIcon, LayersIcon, TrendingDownIcon, StarIcon,
+  MailIcon, SendIcon, UsersIcon, MessageSquareIcon, HomeIcon, YoutubeIcon,
+  BarChart2Icon, KeyIcon, ShieldIcon, ArrowLeftIcon
+} from '../Common/icons';
 
 const MagneticTimeline = ({
   duration = 0,
@@ -139,35 +151,29 @@ const MagneticTimeline = ({
 
         {/* Transport Controls */}
         <div className="flex items-center justify-center gap-4 mb-6">
-          <motion.button
+          <div
             className="glass-minimal rounded-xl p-3 text-white hover:bg-white/20 transition-colors"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
             onClick={handleSkipBack}
           >
-            <SkipBack className="w-5 h-5" />
-          </motion.button>
+            <SkipBackIcon size={20} className="w-5 h-5" />
+          </div>
 
-          <motion.button
+          <div
             className="bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl p-4 text-white shadow-lg"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
             onClick={onPlayPause}
           >
-            {playing ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
-          </motion.button>
+            {playing ? <PauseIcon size={24} className="w-6 h-6" /> : <PlayIcon size={24} className="w-6 h-6" />}
+          </div>
 
-          <motion.button
+          <div
             className="glass-minimal rounded-xl p-3 text-white hover:bg-white/20 transition-colors"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
             onClick={handleSkipForward}
           >
-            <SkipForward className="w-5 h-5" />
-          </motion.button>
+            <SkipForwardIcon size={20} className="w-5 h-5" />
+          </div>
 
           <div className="ml-8 flex items-center gap-3">
-            <Volume2 className="w-5 h-5 text-white/60" />
+            <Volume2Icon size={20} className="w-5 h-5 text-white/60" />
             <div className="w-24 h-2 glass-minimal rounded-full overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-indigo-400 to-purple-400"
@@ -204,13 +210,13 @@ const MagneticTimeline = ({
 
             {/* Playhead */}
             {duration > 0 && (
-              <motion.div
+              <div
                 className="absolute top-0 bottom-0 pointer-events-none z-10"
                 style={{ left: playheadPercent.get() + '%' }}
               >
                 <div className="w-0.5 h-full bg-white shadow-lg" />
-                <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-white rounded-full shadow-lg" />
-              </motion.div>
+                <div size={16} className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-white rounded-full shadow-lg" />
+              </div>
             )}
           </div>
         </div>
@@ -218,26 +224,22 @@ const MagneticTimeline = ({
         {/* Timeline Tools */}
         <div className="flex items-center justify-between mt-4">
           <div className="flex items-center gap-3">
-            <motion.button
+            <div
               className="glass-minimal px-4 py-2 rounded-xl text-white hover:bg-white/20 transition-colors flex items-center gap-2"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
               onClick={() => onSplit?.(currentTime)}
               disabled={duration === 0}
             >
-              <Scissors className="w-4 h-4" />
+              <ScissorsIcon size={16} className="w-4 h-4" />
               Split
-            </motion.button>
+            </div>
 
-            <motion.button
+            <div
               className="glass-minimal px-4 py-2 rounded-xl text-white hover:bg-white/20 transition-colors flex items-center gap-2"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
               disabled={duration === 0}
             >
-              <Layers className="w-4 h-4" />
+              <Layers size={16} className="w-4 h-4" />
               Layers
-            </motion.button>
+            </div>
           </div>
         </div>
       </div>

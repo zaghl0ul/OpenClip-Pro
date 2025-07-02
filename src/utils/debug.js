@@ -142,7 +142,7 @@ class DebugUtils {
   // Test API connection
   async testApiConnection() {
     try {
-      const response = await fetch('http://localhost:8001/health');
+      const response = await fetch('http://localhost:8000/health');
       const data = await response.json();
       this.log('API', 'Health check successful', data);
       return { success: true, data };

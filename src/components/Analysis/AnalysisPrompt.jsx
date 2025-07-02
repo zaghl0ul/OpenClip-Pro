@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import {
-  Send,
-  Sparkles,
-  Clock,
-  Target,
-  TrendingUp,
-  Users,
-  MessageSquare,
-  BarChart3,
-  Brain,
-} from 'lucide-react';
+import { 
+  TrendingUpIcon as TrendingUp,
+  TargetIcon as Target,
+  UsersIcon as Users,
+  BarChart2Icon as BarChart3,
+  MessageSquareIcon as MessageSquare,
+  ClockIcon as Clock,
+  SparklesIcon,
+  BrainIcon,
+  SendIcon as Send
+} from '../Common/icons';
 
 const AnalysisPrompt = ({ onAnalyze, isAnalyzing = false, className = '', initialPrompt = '' }) => {
   const [prompt, setPrompt] = useState(initialPrompt || '');
@@ -21,7 +20,7 @@ const AnalysisPrompt = ({ onAnalyze, isAnalyzing = false, className = '', initia
     if (initialPrompt && initialPrompt !== prompt) {
       setPrompt(initialPrompt);
     }
-  }, [initialPrompt]);
+  }, [initialPrompt, prompt]);
 
   const aiProviders = [
     {
@@ -117,7 +116,7 @@ const AnalysisPrompt = ({ onAnalyze, isAnalyzing = false, className = '', initia
   return (
     <div className={`glass-shine rounded-lg p-6 ${className}`}>
       <div className="flex items-center gap-2 mb-6">
-        <Sparkles className="w-5 h-5 text-green-400" />
+        <SparklesIcon size={20} className="w-5 h-5 text-green-400" />
         <h3 className="text-lg font-semibold text-white">AI Video Analysis</h3>
       </div>
 
@@ -126,7 +125,7 @@ const AnalysisPrompt = ({ onAnalyze, isAnalyzing = false, className = '', initia
         <h4 className="text-sm font-medium text-white/80 mb-3">Select AI Provider</h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {aiProviders.map((provider) => (
-            <motion.button
+            <div
               key={provider.id}
               type="button"
               onClick={() => setSelectedProvider(provider.id)}
@@ -135,11 +134,9 @@ const AnalysisPrompt = ({ onAnalyze, isAnalyzing = false, className = '', initia
                   ? 'border-blue-500 bg-blue-500/20 text-white'
                   : 'border-white/20 bg-white/5 text-white/80 hover:border-white/30 hover:bg-white/10'
               }`}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
             >
               <div className="flex items-start gap-2">
-                <Brain
+                <BrainIcon
                   className={`w-4 h-4 mt-0.5 ${
                     selectedProvider === provider.id ? 'text-blue-400' : 'text-white/60'
                   }`}
@@ -149,7 +146,7 @@ const AnalysisPrompt = ({ onAnalyze, isAnalyzing = false, className = '', initia
                   <div className="text-xs opacity-75 mt-1">{provider.description}</div>
                 </div>
               </div>
-            </motion.button>
+            </div>
           ))}
         </div>
       </div>
@@ -161,7 +158,7 @@ const AnalysisPrompt = ({ onAnalyze, isAnalyzing = false, className = '', initia
           {analysisTemplates.map((template) => {
             const IconComponent = template.icon;
             return (
-              <motion.button
+              <div
                 key={template.id}
                 type="button"
                 onClick={() => handleTemplateSelect(template)}
@@ -170,8 +167,6 @@ const AnalysisPrompt = ({ onAnalyze, isAnalyzing = false, className = '', initia
                     ? 'border-green-500 bg-green-500/20 text-white'
                     : 'border-white/20 bg-white/5 text-white/80 hover:border-white/30 hover:bg-white/10'
                 }`}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
               >
                 <div className="flex items-start gap-2">
                   <IconComponent
@@ -184,7 +179,7 @@ const AnalysisPrompt = ({ onAnalyze, isAnalyzing = false, className = '', initia
                     <div className="text-xs opacity-75 mt-1">{template.description}</div>
                   </div>
                 </div>
-              </motion.button>
+              </div>
             );
           })}
         </div>
@@ -219,13 +214,11 @@ const AnalysisPrompt = ({ onAnalyze, isAnalyzing = false, className = '', initia
         </div>
 
         {selectedTemplate && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
+          <div
             className="bg-green-500/10 border border-green-500/30 rounded-lg p-3"
           >
             <div className="flex items-start gap-2">
-              <selectedTemplate.icon className="w-4 h-4 text-green-400 mt-0.5" />
+              <selectedTemplate.icon size={16} className="w-4 h-4 text-green-400 mt-0.5" />
               <div>
                 <div className="text-sm font-medium text-green-300">
                   Using template: {selectedTemplate.title}
@@ -233,7 +226,7 @@ const AnalysisPrompt = ({ onAnalyze, isAnalyzing = false, className = '', initia
                 <div className="text-xs text-green-400/80 mt-1">{selectedTemplate.description}</div>
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
 
         <div className="flex items-center justify-between">
@@ -244,25 +237,23 @@ const AnalysisPrompt = ({ onAnalyze, isAnalyzing = false, className = '', initia
             </span>
           </div>
 
-          <motion.button
+          <button
             type="submit"
             disabled={!prompt.trim() || isAnalyzing}
             className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium shadow-lg"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
           >
             {isAnalyzing ? (
               <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <div size={16} className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 Analyzing...
               </>
             ) : (
               <>
-                <Send className="w-4 h-4" />
+                <Send size={16} className="w-4 h-4" />
                 Analyze Video
               </>
             )}
-          </motion.button>
+          </button>
         </div>
       </form>
 

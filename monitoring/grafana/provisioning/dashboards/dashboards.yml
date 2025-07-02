@@ -1,0 +1,39 @@
+# Grafana dashboards provisioning configuration
+apiVersion: 1
+
+providers:
+  # OpenClip dashboards
+  - name: 'OpenClip Dashboards'
+    orgId: 1
+    folder: 'OpenClip'
+    folderUid: 'openclip'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/openclip
+
+  # System dashboards
+  - name: 'System Monitoring'
+    orgId: 1
+    folder: 'System'
+    folderUid: 'system'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/system
+
+  # Business dashboards
+  - name: 'Business Analytics'
+    orgId: 1
+    folder: 'Business'
+    folderUid: 'business'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/business

@@ -1,0 +1,347 @@
+# OpenClip Pro Alert Rules
+groups:
+  - name: openclip_alerts
+    interval: 30s
+    rules:
+      # Application Health
+      - alert: ApplicationDown
+        expr: up{job="openclip"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: application
+        annotations:
+          summary: "OpenClip application is down"
+          description: "The OpenClip backend has been unreachable for more than 2 minutes."
+          runbook_url: "https://docs.openclip.pro/runbooks/application-down"
+
+      # Error Rate Alerts
+      - alert: HighErrorRate
+        expr: |
+          (
+            sum(rate(errors_total[5m])) 
+            / 
+            sum(rate(http_requests_total[5m]))
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          component: application
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value | humanizePercentage }} for the last 5 minutes"
+
+      - alert: CriticalErrors
+        expr: rate(errors_total{severity="critical"}[5m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+          component: application
+        annotations:
+          summary: "Critical errors detected"
+          description: "{{ $value }} critical errors per second in component {{ $labels.component }}"
+
+      # Performance Alerts
+      - alert: SlowResponseTime
+        expr: |
+          histogram_quantile(0.95, 
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (le, method, endpoint)
+          ) > 2
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "Slow API response time"
+          description: "95th percentile response time for {{ $labels.method }} {{ $labels.endpoint }} is {{ $value }}s"
+
+      - alert: HighResponseTime99
+        expr: |
+          histogram_quantile(0.99, 
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (le)
+          ) > 5
+        for: 5m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: "Very high response time detected"
+          description: "99th percentile response time is {{ $value }}s"
+
+      # Resource Utilization
+      - alert: HighCPUUsage
+        expr: |
+          (
+            100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+          ) > 80
+        for: 10m
+        labels:
+          severity: warning
+          component: infrastructure
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is {{ $value }}% on {{ $labels.instance }}"
+
+      - alert: HighMemoryUsage
+        expr: |
+          (
+            node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes
+          ) / node_memory_MemTotal_bytes > 0.9
+        for: 10m
+        labels:
+          severity: warning
+          component: infrastructure
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+
+      - alert: DiskSpaceLow
+        expr: |
+          (
+            node_filesystem_avail_bytes{fstype!~"tmpfs|fuse.lxcfs|squashfs"} 
+            / node_filesystem_size_bytes
+          ) < 0.1
+        for: 5m
+        labels:
+          severity: critical
+          component: infrastructure
+        annotations:
+          summary: "Low disk space"
+          description: "Only {{ $value | humanizePercentage }} disk space left on {{ $labels.device }} ({{ $labels.instance }})"
+
+      # Database Alerts
+      - alert: DatabaseDown
+        expr: up{job="postgresql"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "PostgreSQL database is down"
+          description: "PostgreSQL has been unreachable for more than 2 minutes"
+
+      - alert: DatabaseConnectionPoolExhaustion
+        expr: |
+          (
+            db_active_connections / db_connection_pool_size
+          ) > 0.9
+        for: 5m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "Database connection pool near exhaustion"
+          description: "Database connection pool is {{ $value | humanizePercentage }} full"
+
+      - alert: DatabaseReplicationLag
+        expr: db_replica_lag_seconds > 10
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "Database replication lag detected"
+          description: "Replica {{ $labels.replica }} is {{ $value }}s behind primary"
+
+      - alert: SlowDatabaseQueries
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(db_query_duration_seconds_bucket[5m])) by (le, query_type)
+          ) > 1
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "Slow database queries"
+          description: "95th percentile query time for {{ $labels.query_type }} is {{ $value }}s"
+
+      # Storage Alerts
+      - alert: StorageFailures
+        expr: |
+          rate(storage_operations_total{status="failure"}[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+          component: storage
+        annotations:
+          summary: "High storage failure rate"
+          description: "Storage {{ $labels.provider }} failure rate is {{ $value }} per second"
+
+      - alert: StorageLatencyHigh
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(storage_latency_seconds_bucket[5m])) by (le, provider, operation)
+          ) > 1
+        for: 5m
+        labels:
+          severity: warning
+          component: storage
+        annotations:
+          summary: "High storage latency"
+          description: "{{ $labels.provider }} {{ $labels.operation }} latency is {{ $value }}s"
+
+      # Redis Alerts
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: cache
+        annotations:
+          summary: "Redis is down"
+          description: "Redis has been unreachable for more than 2 minutes"
+
+      - alert: RedisCacheHitRateLow
+        expr: cache_hit_rate < 0.5
+        for: 10m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: "Low cache hit rate"
+          description: "Cache hit rate is {{ $value | humanizePercentage }}"
+
+      # Video Processing Alerts
+      - alert: VideoProcessingFailures
+        expr: |
+          rate(video_processing_duration_seconds_count{status="failure"}[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          component: video_processing
+        annotations:
+          summary: "High video processing failure rate"
+          description: "Video processing failure rate is {{ $value }} per second"
+
+      - alert: VideoProcessingSlow
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(video_processing_duration_seconds_bucket[5m])) by (le, operation)
+          ) > 300
+        for: 10m
+        labels:
+          severity: warning
+          component: video_processing
+        annotations:
+          summary: "Slow video processing"
+          description: "{{ $labels.operation }} taking {{ $value }}s (95th percentile)"
+
+      # AI Provider Alerts
+      - alert: AIProviderFailures
+        expr: |
+          rate(ai_analysis_requests_total{status="failure"}[5m]) > 0.2
+        for: 5m
+        labels:
+          severity: warning
+          component: ai_analysis
+        annotations:
+          summary: "AI provider failure rate high"
+          description: "{{ $labels.provider }} failure rate is {{ $value }} per second"
+
+      - alert: AIProviderSlow
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(ai_analysis_duration_seconds_bucket[5m])) by (le, provider, model)
+          ) > 30
+        for: 5m
+        labels:
+          severity: warning
+          component: ai_analysis
+        annotations:
+          summary: "AI provider response slow"
+          description: "{{ $labels.provider }} {{ $labels.model }} taking {{ $value }}s"
+
+      - alert: AITokenUsageHigh
+        expr: |
+          sum(rate(ai_tokens_used_total[1h])) by (provider) > 10000
+        for: 5m
+        labels:
+          severity: warning
+          component: ai_analysis
+        annotations:
+          summary: "High AI token usage"
+          description: "{{ $labels.provider }} using {{ $value }} tokens per hour"
+
+      # Business Metrics Alerts
+      - alert: NoNewUploadsDetected
+        expr: |
+          sum(rate(video_uploads_total[30m])) == 0
+        for: 1h
+        labels:
+          severity: warning
+          component: business
+        annotations:
+          summary: "No video uploads detected"
+          description: "No video uploads in the last hour"
+
+      - alert: UserRegistrationsStopped
+        expr: |
+          sum(rate(user_registrations_total[1h])) == 0
+        for: 2h
+        labels:
+          severity: warning
+          component: business
+        annotations:
+          summary: "No new user registrations"
+          description: "No new user registrations in the last 2 hours"
+
+      - alert: RevenueDropDetected
+        expr: |
+          (
+            sum(rate(revenue_total[1h])) 
+            < 
+            sum(rate(revenue_total[1h] offset 24h)) * 0.5
+          )
+        for: 1h
+        labels:
+          severity: critical
+          component: business
+        annotations:
+          summary: "Significant revenue drop detected"
+          description: "Revenue is down more than 50% compared to same time yesterday"
+
+      # Security Alerts
+      - alert: HighFailedLoginRate
+        expr: |
+          sum(rate(http_requests_total{endpoint="/auth/login",status=~"4.."}[5m])) > 10
+        for: 5m
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "High failed login rate"
+          description: "{{ $value }} failed login attempts per second"
+
+      - alert: SuspiciousActivity
+        expr: |
+          sum(rate(errors_total{type="security"}[5m])) > 0
+        for: 1m
+        labels:
+          severity: critical
+          component: security
+        annotations:
+          summary: "Security error detected"
+          description: "Security-related errors detected: {{ $value }} per second"
+
+      # Endpoint Availability
+      - alert: EndpointDown
+        expr: probe_success{job="blackbox"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: availability
+        annotations:
+          summary: "Endpoint is down"
+          description: "{{ $labels.instance }} has been down for more than 2 minutes"
+
+      - alert: SSLCertificateExpiringSoon
+        expr: |
+          (probe_ssl_earliest_cert_expiry - time()) / 86400 < 30
+        for: 1h
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "SSL certificate expiring soon"
+          description: "SSL certificate for {{ $labels.instance }} expires in {{ $value }} days"

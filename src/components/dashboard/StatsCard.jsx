@@ -1,5 +1,4 @@
 import React from 'react';
-import { TrendingUp, TrendingDown } from 'lucide-react';
 
 const StatsCard = ({ title, value, change, icon: Icon, trend = 'up' }) => {
   const isPositive = trend === 'up';
@@ -13,9 +12,9 @@ const StatsCard = ({ title, value, change, icon: Icon, trend = 'up' }) => {
           {change && (
             <div className="flex items-center gap-1">
               {isPositive ? (
-                <TrendingUp className="w-4 h-4 text-success" />
+                <TrendingUpIcon size={16} className="w-4 h-4 text-success" />
               ) : (
-                <TrendingDown className="w-4 h-4 text-error" />
+                <TrendingDown size={16} className="w-4 h-4 text-error" />
               )}
               <span className={`text-sm font-medium ${isPositive ? 'text-success' : 'text-error'}`}>
                 {change}
@@ -25,7 +24,7 @@ const StatsCard = ({ title, value, change, icon: Icon, trend = 'up' }) => {
         </div>
         {Icon && (
           <div className="p-3 bg-primary/10 rounded-lg">
-            <Icon className="w-6 h-6 text-primary" />
+            <Icon size={24} className="w-6 h-6 text-primary" />
           </div>
         )}
       </div>

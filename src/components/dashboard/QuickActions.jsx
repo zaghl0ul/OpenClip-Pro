@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Upload, YoutubeIcon, Settings, ArrowRight } from 'lucide-react';
+import { Plus, Upload, Youtube as YoutubeIcon, Settings, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const QuickActions = ({ onCreateProject }) => {
